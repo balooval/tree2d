@@ -1,6 +1,6 @@
+import Render from './Render.js'
 
-
-class Render {
+class LightLayer {
     constructor() {
         this.canvas = null;
         this.context = null;
@@ -11,32 +11,39 @@ class Render {
         this.offsetY = 0;
     }
     
-    init(canvas) {
+    init(canvasId) {
+        const scale = 0.2;
+        const canvas = document.getElementById(canvasId);
         this.canvas = document.createElement('canvas');
-        this.canvas.width = canvas.width;
-        this.canvas.height = canvas.height;
+        this.canvas.width = Math.round(canvas.width * scale);
+        this.canvas.height = Math.round(canvas.height * scale);
         this.context = this.canvas.getContext('2d');
+
         this.sceneWidth = this.canvas.width;
         this.sceneHeight = this.canvas.height;
         this.worldScale = this.sceneHeight / 2000;
         this.offsetX = this.sceneWidth / 2;
         this.offsetY = this.sceneHeight;
-
         this.clear();
     }
 
-    draw(context) {
-        context.drawImage(
+    draw() {
+        Render.context.globalCompositeOperation = "lighter";
+        Render.context.drawImage(
             this.canvas,
             0, 0, this.canvas.width, this.canvas.height,
-            0, 0, this.sceneWidth, this.sceneHeight,
+            0, 0, Render.sceneWidth, Render.sceneHeight,
         )
+        Render.context.globalCompositeOperation = "source-over";
+    }
+
+    drawRay(ray) {
+        this.drawLine(ray.start, ray.end, 60, 'rgb(255, 221, 84, 0.3)');
     }
 
     clear() {
-        // this.context.fillStyle = 'rgba(20, 20, 20, 1)';
-        // this.context.fillRect(0, 0, this.sceneWidth, this.sceneHeight);
-        this.context.clearRect(0, 0, this.sceneWidth, this.sceneHeight);
+        this.context.fillStyle = 'rgb(0, 0, 0)';
+        this.context.fillRect(0, 0, this.sceneWidth, this.sceneHeight);
     }
 
     drawLine(worldStart, worldEnd, worldWidth, color) {
@@ -48,23 +55,6 @@ class Render {
         this.context.lineWidth  = this.worldToCanvasWidth(worldWidth);
         this.context.moveTo(start[0], start[1]);
         this.context.lineTo(end[0], end[1]);
-        this.context.stroke();
-    }
-
-    drawCircle(worldPosition, radius, color) {
-        const position = this.worldToCanvasPosition(worldPosition);
-        this.context.beginPath();
-        this.context.fillStyle = color;
-        this.context.arc(position[0], position[1], radius * this.worldScale, 0, 6.28);
-        this.context.fill();
-    }
-
-    drawEmptyCircle(worldPosition, radius, color) {
-        const position = this.worldToCanvasPosition(worldPosition);
-        this.context.beginPath();
-        this.context.strokeStyle = color;
-        this.context.lineWidth = 1;
-        this.context.arc(position[0], position[1], radius * this.worldScale, 0, 6.28);
         this.context.stroke();
     }
 
@@ -86,23 +76,8 @@ class Render {
     worldToCanvasY(worldY) {
         return this.offsetY - (worldY * this.worldScale);
     }
-
-    canvasToWorldPosition(canvasPosition) {
-        return [
-            this.canvasToWorldX(canvasPosition.x),
-            this.canvasToWorldY(canvasPosition.y),
-        ];
-    }
-
-    canvasToWorldX(canvasX) {
-        return (canvasX - this.offsetX) / this.worldScale;
-    }
-
-    canvasToWorldY(canvasY) {
-        return (this.offsetY - canvasY) / this.worldScale;
-    }
 }
 
-const render = new Render();
+const lightLayer = new LightLayer();
 
-export {render as default};
+export {lightLayer as default};

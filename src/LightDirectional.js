@@ -1,4 +1,4 @@
-import {segmentIntersection} from './Math.js'
+import {segmentIntersection, randomize} from './Math.js'
 import Render from './renderer/Render.js'
 
 class Light {
@@ -8,9 +8,8 @@ class Light {
         this.target = target;
         this.direction = this.target.sub(this.position);
         this.length = this.direction.length();
-        this.emitAngle = 3;
-        this.rayCount = 30;
-        this.width = 50;
+        this.rayCount = 160;
+        this.width = 80;
         this.angle = this.position.radiansTo(this.target);
 
         this.rays = [];
@@ -36,6 +35,7 @@ class Light {
             rayStart.addSelf(this.position);
 
             let rayVector = rayStart.add(this.direction);
+
             rayVector = this.#cutRayByBranchs(rayStart, rayVector, branchs);
 
             const ray = new Ray(rayStart, rayVector);
@@ -78,7 +78,7 @@ class Light {
         this.rays.forEach(ray => {
             const normalRay = ray.end.sub(ray.start)
             normalRay.normalizeSelf();
-            const stepDistance = 100;
+            const stepDistance = 50;
             const stepCount = ray.length / stepDistance;
             
             for (let i = 1; i <= stepCount; i ++) {
@@ -91,6 +91,9 @@ class Light {
                     continue;
                 }
 
+                photoRay.x = randomize(photoRay.x, stepDistance * 0.4);
+                photoRay.y = randomize(photoRay.y, stepDistance * 0.4);
+
                 const photon = new Photon(photoRay);
                 photons.push(photon);
             }
@@ -100,6 +103,7 @@ class Light {
     }
 
     #photonIsIntoBranchZone(position, branchs) {
+        return false;
         for (let i = 0; i < branchs.length; i ++) {
             const branch = branchs[i];
             const distance = position.distanceFrom(branch.end);

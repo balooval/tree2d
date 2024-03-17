@@ -1,31 +1,75 @@
 import Render from './renderer/Render.js'
 import TreeRender from './renderer/TreeRender.js'
 import LightRender from './renderer/LightRender.js'
+import LightLayer from './renderer/LightLayer.js'
 import Light from './Light.js';
 import LightDirectional from './LightDirectional.js';
-import Tree from './Tree.js';
+import {Tree} from './Tree.js';
 
 let tree;
 // let lightSource;
-let attractors;
+let attractors = [];
+let cycles = 0;
 
-let run = false;
-const mousePosition = [0, 0];
+const treesSolo = [];
+const treesA = [];
+const treesB = [];
+const treeRender = new TreeRender(Render);
+
+let canvas = null;
+let context = null;
+let run = true;
+const mousePosition = [400, 100];
 
 export function init(canvasId) {
-    Render.init(canvasId);
+
+    canvas = document.getElementById(canvasId);
+    context = canvas.getContext('2d');
+
+    Render.init(canvas);
+    LightLayer.init(canvasId);
+    mousePosition[0] = Render.sceneWidth / 2;
 
     // lightSource = new Light(new Vector(0, 1800), new Vector(0, 150));
     const lightSource = new LightDirectional(new Vector(0, 1800), new Vector(0, 150));
-    tree = new Tree(new Vector(0, 0));
+    tree = new Tree(new Vector(0, 0), 'typeA');
+    const treeA = new Tree(new Vector(-850, 0), 'typeA');
+    const treeB = new Tree(new Vector(-200, 0), 'typeB');
+    const treeC = new Tree(new Vector(100, 0), 'typeB');
+    const treeD = new Tree(new Vector(400, 0), 'typeB');
+    const treeE = new Tree(new Vector(1000, 0), 'typeB');
+    const treeF = new Tree(new Vector(1200, 0), 'typeA');
+    const treeG = new Tree(new Vector(800, 0), 'typeB');
+    const treeH = new Tree(new Vector(-300, 0), 'typeA');
+    const treeI = new Tree(new Vector(-600, 0), 'typeA');
 
-    lightSource.emit([]);
-    LightRender.draw(lightSource);
+    treesA.push(
+        // tree,
+        treeA,
+        treeB,
+        // treeC,
+        treeD,
+        treeE,
+        // treeF,
+    );
 
-    const photons = lightSource.getPhotons();
-    attractors = createAttractors(photons);
+    treesB.push(
+        treeC,
+        treeF,
+        treeG,
+        treeH,
+        treeI,
+    );
 
-    TreeRender.draw(tree);
+    treesSolo.push(new Tree(new Vector(0, 0), 'typeB'));
+
+    // lightSource.emit([]);
+    // LightRender.draw(lightSource);
+
+    // const photons = lightSource.getPhotons();
+    // attractors = createAttractors(photons);
+
+    // treeRender.draw(tree);
 
     document.getElementById('main').addEventListener('click', onClick);
     document.getElementById('main').addEventListener('mousedown', onMouseDown);
@@ -51,8 +95,8 @@ function onKeyUp(evt) {
 
 function onMouseMove(evt) {
     var rect = evt.target.getBoundingClientRect();
-    mousePosition[0] = evt.clientX - rect.left;
-    mousePosition[1] = evt.clientY - rect.top;
+    // mousePosition[0] = evt.clientX - rect.left;
+    // mousePosition[1] = evt.clientY - rect.top;
 }
 
 function onMouseDown() {
@@ -67,34 +111,58 @@ function onClick(evt) {
 }
 
 function play() {
+    context.fillStyle = 'rgb(20, 20, 20)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
     const lightPosition = Render.canvasToWorldPosition(new Vector(mousePosition[0], mousePosition[1]));
-    const lightSource = new LightDirectional(new Vector(lightPosition[0], lightPosition[1]), new Vector(0, 20));
 
-    Render.clear();
-    
-    treeGrow(tree);
-    
-    lightSource.emit(tree.getBranchs());
-    attractors = createAttractors(lightSource.getPhotons());
+    const treesList = [
+        treesB,
+        treesA,
+        // treesSolo,
+    ];
 
-    LightRender.draw(lightSource);
+    for (const trees of treesList) {
+
+        const lightSource = new LightDirectional(new Vector(lightPosition[0], lightPosition[1]), new Vector(0, 20));
+
+        Render.clear();
+        
+        const branchs = [];
+        trees.forEach(tree => branchs.push(...tree.getBranchs()));
+        lightSource.emit(branchs);
+        LightRender.draw(lightSource);
+
+        attractors = createAttractors(lightSource.getPhotons());
+
+        treeGrow(trees);
+        
+
+        Render.draw(context);
+    }
+
+    cycles ++;
+
+    if (cycles % 15 === 0) {
+        run = false;
+    }
 }
 
-function treeGrow(tree) {
+function treeGrow(trees) {
     
-    const branchs = tree.getBranchs();
-    
+    const branchs = [];
+    trees.forEach(tree => branchs.push(...tree.getBranchs()));
+
     branchs.forEach(branch => branch.attractors = []);
     
     branchs.forEach(branch => attachBrancheToAttractors(branch, attractors));
     attractors.forEach(attractor => attachAttractorsToBranch(attractor));
     
-    branchs.forEach(branch => branch.createChild());
+    branchs.forEach(branch => branch.takeLight());
     
-    TreeRender.draw(tree);
-    
-    tree.addAge();
-    tree.prune();
+    trees.forEach(tree => treeRender.draw(tree));
+    trees.forEach(tree => tree.addAge());
+    trees.forEach(tree => tree.prune());
     
     // tree.addBranchs(newBranchs);
     attractors = clearUsedAttractors(attractors);
