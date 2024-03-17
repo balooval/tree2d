@@ -1,0 +1,31 @@
+import Render from './Render.js'
+
+class LightRender {
+    constructor(render) {
+        this.render = render;
+    }
+
+    draw(light) {
+        Render.drawLine(light.position, light.target, 2, 'rgb(250, 200, 50)');
+        light.rays.forEach(ray => Render.drawLine(ray.start, ray.end, 1, 'rgb(250, 200, 50)'))
+        light.photons.forEach(photon => Render.drawCircle(photon.position, 10, 'rgb(255, 255, 255)'))
+        
+        // light.photons.forEach(photon => this.drawPhoton(photon.position))
+    }
+
+    drawPhoton(worldPosition) {
+        const position = Render.worldToCanvasPosition(worldPosition);
+        Render.context.beginPath();
+        const gradient = Render.context.createRadialGradient(position[0], position[1], 2, position[0], position[1], 20);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        // gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+        Render.context.fillStyle = gradient;
+        Render.context.arc(position[0], position[1], 20, 0, 6.28);
+        Render.context.fill();
+    }
+}
+
+const lightRender = new LightRender(Render);
+
+export {lightRender as default};
