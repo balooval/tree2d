@@ -24,11 +24,13 @@ class TreeRender {
     #drawLeaves(branch) {
         const count = branch.attractors.length * branch.preset.leaveCountMultiplier;
 
+        const preset = presets[branch.presetType];
+
         for (let i = 0; i < count; i ++) {
             const leavePosition = branch.end.clone();
-            leavePosition.x = randomize(leavePosition.x, 20);
-            leavePosition.y = randomize(leavePosition.y, 20);
-            this.render.drawCircle(leavePosition, presets[branch.presetType].leaveSize, randomElement(branch.preset.leaveColors))
+            leavePosition.x = randomize(leavePosition.x, preset.leaveDispersion);
+            leavePosition.y = randomize(leavePosition.y, preset.leaveDispersion);
+            this.render.drawCircle(leavePosition, preset.leaveSize, randomElement(branch.preset.leaveColors))
         }
     }
 }

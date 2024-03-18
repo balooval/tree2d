@@ -16,49 +16,47 @@ const treesA = [];
 const treesB = [];
 const treeRender = new TreeRender(Render);
 
+let backgroundImage = null;
 let canvas = null;
 let context = null;
 let run = false;
 const mousePosition = [400, 100];
 
+// const backgroundColor = 'rgb(100, 100, 100)';
+const backgroundColor = 'rgb(20, 20, 20)';
+
 export function init(canvasId) {
 
     canvas = document.getElementById(canvasId);
     context = canvas.getContext('2d');
+    clearCanvas();
+
 
     Render.init(canvas);
     LightLayer.init(canvasId);
     mousePosition[0] = Render.sceneWidth / 2;
 
+    const groundPosition = 50;
+
     // lightSource = new Light(new Vector(0, 1800), new Vector(0, 150));
     const lightSource = new LightDirectional(new Vector(0, 1800), new Vector(0, 150));
     tree = new Tree(new Vector(0, 0), 'typeA');
-    const treeA = new Tree(new Vector(-850, 0), 'typeA');
-    const treeB = new Tree(new Vector(-200, 0), 'typeB');
-    const treeC = new Tree(new Vector(100, 0), 'typeB');
-    const treeD = new Tree(new Vector(400, 0), 'typeB');
-    const treeE = new Tree(new Vector(1000, 0), 'typeB');
-    const treeF = new Tree(new Vector(1200, 0), 'typeA');
-    const treeG = new Tree(new Vector(800, 0), 'typeB');
-    const treeH = new Tree(new Vector(-300, 0), 'typeA');
-    const treeI = new Tree(new Vector(-600, 0), 'typeA');
 
     treesA.push(
-        // tree,
-        treeA,
-        treeB,
-        // treeC,
-        treeD,
-        treeE,
-        // treeF,
+        new Tree(new Vector(-1500, groundPosition), 'typeB'),
+        new Tree(new Vector(-1050, groundPosition), 'typeB'),
+        new Tree(new Vector(-850, groundPosition), 'typeA'),
+        new Tree(new Vector(-200, groundPosition), 'typeB'),
+        new Tree(new Vector(400, groundPosition), 'typeB'),
+        new Tree(new Vector(1000, groundPosition), 'typeB'),
     );
 
     treesB.push(
-        treeC,
-        treeF,
-        treeG,
-        treeH,
-        treeI,
+        new Tree(new Vector(100, groundPosition), 'typeB'),
+        new Tree(new Vector(1200, groundPosition), 'typeA'),
+        new Tree(new Vector(800, groundPosition), 'typeB'),
+        new Tree(new Vector(-300, groundPosition), 'typeA'),
+        new Tree(new Vector(-600, groundPosition), 'typeA'),
     );
 
     treesSolo.push(new Tree(new Vector(0, 0), 'typeB'));
@@ -111,9 +109,8 @@ function onClick(evt) {
 }
 
 function play() {
-    context.fillStyle = 'rgb(20, 20, 20)';
-    // context.fillStyle = 'rgb(100, 100, 100)';
-    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    clearCanvas();
 
     const lightPosition = Render.canvasToWorldPosition(new Vector(mousePosition[0], mousePosition[1]));
 
@@ -161,6 +158,8 @@ function treeGrow(trees) {
     
     branchs.forEach(branch => branch.takeLight());
     
+    // trees.forEach(tree => treeRender.draw(tree));
+    trees.forEach(tree => tree.bendBranches());
     trees.forEach(tree => treeRender.draw(tree));
     trees.forEach(tree => tree.addAge());
     trees.forEach(tree => tree.prune());
@@ -179,6 +178,15 @@ function attachAttractorsToBranch(attractor) {
 
 function createAttractors(photons) {
     return photons.map(photon => new Attractor(photon.position));
+}
+
+function clearCanvas() {
+    context.fillStyle = backgroundColor;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    // context.drawImage(backgroundImage,
+    //     0, 0, backgroundImage.width, backgroundImage.height,
+    //     0, 0, canvas.width, canvas.height,
+    // );
 }
 
 class Attractor {

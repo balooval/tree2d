@@ -2,13 +2,16 @@ import { randomize, randomElement } from "./Math.js";
 
 export const presets = {
     typeA: {
-        maxLightDistance: 200,
-        newBranchLength: 90,
+        maxLightDistance: 120,
+        newBranchLength: 15,
+        flexibility: 0.00002,
         uselessBeforePrune: 10,
+        pumpQuantityToParent: 5,
         lightBeforeGrow: 10,
         directionConstrainFactor: 0.5,
         leaveCountMultiplier: 2,
         leaveSize: 3,
+        leaveDispersion: 40,
         leaveColors: [
             'rgb(0, 255, 0)',
             'rgb(147, 237, 102)',
@@ -20,12 +23,15 @@ export const presets = {
     },
     typeB: {
         maxLightDistance: 100,
-        newBranchLength: 50,
+        newBranchLength: 10,
+        flexibility: 0.00001,
         uselessBeforePrune: 10,
+        pumpQuantityToParent: 5,
         lightBeforeGrow: 5,
         directionConstrainFactor: 0,
         leaveCountMultiplier: 3,
         leaveSize: 5,
+        leaveDispersion: 20,
         leaveColors: [
             'rgb(22, 130, 23)',
             'rgb(75, 156, 59)',
@@ -51,12 +57,12 @@ export class Tree {
         this.getBranchs().forEach(branch => branch.addAge());
     }
 
-    prune() {
-        this.root.pruneIfNeeded();
+    bendBranches() {
+        this.root.bend();
     }
 
-    addBranchs(branchs) {
-        this.branchs.push(...branchs);
+    prune() {
+        this.root.pruneIfNeeded();
     }
 
     getBranchs() {
@@ -73,7 +79,9 @@ class Branch {
         this.preset = presets[this.presetType];
         this.maxLightDistance = this.preset.maxLightDistance;
         this.newBranchLength = this.preset.newBranchLength;
+        this.flexibility = this.preset.flexibility;
         this.lightBeforeGrow = this.preset.lightBeforeGrow;
+        this.pumpQuantityToParent = this.preset.pumpQuantityToParent;
         this.directionConstrainFactor = this.preset.directionConstrainFactor;
         this.trunkColor = randomElement(this.preset.trunkColors);
         this.attractors = [];
@@ -86,7 +94,41 @@ class Branch {
         this.energyAsked = false;
     }
 
+    bend() {
+        if (this.totalChildsCount > 5 && this.totalChildsCount < 20 && this.parent !== null) {
+            const myLength = this.end.distanceFrom(this.start);
+            const localRigidity = myLength / this.totalChildsCount;
+            const ground = new Vector(-1, 0);
+            const bendForce = this.end.sub(this.start).normalizeSelf().dot(ground);
+            const bendAngle = (bendForce * myLength * this.totalChildsCount) * (this.flexibility / localRigidity);
+            const newEnd = this.end.sub(this.start);
+            newEnd.rotateRadiansSelf(bendAngle);
+            this.end = newEnd.add(this.start);
+
+            for (let i = 0; i < this.childs.length; i ++) {
+                this.childs[i].followParentBend(this.start, bendAngle);
+            }
+        }
+        
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].bend();
+        }
+    }
+
+    followParentBend(start, bendAngle) {
+        this.start = this.start.sub(start).rotateRadiansSelf(bendAngle).addSelf(start);
+        this.end = this.end.sub(start).rotateRadiansSelf(bendAngle).addSelf(start);
+
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].followParentBend(start, bendAngle);
+        }
+    }
+
     takeLight() {
+        if (this.attractors.length === 0) {
+            return;
+        }
+        
         let lightQuantity = 0;
 
         for (let i = 0; i < this.attractors.length; i ++) {
@@ -94,19 +136,15 @@ class Branch {
             lightQuantity += (this.maxLightDistance - distance) / this.maxLightDistance;
         }
 
-        if (lightQuantity === 0) {
-            return;
-        }
-
         if (this.energy < this.lightBeforeGrow) {
             if (this.parent !== null) {
-                const pumpedEnergy = this.parent.pumpEnergy(lightQuantity);
+                const pumpedEnergy = this.parent.pumpEnergy(this.pumpQuantityToParent);
                 this.energy += pumpedEnergy;
             }
             return;
         }
 
-        this.createChild();
+        this.createChild(lightQuantity);
     }
 
     pumpEnergy(quantity) {
@@ -122,12 +160,12 @@ class Branch {
         }
 
         if (this.parent === null) {
-            this.energy += 10;
+            // this.energy += 10;
             return energyToGive;
         }
 
         // Il m'en manque, je refais mon stock et te retourne ce que tu me demande
-        const parentEnergy = this.parent.pumpEnergy(5);
+        const parentEnergy = this.parent.pumpEnergy(this.pumpQuantityToParent);
         this.energy += parentEnergy;
 
         energyToGive += this.takeEnergy(quantity - energyToGive);
@@ -146,6 +184,10 @@ class Branch {
             this.stepsWithUselesEnergy ++;
         }
         this.energyAsked = false;
+
+        if (this.parent === null) {
+            this.energy = 1000;
+        }
     }
 
     pruneIfNeeded() {
@@ -163,10 +205,10 @@ class Branch {
         return Math.max(3, Math.atan(this.totalChildsCount * 0.005) * 50);
     }
 
-    createChild() {
-        const childEnd = this.computeAverageAttraction();
+    createChild(lengthFactor) {
+        const childEnd = this.computeAverageAttraction(lengthFactor);
         const child = new Branch(this, this.presetType, this.end, childEnd);
-        child.newBranchLength = this.newBranchLength * 0.98;
+        // child.newBranchLength = this.newBranchLength * 0.98;
         this.childs.push(child);
         this.addChildCount(1);
     }
@@ -179,19 +221,22 @@ class Branch {
         this.parent.addChildCount(count);
     }
 
-    computeAverageAttraction() {
+    computeAverageAttraction(lengthFactor) {
         const newBranchEnd = new Vector(0, 0);
+        // console.log('lengthFactor', lengthFactor);
 
-        this.attractors.forEach(attractor => {
+        for (let i = 0; i < this.attractors.length; i ++) {
+            const attractor = this.attractors[i];
             const vectorToAttractor = attractor.position.sub(this.end);
             const normalizedAttractorForce = (this.maxLightDistance - vectorToAttractor.length()) / this.maxLightDistance;
             const normalizedTranslation = vectorToAttractor.normalize().mulScalarSelf(normalizedAttractorForce);
             newBranchEnd.addSelf(normalizedTranslation);
-        });
+        };
+
         newBranchEnd.addSelf(this.direction.mulScalar(this.directionConstrainFactor));
 
         newBranchEnd.normalizeSelf();
-        newBranchEnd.mulScalarSelf(this.newBranchLength);
+        newBranchEnd.mulScalarSelf(this.newBranchLength * lengthFactor);
         newBranchEnd.addSelf(this.end); 
 
         return newBranchEnd;
