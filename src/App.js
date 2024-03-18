@@ -18,7 +18,7 @@ const treeRender = new TreeRender(Render);
 
 let canvas = null;
 let context = null;
-let run = true;
+let run = false;
 const mousePosition = [400, 100];
 
 export function init(canvasId) {
@@ -95,8 +95,8 @@ function onKeyUp(evt) {
 
 function onMouseMove(evt) {
     var rect = evt.target.getBoundingClientRect();
-    // mousePosition[0] = evt.clientX - rect.left;
-    // mousePosition[1] = evt.clientY - rect.top;
+    mousePosition[0] = evt.clientX - rect.left;
+    mousePosition[1] = evt.clientY - rect.top;
 }
 
 function onMouseDown() {
@@ -112,14 +112,15 @@ function onClick(evt) {
 
 function play() {
     context.fillStyle = 'rgb(20, 20, 20)';
+    // context.fillStyle = 'rgb(100, 100, 100)';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     const lightPosition = Render.canvasToWorldPosition(new Vector(mousePosition[0], mousePosition[1]));
 
     const treesList = [
-        treesB,
-        treesA,
-        // treesSolo,
+        // treesB,
+        // treesA,
+        treesSolo,
     ];
 
     for (const trees of treesList) {
@@ -144,18 +145,18 @@ function play() {
     cycles ++;
 
     if (cycles % 15 === 0) {
-        run = false;
+        // run = false;
     }
 }
 
 function treeGrow(trees) {
-    
+    // console.log('');
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
 
-    branchs.forEach(branch => branch.attractors = []);
+    branchs.forEach(branch => branch.clearAttractors());
     
-    branchs.forEach(branch => attachBrancheToAttractors(branch, attractors));
+    branchs.forEach(branch => attachBranchToAttractors(branch, attractors));
     attractors.forEach(attractor => attachAttractorsToBranch(attractor));
     
     branchs.forEach(branch => branch.takeLight());
@@ -163,18 +164,10 @@ function treeGrow(trees) {
     trees.forEach(tree => treeRender.draw(tree));
     trees.forEach(tree => tree.addAge());
     trees.forEach(tree => tree.prune());
-    
-    // tree.addBranchs(newBranchs);
-    attractors = clearUsedAttractors(attractors);
 }
 
-function clearUsedAttractors(attractors) {
-    const minimalDistance = 100;
-    return attractors.filter(attractor => attractor.nearestDistance > minimalDistance);
-}
-
-function attachBrancheToAttractors(branch, attractors) {
-    attractors.forEach(attractor => attachBranchToAttractorIfNeeded(branch, attractor));
+function attachBranchToAttractors(branch, attractors) {
+    attractors.forEach(attractor => attractor.attachBranchIfNeeded(branch));
 }
 
 function attachAttractorsToBranch(attractor) {
@@ -182,20 +175,6 @@ function attachAttractorsToBranch(attractor) {
         return;
     }
     attractor.nearestBranch.attractors.push(attractor);
-}
-
-function attachBranchToAttractorIfNeeded(branch, attractor) {
-    const distance = branch.end.distanceFrom(attractor.position);
-    if (distance > branch.maxLightDistance) {
-        return;
-    }
-
-    if (attractor.nearestDistance < distance) {
-        return;
-    }
-
-    attractor.nearestDistance = distance;
-    attractor.nearestBranch = branch;
 }
 
 function createAttractors(photons) {
@@ -212,5 +191,19 @@ class Attractor {
     reset() {
         this.nearestBranch = null;
         this.nearestDistance = 999999;
+    }
+
+    attachBranchIfNeeded(branch) {
+        const distance = branch.end.distanceFrom(this.position);
+        if (distance > branch.maxLightDistance) {
+            return;
+        }
+    
+        if (this.nearestDistance < distance) {
+            return;
+        }
+    
+        this.nearestDistance = distance;
+        this.nearestBranch = branch;
     }
 } 
