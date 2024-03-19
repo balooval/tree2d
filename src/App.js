@@ -9,7 +9,6 @@ import {Tree} from './Tree.js';
 let tree;
 // let lightSource;
 let attractors = [];
-let cycles = 0;
 
 const treesSolo = [];
 const treesA = [];
@@ -22,8 +21,8 @@ let context = null;
 let run = false;
 const mousePosition = [400, 100];
 
-// const backgroundColor = 'rgb(100, 100, 100)';
-const backgroundColor = 'rgb(20, 20, 20)';
+const backgroundColor = 'rgb(100, 100, 100)';
+// const backgroundColor = 'rgb(20, 20, 20)';
 
 export function init(canvasId) {
 
@@ -69,7 +68,6 @@ export function init(canvasId) {
 
     // treeRender.draw(tree);
 
-    document.getElementById('main').addEventListener('click', onClick);
     document.getElementById('main').addEventListener('mousedown', onMouseDown);
     document.getElementById('main').addEventListener('mouseup', onMouseUp);
     document.getElementById('main').addEventListener('mousemove', onMouseMove);
@@ -104,15 +102,8 @@ function onMouseUp(evt) {
     run = false;
 }
 
-function onClick(evt) {
-    // play();
-}
-
 function play() {
-
     clearCanvas();
-
-    const lightPosition = Render.canvasToWorldPosition(new Vector(mousePosition[0], mousePosition[1]));
 
     const treesList = [
         // treesB,
@@ -121,35 +112,22 @@ function play() {
     ];
 
     for (const trees of treesList) {
-
-        const lightSource = new LightDirectional(new Vector(lightPosition[0], lightPosition[1]), new Vector(0, 20));
-
-        Render.clear();
-        
-        const branchs = [];
-        trees.forEach(tree => branchs.push(...tree.getBranchs()));
-        lightSource.emit(branchs);
-        LightRender.draw(lightSource);
-
-        attractors = createAttractors(lightSource.getPhotons());
-
         treeGrow(trees);
-        
-
-        Render.draw(context);
-    }
-
-    cycles ++;
-
-    if (cycles % 15 === 0) {
-        // run = false;
     }
 }
 
 function treeGrow(trees) {
-    // console.log('');
+    const lightPosition = Render.canvasToWorldPosition(new Vector(mousePosition[0], mousePosition[1]));
+    const lightSource = new LightDirectional(new Vector(lightPosition[0], lightPosition[1]), new Vector(0, 20));
+
+    Render.clear();
+    
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
+    lightSource.emit(branchs);
+    LightRender.draw(lightSource);
+
+    attractors = createAttractors(lightSource.getPhotons());
 
     branchs.forEach(branch => branch.clearAttractors());
     
@@ -158,11 +136,12 @@ function treeGrow(trees) {
     
     branchs.forEach(branch => branch.takeLight());
     
-    // trees.forEach(tree => treeRender.draw(tree));
-    trees.forEach(tree => tree.bendBranches());
+    // trees.forEach(tree => tree.bendBranches());
     trees.forEach(tree => treeRender.draw(tree));
     trees.forEach(tree => tree.addAge());
     trees.forEach(tree => tree.prune());
+
+    Render.draw(context);
 }
 
 function attachBranchToAttractors(branch, attractors) {

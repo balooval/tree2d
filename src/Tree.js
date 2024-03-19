@@ -48,7 +48,7 @@ export class Tree {
 
     constructor(position, preset) {
         this.position = position;
-        this.root = new Branch(null, preset, position, new Vector(position.x + 20, position.y + 100), 5);
+        this.root = new Branch(null, preset, position, new Vector(position.x + 0, position.y + 100), 5);
         this.root.energy = 500;
         this.branchs = [this.root];
     }
@@ -89,9 +89,10 @@ class Branch {
         this.parent = parent;
         this.totalChildsCount = 0;
         this.energy = 0;
-        this.uselessBeforePrune = 10;
+        this.uselessBeforePrune = 50;
         this.stepsWithUselesEnergy = 0;
         this.energyAsked = false;
+        this.auxinQuantity = 0;
     }
 
     bend() {
@@ -128,6 +129,10 @@ class Branch {
         if (this.attractors.length === 0) {
             return;
         }
+
+        if (this.auxinQuantity > 1) {
+            return;
+        }
         
         let lightQuantity = 0;
 
@@ -144,6 +149,7 @@ class Branch {
             return;
         }
 
+        this.auxinQuantity += 10;
         this.createChild(lightQuantity);
     }
 
@@ -188,6 +194,8 @@ class Branch {
         if (this.parent === null) {
             this.energy = 1000;
         }
+
+        this.auxinQuantity *= 0.9;
     }
 
     pruneIfNeeded() {
