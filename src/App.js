@@ -58,7 +58,7 @@ export function init(canvasId) {
         new Tree(new Vector(-600, groundPosition), 'typeA'),
     );
 
-    treesSolo.push(new Tree(new Vector(0, 0), 'typeB'));
+    treesSolo.push(new Tree(new Vector(0, 0), 'typeA'));
 
     // lightSource.emit([]);
     // LightRender.draw(lightSource);
@@ -134,12 +134,15 @@ function treeGrow(trees) {
     branchs.forEach(branch => attachBranchToAttractors(branch, attractors));
     attractors.forEach(attractor => attachAttractorsToBranch(attractor));
     
+    trees.forEach(tree => tree.resetTips());
+    branchs.forEach(branch => branch.startCycle());
     branchs.forEach(branch => branch.takeLight());
-    
-    // trees.forEach(tree => tree.bendBranches());
-    trees.forEach(tree => treeRender.draw(tree));
-    trees.forEach(tree => tree.addAge());
     trees.forEach(tree => tree.prune());
+    trees.forEach(tree => tree.updateFromTips());
+    
+    trees.forEach(tree => tree.bendBranches());
+    trees.forEach(tree => treeRender.draw(tree));
+    trees.forEach(tree => tree.endCycle());
 
     Render.draw(context);
 }
@@ -156,7 +159,7 @@ function attachAttractorsToBranch(attractor) {
 }
 
 function createAttractors(photons) {
-    return photons.map(photon => new Attractor(photon.position));
+    return photons.map(photon => new Attractor(photon.position, photon.orientation));
 }
 
 function clearCanvas() {
@@ -169,8 +172,9 @@ function clearCanvas() {
 }
 
 class Attractor {
-    constructor(position) {
+    constructor(position, orientation) {
         this.position = position;
+        this.orientation = orientation;
         this.nearestBranch = null;
         this.nearestDistance = 999999;
     }

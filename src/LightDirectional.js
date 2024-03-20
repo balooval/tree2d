@@ -94,7 +94,7 @@ class Light {
                 photoRay.x = randomize(photoRay.x, stepDistance * 0.4);
                 photoRay.y = randomize(photoRay.y, stepDistance * 0.4);
 
-                const photon = new Photon(photoRay);
+                const photon = new Photon(photoRay, this.direction.normalize());
                 photons.push(photon);
             }
         });
@@ -126,8 +126,9 @@ class Ray {
 }
 
 class Photon {
-    constructor(position) {
+    constructor(position, orientation) {
         this.position = position;
+        this.orientation = orientation;
     }
 }
 
