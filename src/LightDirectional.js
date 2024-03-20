@@ -1,6 +1,4 @@
 import {segmentIntersection, randomize} from './Math.js'
-import Render from './renderer/Render.js'
-
 class Light {
 
     constructor(position, target) {
@@ -16,16 +14,16 @@ class Light {
         this.photons = [];
     }
 
-    emit(branchs) {
-        this.rays = this.#computeRays(branchs);
-        this.photons = this.#createPhotons(branchs);
+    emit(branchs, rbushBranchs) {
+        this.rays = this.#computeRays(branchs, rbushBranchs);
+        this.photons = this.#createPhotons();
     }
 
     getPhotons() {
         return this.photons;
     }
 
-    #computeRays(branchs) {
+    #computeRays(branchs, rbushBranchs) {
         const rays = [];
         const stepLength = this.width / this.rayCount;
 
@@ -36,7 +34,7 @@ class Light {
 
             let rayVector = rayStart.add(this.direction);
 
-            rayVector = this.#cutRayByBranchs(rayStart, rayVector, branchs);
+            rayVector = this.#cutRayByBranchs(rayStart, rayVector, rbushBranchs);
 
             const ray = new Ray(rayStart, rayVector);
             rays.push(ray);
@@ -45,12 +43,19 @@ class Light {
         return rays;
     }
 
-    #cutRayByBranchs(rayStart, rayEnd, branchs) {
+    #cutRayByBranchs(rayStart, rayEnd, rbushBranchs) {
         let currentEnd = rayEnd.clone();
         let currentLength = rayEnd.distanceFrom(rayStart);
 
-        for (let i = 0; i < branchs.length; i ++) {
-            const branch = branchs[i];
+        const intersectingBranchs = rbushBranchs.search({
+            minX: Math.min(rayStart.x, rayEnd.x),
+            minY: Math.min(rayStart.y, rayEnd.y),
+            maxX: Math.max(rayStart.x, rayEnd.x),
+            maxY: Math.max(rayStart.y, rayEnd.y),
+        });
+
+        for (let i = 0; i < intersectingBranchs.length; i ++) {
+            const branch = intersectingBranchs[i].branch;
             const contact = segmentIntersection(
                 rayStart.x, rayStart.y,
                 currentEnd.x, currentEnd.y,
@@ -68,11 +73,10 @@ class Light {
             }
         }
         
-        // Render.drawCircle(currentEnd, 20, 'rgb(255, 0, 0)')
         return currentEnd;
     }
 
-    #createPhotons(branchs) {
+    #createPhotons() {
         const photons = [];
 
         this.rays.forEach(ray => {
@@ -85,12 +89,6 @@ class Light {
                 const photoRay = normalRay.mulScalar(i * stepDistance);
                 photoRay.addSelf(ray.start);
 
-                const photonIsIntoBranchZone = this.#photonIsIntoBranchZone(photoRay, branchs);
-
-                if (photonIsIntoBranchZone === true) {
-                    continue;
-                }
-
                 photoRay.x = randomize(photoRay.x, stepDistance * 0.4);
                 photoRay.y = randomize(photoRay.y, stepDistance * 0.4);
 
@@ -102,19 +100,6 @@ class Light {
         return photons;
     }
 
-    #photonIsIntoBranchZone(position, branchs) {
-        return false;
-        for (let i = 0; i < branchs.length; i ++) {
-            const branch = branchs[i];
-            const distance = position.distanceFrom(branch.end);
-            if (distance < branch.newBranchLength) {
-            // if (distance < 150) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }
 
 class Ray {

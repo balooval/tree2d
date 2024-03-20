@@ -299,7 +299,6 @@ class Branch {
 
     getWidth() {
         return this.tickness;
-        return 2 + this.totalEnergyTransfered * 0.1;
     }
 
     getLeaveColor() {

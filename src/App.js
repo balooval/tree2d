@@ -5,9 +5,13 @@ import LightLayer from './renderer/LightLayer.js'
 import Light from './Light.js';
 import LightDirectional from './LightDirectional.js';
 import {Tree} from './Tree.js';
+import RBush from '../vendor/rbush.js';
+import RBushKnn from '../vendor/rbush-knn.js';
+
+const rbushAttractors = new RBush();
+const rbushBranchs = new RBush();
 
 let tree;
-// let lightSource;
 let attractors = [];
 
 const treesSolo = [];
@@ -60,13 +64,6 @@ export function init(canvasId) {
 
     treesSolo.push(new Tree(new Vector(0, 0), 'typeB'));
 
-    // lightSource.emit([]);
-    // LightRender.draw(lightSource);
-
-    // const photons = lightSource.getPhotons();
-    // attractors = createAttractors(photons);
-
-    // treeRender.draw(tree);
 
     document.getElementById('main').addEventListener('mousedown', onMouseDown);
     document.getElementById('main').addEventListener('mouseup', onMouseUp);
@@ -106,9 +103,9 @@ function play() {
     clearCanvas();
 
     const treesList = [
-        treesA,
+        // treesA,
         // treesB,
-        // treesSolo,
+        treesSolo,
     ];
 
     for (const trees of treesList) {
@@ -117,6 +114,10 @@ function play() {
 }
 
 function treeGrow(trees) {
+    
+    rbushAttractors.clear();
+    rbushBranchs.clear();
+
     const lightPosition = Render.canvasToWorldPosition(new Vector(mousePosition[0], mousePosition[1]));
     const lightSource = new LightDirectional(new Vector(lightPosition[0], lightPosition[1]), new Vector(0, 20));
 
@@ -124,14 +125,15 @@ function treeGrow(trees) {
     
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
-    lightSource.emit(branchs);
+    indexBranchs(branchs);
+    lightSource.emit(branchs, rbushBranchs);
     LightRender.draw(lightSource);
 
     attractors = createAttractors(lightSource.getPhotons());
 
     branchs.forEach(branch => branch.clearAttractors());
     
-    branchs.forEach(branch => attachBranchToAttractors(branch, attractors));
+    branchs.forEach(branch => attachBranchToAttractors(branch));
     attractors.forEach(attractor => attachAttractorsToBranch(attractor));
     
     trees.forEach(tree => tree.resetTips());
@@ -147,8 +149,27 @@ function treeGrow(trees) {
     Render.draw(context);
 }
 
-function attachBranchToAttractors(branch, attractors) {
-    attractors.forEach(attractor => attractor.attachBranchIfNeeded(branch));
+function indexBranchs(branchs) {
+    const items = [];
+
+    for (let i = 0; i < branchs.length; i ++) {
+        const branch = branchs[i];
+
+        items.push({
+            minX: Math.min(branch.start.x, branch.end.x),
+            maxX: Math.max(branch.start.x, branch.end.x),
+            minY: Math.min(branch.start.y, branch.end.y),
+            maxY: Math.max(branch.start.y, branch.end.y),
+            branch: branch,
+        });
+    }
+    
+    rbushBranchs.load(items);
+}
+
+function attachBranchToAttractors(branch) {
+    const nearAttractors = RBushKnn(rbushAttractors, branch.end.x, branch.end.y, undefined, undefined, branch.maxLightDistance);
+    nearAttractors.forEach(attractorItem => attractorItem.attractor.attachBranchIfNeeded(branch));
 }
 
 function attachAttractorsToBranch(attractor) {
@@ -159,16 +180,33 @@ function attachAttractorsToBranch(attractor) {
 }
 
 function createAttractors(photons) {
-    return photons.map(photon => new Attractor(photon.position, photon.orientation));
+
+    const attractors = [];
+    const items = [];
+
+    for (let i = 0; i < photons.length; i ++) {
+        const photon = photons[i];
+        const attractor = new Attractor(photon.position, photon.orientation);
+        attractors.push(attractor);
+
+        items.push({
+            minX: photon.position.x,
+            maxX: photon.position.x,
+            minY: photon.position.y,
+            maxY: photon.position.y,
+            attractor: attractor,
+        });
+    }
+    
+    rbushAttractors.load(items);
+
+
+    return attractors;
 }
 
 function clearCanvas() {
     context.fillStyle = backgroundColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
-    // context.drawImage(backgroundImage,
-    //     0, 0, backgroundImage.width, backgroundImage.height,
-    //     0, 0, canvas.width, canvas.height,
-    // );
 }
 
 class Attractor {
@@ -179,17 +217,9 @@ class Attractor {
         this.nearestDistance = 999999;
     }
     
-    reset() {
-        this.nearestBranch = null;
-        this.nearestDistance = 999999;
-    }
-
     attachBranchIfNeeded(branch) {
         const distance = branch.end.distanceFrom(this.position);
-        if (distance > branch.maxLightDistance) {
-            return;
-        }
-    
+        
         if (this.nearestDistance < distance) {
             return;
         }
