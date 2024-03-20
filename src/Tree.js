@@ -10,14 +10,15 @@ export const presets = {
         flexibility: 2,
         uselessBeforePrune: 2,
         pumpQuantityToParent: 5,
-        lightBeforeGrow: 10,
+        lightBeforeGrow: 2,
         directionConstrainFactor: 0.5,
         leaveCountMultiplier: 2,
-        leaveSize: 3,
-        leaveDispersion: 40,
+        leaveSize: 4,
+        leaveDispersion: 30,
         leaveColors: [
-            'rgb(0, 255, 0)',
-            'rgb(147, 237, 102)',
+            {h: 70, s: 70, l: 20},
+            {h: 30, s: 70, l: 20},
+            {h: 65, s: 100, l: 15},
         ],
         trunkColors: [
             'rgb(107, 99, 85)',
@@ -33,14 +34,15 @@ export const presets = {
         flexibility: 10,
         uselessBeforePrune: 3,
         pumpQuantityToParent: 5,
-        lightBeforeGrow: 5,
+        lightBeforeGrow: 8,
         directionConstrainFactor: 0,
         leaveCountMultiplier: 3,
         leaveSize: 5,
         leaveDispersion: 20,
         leaveColors: [
-            'rgb(22, 130, 23)',
-            'rgb(75, 156, 59)',
+            {h: 70, s: 70, l: 20},
+            {h: 30, s: 70, l: 20},
+            {h: 65, s: 100, l: 15},
         ],
         trunkColors: [
             'rgb(71, 58, 37)',
@@ -127,12 +129,15 @@ class Branch {
         this.tickness = 1;
         this.density = this.preset.density;
         this.heliotropism = this.preset.heliotropism;
+        this.ligthReceived = 0;
+        this.leavesHealth = 1;
 
         this.tree.addTip(this);
     }
 
     startCycle() {
         this.energyTransferedByCycle = 0;
+        this.ligthReceived = 0;
     }
 
     endCycle() {
@@ -142,10 +147,8 @@ class Branch {
             (this.energyTransferedByCycle * this.weight) / (this.length * 30)
         );
 
-        if (this.parent === null) {
-            // console.log('ROOT this.length', this.length);
-        } else {
-            // console.log('this.length', this.length);
+        if (this.ligthReceived < 1) {
+            this.leavesHealth = Math.max(0, this.leavesHealth - 0.1);
         }
 
         this.totalEnergyTransfered += this.energyTransferedByCycle;
@@ -218,6 +221,8 @@ class Branch {
             const attractorLight = ((this.maxLightDistance - distance) / this.maxLightDistance) * attractorLightPercent;
             lightQuantity += attractorLight;
         }
+
+        this.ligthReceived += lightQuantity;
 
         if (this.energy < this.lightBeforeGrow) {
             if (this.parent !== null) {
@@ -295,6 +300,13 @@ class Branch {
     getWidth() {
         return this.tickness;
         return 2 + this.totalEnergyTransfered * 0.1;
+    }
+
+    getLeaveColor() {
+        const hsl = randomElement(this.preset.leaveColors);
+        const h = this.leavesHealth * 60;
+        const l = this.leavesHealth * 10;
+        return `hsl(${hsl.h + h}, ${hsl.s}%, ${hsl.l + l}%)`;
     }
 
     createChild(lightQuantity) {

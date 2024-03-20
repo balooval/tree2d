@@ -44,6 +44,7 @@ class Render {
         const end = this.worldToCanvasPosition(worldEnd);
 
         this.context.beginPath();
+        this.context.lineCap = 'round';
         this.context.strokeStyle = color;
         this.context.lineWidth  = this.worldToCanvasWidth(worldWidth);
         this.context.moveTo(start[0], start[1]);

@@ -21,8 +21,8 @@ let context = null;
 let run = false;
 const mousePosition = [400, 100];
 
-const backgroundColor = 'rgb(100, 100, 100)';
-// const backgroundColor = 'rgb(20, 20, 20)';
+// const backgroundColor = 'rgb(100, 100, 100)';
+const backgroundColor = 'rgb(10, 10, 10)';
 
 export function init(canvasId) {
 
@@ -42,12 +42,12 @@ export function init(canvasId) {
     tree = new Tree(new Vector(0, 0), 'typeA');
 
     treesA.push(
-        new Tree(new Vector(-1500, groundPosition), 'typeB'),
-        new Tree(new Vector(-1050, groundPosition), 'typeB'),
-        new Tree(new Vector(-850, groundPosition), 'typeA'),
-        new Tree(new Vector(-200, groundPosition), 'typeB'),
-        new Tree(new Vector(400, groundPosition), 'typeB'),
-        new Tree(new Vector(1000, groundPosition), 'typeB'),
+        new Tree(new Vector(-1000, groundPosition), 'typeB'),
+        // new Tree(new Vector(-1050, groundPosition), 'typeA'),
+        // new Tree(new Vector(-400, groundPosition), 'typeA'),
+        // new Tree(new Vector(-200, groundPosition), 'typeB'),
+        // new Tree(new Vector(400, groundPosition), 'typeB'),
+        new Tree(new Vector(1000, groundPosition), 'typeA'),
     );
 
     treesB.push(
@@ -58,7 +58,7 @@ export function init(canvasId) {
         new Tree(new Vector(-600, groundPosition), 'typeA'),
     );
 
-    treesSolo.push(new Tree(new Vector(0, 0), 'typeA'));
+    treesSolo.push(new Tree(new Vector(0, 0), 'typeB'));
 
     // lightSource.emit([]);
     // LightRender.draw(lightSource);
@@ -106,9 +106,9 @@ function play() {
     clearCanvas();
 
     const treesList = [
+        treesA,
         // treesB,
-        // treesA,
-        treesSolo,
+        // treesSolo,
     ];
 
     for (const trees of treesList) {
