@@ -11,7 +11,7 @@ import RBushKnn from '../vendor/rbush-knn.js';
 const rbushAttractors = new RBush();
 const rbushBranchs = new RBush();
 
-let tree;
+const illuminatedBranchs = new Set();
 let attractors = [];
 
 const treesSolo = [];
@@ -25,8 +25,8 @@ let context = null;
 let run = false;
 const mousePosition = [400, 100];
 
-// const backgroundColor = 'rgb(100, 100, 100)';
-const backgroundColor = 'rgb(10, 10, 10)';
+const backgroundColor = 'rgb(100, 100, 100)';
+// const backgroundColor = 'rgb(10, 10, 10)';
 
 export function init(canvasId) {
 
@@ -40,10 +40,6 @@ export function init(canvasId) {
     mousePosition[0] = Render.sceneWidth / 2;
 
     const groundPosition = 50;
-
-    // lightSource = new Light(new Vector(0, 1800), new Vector(0, 150));
-    const lightSource = new LightDirectional(new Vector(0, 1800), new Vector(0, 150));
-    tree = new Tree(new Vector(0, 0), 'typeA');
 
     treesA.push(
         new Tree(new Vector(-1000, groundPosition), 'typeB'),
@@ -134,11 +130,15 @@ function treeGrow(trees) {
     branchs.forEach(branch => branch.clearAttractors());
     
     branchs.forEach(branch => attachBranchToAttractors(branch));
-    attractors.forEach(attractor => attachAttractorsToBranch(attractor));
+    attachAttractorsToBranch(attractors);
     
     trees.forEach(tree => tree.resetTips());
     branchs.forEach(branch => branch.startCycle());
-    branchs.forEach(branch => branch.takeLight());
+
+    for (let branch of illuminatedBranchs) {
+        branch.takeLight()
+    }
+
     trees.forEach(tree => tree.prune());
     trees.forEach(tree => tree.updateFromTips());
     
@@ -172,11 +172,19 @@ function attachBranchToAttractors(branch) {
     nearAttractors.forEach(attractorItem => attractorItem.attractor.attachBranchIfNeeded(branch));
 }
 
-function attachAttractorsToBranch(attractor) {
-    if (attractor.nearestBranch === null) {
-        return;
+function attachAttractorsToBranch(attractors) {
+
+    illuminatedBranchs.clear();
+
+    for (let i = 0; i < attractors.length; i ++) {
+        const attractor = attractors[i];
+        const branch = attractor.nearestBranch;
+        if (branch === null) {
+            continue;
+        }
+        branch.attractors.push(attractor);
+        illuminatedBranchs.add(branch);
     }
-    attractor.nearestBranch.attractors.push(attractor);
 }
 
 function createAttractors(photons) {
