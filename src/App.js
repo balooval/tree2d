@@ -7,6 +7,8 @@ import LightDirectional from './LightDirectional.js';
 import {Tree} from './Tree.js';
 import RBush from '../vendor/rbush.js';
 import RBushKnn from '../vendor/rbush-knn.js';
+import {presets} from './Tree.js';
+import * as Ui from './Ui.js';
 
 const rbushAttractors = new RBush();
 const rbushBranchs = new RBush();
@@ -19,14 +21,16 @@ const treesA = [];
 const treesB = [];
 const treeRender = new TreeRender(Render);
 
-let backgroundImage = null;
+const currentPreset = presets['typeB'];
+
 let canvas = null;
 let context = null;
 let run = false;
+let applyBend = true;
 const mousePosition = [400, 100];
 
-const backgroundColor = 'rgb(100, 100, 100)';
-// const backgroundColor = 'rgb(10, 10, 10)';
+// const backgroundColor = 'rgb(100, 100, 100)';
+const backgroundColor = 'rgb(10, 10, 10)';
 
 export function init(canvasId) {
 
@@ -36,37 +40,59 @@ export function init(canvasId) {
 
 
     Render.init(canvas);
+    Ui.init(treeRender, currentPreset);
+    Ui.setPreset(currentPreset);
     LightLayer.init(canvasId);
     mousePosition[0] = Render.sceneWidth / 2;
 
     const groundPosition = 50;
 
     treesA.push(
-        new Tree(new Vector(-1000, groundPosition), 'typeB'),
-        // new Tree(new Vector(-1050, groundPosition), 'typeA'),
-        // new Tree(new Vector(-400, groundPosition), 'typeA'),
-        // new Tree(new Vector(-200, groundPosition), 'typeB'),
-        // new Tree(new Vector(400, groundPosition), 'typeB'),
-        new Tree(new Vector(1000, groundPosition), 'typeA'),
+        new Tree(new Vector(-1000, groundPosition), presets['typeB']),
+        // new Tree(new Vector(-1050, groundPosition), presets['typeA']),
+        // new Tree(new Vector(-400, groundPosition), presets['typeA']),
+        // new Tree(new Vector(-200, groundPosition), presets['typeB']),
+        // new Tree(new Vector(400, groundPosition), presets['typeB']),
+        new Tree(new Vector(1000, groundPosition), presets['typeA']),
     );
 
     treesB.push(
-        new Tree(new Vector(100, groundPosition), 'typeB'),
-        new Tree(new Vector(1200, groundPosition), 'typeA'),
-        new Tree(new Vector(800, groundPosition), 'typeB'),
-        new Tree(new Vector(-300, groundPosition), 'typeA'),
-        new Tree(new Vector(-600, groundPosition), 'typeA'),
+        new Tree(new Vector(100, groundPosition), presets['typeB']),
+        new Tree(new Vector(1200, groundPosition), presets['typeA']),
+        new Tree(new Vector(800, groundPosition), presets['typeB']),
+        new Tree(new Vector(-300, groundPosition), presets['typeA']),
+        new Tree(new Vector(-600, groundPosition), presets['typeA']),
     );
 
-    treesSolo.push(new Tree(new Vector(0, 0), 'typeB'));
+    treesSolo.push(new Tree(new Vector(0, 0), currentPreset));
 
 
-    document.getElementById('main').addEventListener('mousedown', onMouseDown);
-    document.getElementById('main').addEventListener('mouseup', onMouseUp);
-    document.getElementById('main').addEventListener('mousemove', onMouseMove);
+    document.getElementById('applyBend').addEventListener('change', onApplyBendChanged);
+    document.getElementById('presetTypeA').addEventListener('change', onTreeTypeSelectChanged);
+    document.getElementById('presetTypeB').addEventListener('change', onTreeTypeSelectChanged);
+    document.getElementById(canvasId).addEventListener('mousedown', onMouseDown);
+    document.getElementById(canvasId).addEventListener('mouseup', onMouseUp);
+    document.getElementById(canvasId).addEventListener('mousemove', onMouseMove);
     document.body.addEventListener('keyup', onKeyUp);
 
     onFrame();
+}
+
+function onApplyBendChanged() {
+    applyBend = document.getElementById('applyBend').checked;
+}
+
+function onTreeTypeSelectChanged() {
+    const typeBChecked = document.getElementById('presetTypeB').checked;
+    // treesSolo.length = 0;
+    let treeType = 'typeA';
+    if (typeBChecked === true) {
+        treeType = 'typeB';
+    }
+    // treesSolo.push(new Tree(new Vector(0, 0), treeType));
+
+    treesSolo[0].preset = presets[treeType];
+    Ui.setPreset(presets[treeType]);
 }
 
 function onFrame() {
@@ -142,7 +168,9 @@ function treeGrow(trees) {
     trees.forEach(tree => tree.prune());
     trees.forEach(tree => tree.updateFromTips());
     
-    trees.forEach(tree => tree.bendBranches());
+    if (applyBend === true) {
+        trees.forEach(tree => tree.bendBranches());
+    }
     trees.forEach(tree => treeRender.draw(tree));
     trees.forEach(tree => tree.endCycle());
 

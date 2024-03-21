@@ -3,14 +3,48 @@
 <head>
       <title>Tree Forest</title>
       <meta charset="UTF-8">
+      <link rel="stylesheet" href="bootstrap.min.css">
 </head>
 
+<style>
+body {
+    color: #aaa;
+}
+</style>
+
 <body style="background-color:#303030;">
-    <div id="main">
-        <canvas id="canvas" width="1000" height="600"></canvas>
-        <br>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <canvas id="canvas" width="1000" height="800"></canvas>
+            </div>
+            <div class="col">
+                Tree type :
+                <br>
+                <input class="form-check-input" type="radio" name="presetType" id="presetTypeA" value="presetTypeA"> <label class="form-check-label" for="presetTypeA">Type A</label>
+                <br>
+                <input class="form-check-input" type="radio" name="presetType" id="presetTypeB" value="presetTypeB" checked> <label class="form-check-label" for="presetTypeB">Type B</label>
+                
+                <br>
+                <br>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="applyBend" checked> <label class="form-check-label" for="applyBend">Apply bending</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="viewLeaves" checked> <label class="form-check-label" for="viewLeaves">View Leaves</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="viewPhotons"> <label class="form-check-label" for="viewPhotons">View light</label>
+                </div>
+                
+                <br>
+                <br>
+                <div id="presetParams" class="col">
+                    
+                </div>
+            </div>
+        </div>
     </div>
-    View light <input type="checkbox" id="viewPhotons">
     
     <script src="./vendor/vector2js.js"></script>
     <script type="module">

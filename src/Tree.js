@@ -2,17 +2,17 @@ import { randomize, randomElement } from "./Math.js";
 
 export const presets = {
     typeA: {
+        presetName: 'typeA',
         heliotropism: 0,
         density: 20,
         auxinProduction: 10,
         maxLightDistance: 120,
         newBranchLength: 10,
-        flexibility: 2,
+        rigidity: 2,
         uselessBeforePrune: 2,
         pumpQuantityToParent: 5,
         lightBeforeGrow: 2,
         directionConstrainFactor: 0.5,
-        leaveCountMultiplier: 2,
         leaveSize: 4,
         leaveDispersion: 30,
         leaveColors: [
@@ -26,17 +26,17 @@ export const presets = {
         ],
     },
     typeB: {
+        presetName: 'typeB',
         heliotropism: 1,
         density: 1,
         auxinProduction: 1,
         maxLightDistance: 100,
         newBranchLength: 15,
-        flexibility: 10,
+        rigidity: 10,
         uselessBeforePrune: 3,
         pumpQuantityToParent: 5,
         lightBeforeGrow: 8,
         directionConstrainFactor: 0,
-        leaveCountMultiplier: 3,
         leaveSize: 5,
         leaveDispersion: 20,
         leaveColors: [
@@ -54,10 +54,11 @@ export const presets = {
 
 export class Tree {
 
-    constructor(position, presetType) {
+    constructor(position, preset) {
+        this.preset = preset;
         this.position = position;
         this.tips = new Set();
-        this.root = new Branch(this, null, presetType, position, new Vector(position.x + 0, position.y + presets[presetType].newBranchLength), 5);
+        this.root = new Branch(this, null, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength), 5);
         this.root.energy = 500;
         this.branchs = [this.root];
     }
@@ -98,18 +99,16 @@ export class Tree {
 }
 
 class Branch {
-    constructor(tree, parent, presetType, start, end) {
+    constructor(tree, parent, start, end) {
         this.tree = tree;
-        this.presetType = presetType;
         this.start = start;
         this.end = end;
         this.startToEndVector = this.end.sub(this.start);
         this.length = this.startToEndVector.length();
         this.direction = this.startToEndVector.normalize();
-        this.preset = presets[this.presetType];
+        this.preset = this.tree.preset;
         this.maxLightDistance = this.preset.maxLightDistance;
         this.newBranchLength = this.preset.newBranchLength;
-        this.flexibility = this.preset.flexibility;
         this.lightBeforeGrow = this.preset.lightBeforeGrow;
         this.pumpQuantityToParent = this.preset.pumpQuantityToParent;
         this.directionConstrainFactor = this.preset.directionConstrainFactor;
@@ -165,7 +164,7 @@ class Branch {
     }
 
     bend() {
-        const localFlexibility = 1 / (((this.tickness * this.density) * this.flexibility) * 90000);
+        const localFlexibility = 1 / (((this.tickness * this.density) * this.preset.rigidity) * 90000);
         const ground = new Vector(-1, 0);
         const bendFactor = this.end.sub(this.start).normalizeSelf().dot(ground);
         const bendAngle = (bendFactor * this.length * this.weight) * localFlexibility;
@@ -298,7 +297,7 @@ class Branch {
     }
 
     getWidth() {
-        return this.tickness;
+        return Math.max(3, this.tickness);
     }
 
     getLeaveColor() {
@@ -312,7 +311,7 @@ class Branch {
         this.auxinQuantity += this.auxinProduction;
 
         const childEnd = this.computeAverageAttraction(lightQuantity);
-        const child = new Branch(this.tree, this, this.presetType, this.end, childEnd);
+        const child = new Branch(this.tree, this, this.end, childEnd);
         this.childs.push(child);
         this.addChildCount(1);
     }
