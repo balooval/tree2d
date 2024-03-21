@@ -280,15 +280,7 @@ class Branch {
 
     pruneIfNeeded() {
         if (this.stepsWithUselesEnergy > this.uselessBeforePrune && this.parent !== null) {
-            this.parent.childs = this.parent.childs.filter(branch => branch !== this);
-            if (this.childs.length > 0) {
-                return;
-            }
-            this.tree.removeTip(this);
-            if (this.parent.childs.length === 0) {
-                this.tree.addTip(this.parent);
-            }
-            return;
+            this.remove();
         }
 
         for (let i = 0; i < this.childs.length; i ++) {
@@ -296,8 +288,21 @@ class Branch {
         }
     }
 
+    remove() {
+        this.parent.childs = this.parent.childs.filter(branch => branch !== this);
+        if (this.childs.length > 0) {
+            return;
+        }
+        this.tree.removeTip(this);
+        if (this.parent.childs.length === 0) {
+            this.tree.addTip(this.parent);
+        }
+    }
+
     getWidth() {
-        return Math.max(3, this.tickness);
+        const tickness = Math.atan(this.tickness);
+        return Math.max(3, Math.min(this.tickness, 50) * tickness);
+        return Math.max(3, Math.min(this.tickness, 100));
     }
 
     getLeaveColor() {

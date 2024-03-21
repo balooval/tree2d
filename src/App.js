@@ -23,17 +23,20 @@ const treeRender = new TreeRender(Render);
 
 const currentPreset = presets['typeB'];
 
+let canvasId = null;
 let canvas = null;
 let context = null;
 let run = false;
 let applyBend = true;
 const mousePosition = [400, 100];
+let mouseMode = null;
+let cutPoints = [];
 
 // const backgroundColor = 'rgb(100, 100, 100)';
 const backgroundColor = 'rgb(10, 10, 10)';
 
-export function init(canvasId) {
-
+export function init(_canvasId) {
+    canvasId = _canvasId;
     canvas = document.getElementById(canvasId);
     context = canvas.getContext('2d');
     clearCanvas();
@@ -66,16 +69,48 @@ export function init(canvasId) {
 
     treesSolo.push(new Tree(new Vector(0, 0), currentPreset));
 
+    setMouseRunMode(true);
 
+    document.getElementById('cutMode').addEventListener('change', evt => setMouseCutMode(evt.target.checked));
     document.getElementById('applyBend').addEventListener('change', onApplyBendChanged);
     document.getElementById('presetTypeA').addEventListener('change', onTreeTypeSelectChanged);
     document.getElementById('presetTypeB').addEventListener('change', onTreeTypeSelectChanged);
-    document.getElementById(canvasId).addEventListener('mousedown', onMouseDown);
-    document.getElementById(canvasId).addEventListener('mouseup', onMouseUp);
     document.getElementById(canvasId).addEventListener('mousemove', onMouseMove);
     document.body.addEventListener('keyup', onKeyUp);
 
     onFrame();
+}
+
+function setMouseCutMode(state) {
+    if (state === true) {
+        setMouseRunMode(false);
+        mouseMode = 'CUT';
+        cutPoints = [];
+        document.getElementById(canvasId).addEventListener('mouseup', addCutPoint);
+    } else {
+        setMouseRunMode(true);
+        document.getElementById(canvasId).removeEventListener('mouseup', addCutPoint);
+    }
+}
+
+function setMouseRunMode(state = true) {
+    if (state === true) {
+        mouseMode = 'RUN';
+        document.getElementById(canvasId).addEventListener('mousedown', onMouseDown);
+        document.getElementById(canvasId).addEventListener('mouseup', onMouseUp);
+    } else {
+        document.getElementById(canvasId).removeEventListener('mousedown', onMouseDown);
+        document.getElementById(canvasId).removeEventListener('mouseup', onMouseUp);
+    }
+}
+
+function addCutPoint() {
+    cutPoints.push(Render.canvasToWorldPosition({x:mousePosition[0], y:mousePosition[1]}));
+    console.log('cutPoints', cutPoints);
+    if (cutPoints.length === 2) {
+        cutBranchs(cutPoints);
+        cutPoints = [];
+    }
 }
 
 function onApplyBendChanged() {
@@ -112,6 +147,14 @@ function onMouseMove(evt) {
     var rect = evt.target.getBoundingClientRect();
     mousePosition[0] = evt.clientX - rect.left;
     mousePosition[1] = evt.clientY - rect.top;
+
+    if (mouseMode === 'CUT') {
+        // if (cutPoints.length !== 1) {
+        //     return;
+        // }
+        // const cutEnd = Render.canvasToWorldPosition({x:mousePosition[0], y:mousePosition[1]});
+        // Render.drawLine(cutPoints[0], cutEnd, 2, 'rgb(255, 0, 0)');
+    }
 }
 
 function onMouseDown() {
@@ -119,6 +162,22 @@ function onMouseDown() {
 }
 function onMouseUp(evt) {
     run = false;
+}
+
+function cutBranchs(cutPoints) {
+    const intersectingBranchs = rbushBranchs.search({
+        minX: Math.min(cutPoints[0][0], cutPoints[1][0]),
+        minY: Math.min(cutPoints[0][1], cutPoints[1][1]),
+        maxX: Math.max(cutPoints[0][0], cutPoints[1][0]),
+        maxY: Math.max(cutPoints[0][1], cutPoints[1][1]),
+    });
+
+    for (let i = 0; i < intersectingBranchs.length; i ++) {
+        const branch = intersectingBranchs[i].branch;
+        branch.remove();
+    }
+
+    play();
 }
 
 function play() {
