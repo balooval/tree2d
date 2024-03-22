@@ -234,6 +234,8 @@ function treeGrow(trees) {
     trees.forEach(tree => tree.endCycle());
 
     Render.draw(context);
+
+    // FallingLeaves.update();
 }
 
 function indexBranchs(branchs) {

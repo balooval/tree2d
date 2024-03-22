@@ -1,4 +1,5 @@
 import { randomize, randomElement } from "./Math.js";
+// import * as FallingLeaves from './FallingLeaves.js';
 
 export const presets = {
     typeA: {
@@ -132,7 +133,6 @@ class Branch {
         this.totalLigthReceived = 0;
         this.leavesHealth = 1;
 
-
         this.tree.addTip(this);
     }
 
@@ -165,8 +165,14 @@ class Branch {
             (this.energyTransferedByCycle * this.weight) / (this.length * 30)
         );
 
-        if (this.ligthReceived < 1) {
-            this.leavesHealth = Math.max(0, this.leavesHealth - 0.1);
+        if (this.ligthReceived < 1 && this.leavesHealth > 0) {
+            this.leavesHealth -= 0.1;
+            
+            if (this.leavesHealth < 0) {
+                // FallingLeaves.addLeaf(this.end.clone(), this.getLeafSize(), this.getLeaveColor());
+            }
+            
+            this.leavesHealth = Math.max(0, this.leavesHealth);
         }
 
         this.totalEnergyTransfered += this.energyTransferedByCycle;

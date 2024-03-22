@@ -1,5 +1,4 @@
-import { randomize, randomElement } from "../Math.js";
-import {presets} from '../Tree.js';
+// import * as FallingLeaves from '../FallingLeaves.js';
 
 class TreeRender {
     constructor(render) {
@@ -17,17 +16,35 @@ class TreeRender {
             this.#drawLeaves(branch);
         });
 
-        // this.render.drawCircle(tree.root.start, tree.root.energy, 'rgba(0, 255, 0, 0.2)');
+        // FallingLeaves.update();
+
     }
 
     #drawBranch(branch) {
-        this.render.drawLine(branch.start, branch.end, branch.getWidth(), branch.trunkColor);
+        // this.render.drawLine(branch.start, branch.end, branch.getWidth(), branch.trunkColor);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.energy > 0 ? 255 : 0}, 0)`);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.energy * 100}, 0)`);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.auxinQuantity * 25}, 0)`);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.energyTransferedByCycle * 10}, 0)`);
         // this.render.drawLine(branch.start, branch.end, 10, `rgb(0, ${(branch.length / branch.preset.newBranchLength) * 50}, 0)`);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, 0, 0)`);
+
+        if (branch.parent === null) {
+            return;
+        }
+
+        const width = branch.getWidth();
+        const parentWidth = branch.parent.getWidth();
+
+        const points = [
+            branch.end.add(branch.direction.rotateDegrees(90).mulScalarSelf(width)),
+            branch.end.add(branch.direction.rotateDegrees(-90).mulScalarSelf(width)),
+            branch.parent.end.add(branch.parent.direction.rotateDegrees(-90).mulScalarSelf(parentWidth)),
+            branch.parent.end.add(branch.parent.direction.rotateDegrees(90).mulScalarSelf(parentWidth)),
+        ];
+
+        this.render.drawPolygon(points, branch.trunkColor);
+        
     }
 
     #drawLeaves(branch) {

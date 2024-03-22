@@ -39,6 +39,20 @@ class Render {
         this.context.clearRect(0, 0, this.sceneWidth, this.sceneHeight);
     }
 
+    drawPolygon(points, color) {
+        const start = points.shift();
+        const startPosition = this.worldToCanvasPosition(start);
+
+        this.context.fillStyle = color;
+        this.context.beginPath();
+        this.context.moveTo(startPosition[0], startPosition[1]);
+        for (let i = 0; i < points.length; i ++) {
+            const position = this.worldToCanvasPosition(points[i]);
+            this.context.lineTo(position[0], position[1]);
+        }
+        this.context.fill();
+    }
+
     drawLine(worldStart, worldEnd, worldWidth, color) {
         const start = this.worldToCanvasPosition(worldStart);
         const end = this.worldToCanvasPosition(worldEnd);
