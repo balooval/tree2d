@@ -129,9 +129,28 @@ class Branch {
         this.density = this.preset.density;
         this.heliotropism = this.preset.heliotropism;
         this.ligthReceived = 0;
+        this.totalLigthReceived = 0;
         this.leavesHealth = 1;
 
+
         this.tree.addTip(this);
+    }
+
+    getLeaves() {
+        const leavesPositions = [];
+        const count = 3;
+        
+        for (let i = 0; i < count; i ++) {
+            leavesPositions.push(this.end);
+            leavesPositions.push(this.end.sub(this.direction.mulScalar(8)).add(this.direction.rotateDegrees(90).mulScalarSelf(10)));
+            leavesPositions.push(this.end.sub(this.direction.mulScalar(16)).add(this.direction.rotateDegrees(-90).mulScalarSelf(10)));
+        }
+
+        return leavesPositions;
+    }
+
+    getLeafSize() {
+        return this.preset.leaveSize;// * (0.5 + this.totalLigthReceived * 0.1);
     }
 
     startCycle() {
@@ -171,6 +190,8 @@ class Branch {
         const newEnd = this.end.sub(this.start);
         newEnd.rotateRadiansSelf(bendAngle);
         this.end = newEnd.add(this.start);
+        this.startToEndVector = this.end.sub(this.start);
+        this.direction = this.startToEndVector.normalize();
 
         for (let i = 0; i < this.childs.length; i ++) {
             this.childs[i].followParentBend(this.start, bendAngle);
@@ -195,6 +216,8 @@ class Branch {
     followParentBend(start, bendAngle) {
         this.start = this.start.sub(start).rotateRadiansSelf(bendAngle).addSelf(start);
         this.end = this.end.sub(start).rotateRadiansSelf(bendAngle).addSelf(start);
+        this.startToEndVector = this.end.sub(this.start);
+        this.direction = this.startToEndVector.normalize();
 
         for (let i = 0; i < this.childs.length; i ++) {
             this.childs[i].followParentBend(start, bendAngle);
@@ -222,6 +245,7 @@ class Branch {
         }
 
         this.ligthReceived += lightQuantity;
+        this.totalLigthReceived += lightQuantity;
 
         if (this.energy < this.lightBeforeGrow) {
             if (this.parent !== null) {

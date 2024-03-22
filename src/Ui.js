@@ -22,10 +22,7 @@ function onViewLeavesChanged() {
 }
 
 function addPresetParamsInputs() {
-    const leaveSizeControl = `<label for="presetLeafSize" class="form-label">Leaf size</label><input type="range" class="form-range" min="1" max="10" step="1" id="presetLeafSize" value="${currentPreset.leaveSize}"></input>`;
-    presetParamsContainer.insertAdjacentHTML('beforeend', leaveSizeControl);
-    document.getElementById('presetLeafSize').addEventListener('change', evt => currentPreset.leaveSize = evt.target.value);
-
+    addRangeControl('leaveSize', 1, 10, 1);
     addRangeControl('uselessBeforePrune', 1, 10, 1);
     addRangeControl('maxLightDistance', 50, 200, 1);
     addRangeControl('lightBeforeGrow', 1, 10, 1);

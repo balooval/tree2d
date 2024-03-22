@@ -40,13 +40,15 @@ class TreeRender {
             return;
         }
 
-        const count = 4;
+        const leaves = branch.getLeaves();
+
+        const count = leaves.length;
 
         for (let i = 0; i < count; i ++) {
-            const leavePosition = branch.end.clone();
-            leavePosition.x = randomize(leavePosition.x, branch.preset.leaveDispersion);
-            leavePosition.y = randomize(leavePosition.y, branch.preset.leaveDispersion);
-            this.render.drawCircle(leavePosition, branch.preset.leaveSize, branch.getLeaveColor())
+            const leavePosition = leaves[i];
+            // leavePosition.x = randomize(leavePosition.x, branch.preset.leaveDispersion);
+            // leavePosition.y = randomize(leavePosition.y, branch.preset.leaveDispersion);
+            this.render.drawCircle(leavePosition, branch.getLeafSize(), branch.getLeaveColor())
         }
     }
 }
