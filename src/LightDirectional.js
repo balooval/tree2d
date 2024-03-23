@@ -24,8 +24,8 @@ class Light {
         this.photons = [];
     }
 
-    emit(branchs, rbushBranchs) {
-        this.rays = this.#computeRays(branchs, rbushBranchs);
+    emit(rbushBranchs) {
+        this.rays = this.#computeRays(rbushBranchs);
         this.photons = this.#createPhotons();
     }
 
@@ -33,7 +33,7 @@ class Light {
         return this.photons;
     }
 
-    #computeRays(branchs, rbushBranchs) {
+    #computeRays(rbushBranchs) {
         const rays = [];
         const stepLength = this.width / this.rayCount;
 
@@ -43,17 +43,60 @@ class Light {
             rayStart.addSelf(this.position);
 
             let rayEnd = rayStart.add(this.direction.mulScalar(5000));
-
-            rayEnd = this.#cutRayByBranchs(rayStart, rayEnd, rbushBranchs);
-
-            const ray = new Ray(rayStart, rayEnd);
-            rays.push(ray);
+            rays.push(...this.#cutRayByBranchsMulti(rayStart, rayEnd, rbushBranchs));
         }
 
         return rays;
     }
 
-    #cutRayByBranchs(rayStart, rayEnd, rbushBranchs) {
+    #cutRayByBranchsMulti(rayStart, rayEnd, rbushBranchs) {
+        let currentEnd = rayEnd.clone();
+        let currentLength = rayEnd.distanceFrom(rayStart);
+
+        const intersectingBranchs = rbushBranchs.search({
+            minX: Math.min(rayStart.x, rayEnd.x),
+            minY: Math.min(rayStart.y, rayEnd.y),
+            maxX: Math.max(rayStart.x, rayEnd.x),
+            maxY: Math.max(rayStart.y, rayEnd.y),
+        });
+
+        const intersections = [{
+            position: currentEnd,
+            distance: currentLength,
+        }];
+
+        for (let i = 0; i < intersectingBranchs.length; i ++) {
+            const branch = intersectingBranchs[i].branch;
+            const contact = segmentIntersection(
+                rayStart.x, rayStart.y,
+                currentEnd.x, currentEnd.y,
+                branch.start.x, branch.start.y,
+                branch.end.x, branch.end.y,
+            );
+            if (contact === null) {
+                continue;
+            }
+            const contactVector = new Vector(contact[0], contact[1]);
+            const newLength = contactVector.distanceFrom(rayStart);
+            intersections.push({
+                position: contactVector,
+                distance: newLength,
+            });
+        }
+
+        let start = rayStart;
+        let factor = 1;
+        return intersections.sort((intA, intB) => Math.sign(intA.distance - intB.distance))
+        .slice(0, 4)
+        .map(int => {
+            const ray = new Ray(start, int.position, factor);
+            start = int.position;
+            factor *= 0.5;
+            return ray;
+        });
+    }
+
+    #cutRayByBranchsSingle(rayStart, rayEnd, rbushBranchs) {
         let currentEnd = rayEnd.clone();
         let currentLength = rayEnd.distanceFrom(rayStart);
 
@@ -83,16 +126,15 @@ class Light {
             }
         }
         
-        return currentEnd;
+        return [new Ray(rayStart, currentEnd, 1)];
     }
 
     #createPhotons() {
         const photons = [];
 
         this.rays.forEach(ray => {
-            const normalRay = ray.end.sub(ray.start)
-            normalRay.normalizeSelf();
-            const stepDistance = 50;
+            const normalRay = ray.end.sub(ray.start).normalizeSelf()
+            const stepDistance = 50 / ray.factor;
             const stepCount = ray.length / stepDistance;
             
             for (let i = 1; i <= stepCount; i ++) {
@@ -113,9 +155,10 @@ class Light {
 }
 
 class Ray {
-    constructor(start, end) {
+    constructor(start, end, factor) {
         this.start = start;
         this.end = end;
+        this.factor = factor;
         this.length = this.end.clone().subSelf(this.start).length();
     }
 }

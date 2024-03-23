@@ -320,7 +320,7 @@ class Branch {
 
     getWidth() {
         const tickness = Math.atan(this.tickness);
-        return Math.max(3, Math.min(this.tickness, 50) * tickness);
+        return Math.max(1, Math.min(this.tickness, 50) * tickness);
         return Math.max(3, Math.min(this.tickness, 100));
     }
 
