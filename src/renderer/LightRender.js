@@ -15,8 +15,10 @@ class LightRender {
             light.photons.forEach(photon => Render.drawCircle(photon.position, 10, 'rgb(255, 255, 255, 0.2)'))
         }
         
-        // light.photons.forEach(photon => this.drawPhoton(photon.position))
-        // light.rays.forEach(ray => LightLayer.drawRay(ray))
+        // light.rays.forEach(ray => LightLayer.drawRay(light, ray))
+
+        Render.drawCircle(light.position, 50, 'rgba(250, 200, 50, 0.5)')
+        Render.drawLine(light.position, light.position.add(light.direction.mulScalar(500)), 1, 'rgba(250, 200, 50, 0.4)')
     }
 
     drawPhoton(worldPosition) {

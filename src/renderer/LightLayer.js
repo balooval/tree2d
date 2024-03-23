@@ -37,13 +37,12 @@ class LightLayer {
         Render.context.globalCompositeOperation = "source-over";
     }
 
-    drawRay(ray) {
-        this.drawLine(ray.start, ray.end, 60, 'rgb(255, 221, 84, 0.3)');
+    drawRay(light, ray) {
+        this.drawLine(ray.start, ray.end, light.width, 'rgb(255, 255, 255, 0.1)');
     }
 
     clear() {
-        this.context.fillStyle = 'rgb(0, 0, 0)';
-        this.context.fillRect(0, 0, this.sceneWidth, this.sceneHeight);
+        this.context.clearRect(0, 0, this.sceneWidth, this.sceneHeight);
     }
 
     drawLine(worldStart, worldEnd, worldWidth, color) {

@@ -20,6 +20,7 @@ const treesSolo = [];
 const treesA = [];
 const treesB = [];
 const treeRender = new TreeRender(Render);
+const lightSource = new LightDirectional(new Vector(0, 0), new Vector(0, 20));
 
 const currentPreset = presets['typeB'];
 
@@ -200,8 +201,9 @@ function treeGrow(trees) {
     rbushBranchs.clear();
 
     const lightPosition = Render.canvasToWorldPosition(new Vector(mousePosition[0], mousePosition[1]));
-    const lightSource = new LightDirectional(new Vector(lightPosition[0], lightPosition[1]), new Vector(0, 20));
+    lightSource.reset(new Vector(lightPosition[0], lightPosition[1]));
 
+    LightLayer.clear();
     Render.clear();
     
     const branchs = [];
@@ -209,6 +211,7 @@ function treeGrow(trees) {
     indexBranchs(branchs);
     lightSource.emit(branchs, rbushBranchs);
     LightRender.draw(lightSource);
+    // LightLayer.draw();
 
     attractors = createAttractors(lightSource.getPhotons());
 
@@ -235,7 +238,6 @@ function treeGrow(trees) {
 
     Render.draw(context);
 
-    // FallingLeaves.update();
 }
 
 function indexBranchs(branchs) {
