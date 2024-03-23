@@ -209,7 +209,7 @@ function treeGrow(trees) {
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
     indexBranchs(branchs);
-    lightSource.emit(branchs, rbushBranchs);
+    lightSource.emit(rbushBranchs);
     LightRender.draw(lightSource);
     // LightLayer.draw();
 

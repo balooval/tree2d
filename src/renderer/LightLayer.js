@@ -38,7 +38,7 @@ class LightLayer {
     }
 
     drawRay(light, ray) {
-        this.drawLine(ray.start, ray.end, light.width, 'rgb(255, 255, 255, 0.1)');
+        this.drawLine(ray.start, ray.end, light.width, `rgb(255, 255, 255, ${ray.factor * 0.3})`);
     }
 
     clear() {
