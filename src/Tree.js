@@ -265,17 +265,6 @@ class Branch {
     }
 
     pumpEnergy(quantity) {
-        /*
-        this.stepsWithUselesEnergy = 0;
-        this.energyTransferedByCycle += quantity;
-
-        if (this.parent === null) {
-            return quantity;
-        }
-
-        return this.parent.pumpEnergy(quantity);
-        */
-
         this.stepsWithUselesEnergy = 0;
         // J'en ai assez, je te retourne ce dont tu a besoin
         let energyToGive;

@@ -4,12 +4,22 @@ class Light {
     constructor(position, target) {
         this.position = position;
         this.target = target;
-        this.direction = this.target.sub(this.position);
-        this.length = this.direction.length();
+        const startToEnd = this.target.sub(this.position);
+        this.length = startToEnd.length();
+        this.direction = startToEnd.normalize();
         this.rayCount = 160;
         this.width = 80;
         this.angle = this.position.radiansTo(this.target);
+        this.rays = [];
+        this.photons = [];
+    }
 
+    reset(position) {
+        this.position = position;
+        const startToEnd = this.target.sub(this.position);
+        this.length = startToEnd.length();
+        this.direction = startToEnd.normalize();
+        this.angle = this.position.radiansTo(this.target);
         this.rays = [];
         this.photons = [];
     }
@@ -29,14 +39,14 @@ class Light {
 
         for (let i = 0; i < this.rayCount; i ++) {
             const distanceFromOrigin = (i - (this.rayCount / 2)) * stepLength;
-            const rayStart = this.direction.rotateRadians(Math.PI * 0.5).normalizeSelf().mulScalarSelf(this.width * distanceFromOrigin);
+            const rayStart = this.direction.rotateRadians(Math.PI * 0.5).mulScalarSelf(this.width * distanceFromOrigin);
             rayStart.addSelf(this.position);
 
-            let rayVector = rayStart.add(this.direction);
+            let rayEnd = rayStart.add(this.direction.mulScalar(5000));
 
-            rayVector = this.#cutRayByBranchs(rayStart, rayVector, rbushBranchs);
+            rayEnd = this.#cutRayByBranchs(rayStart, rayEnd, rbushBranchs);
 
-            const ray = new Ray(rayStart, rayVector);
+            const ray = new Ray(rayStart, rayEnd);
             rays.push(ray);
         }
 
@@ -92,7 +102,7 @@ class Light {
                 photoRay.x = randomize(photoRay.x, stepDistance * 0.4);
                 photoRay.y = randomize(photoRay.y, stepDistance * 0.4);
 
-                const photon = new Photon(photoRay, this.direction.normalize());
+                const photon = new Photon(photoRay, this.direction);
                 photons.push(photon);
             }
         });

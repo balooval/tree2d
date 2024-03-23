@@ -31,6 +31,7 @@ function addPresetParamsInputs() {
     addRangeControl('density', 1, 30, 1);
     addRangeControl('directionConstrainFactor', 0, 2, 0.01);
     addRangeControl('heliotropism', 0, 5, 0.1);
+    addRangeControl('auxinProduction', 0, 50, 1);
 }
 
 function addRangeControl(presetName, min, max, step) {
