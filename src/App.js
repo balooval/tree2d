@@ -6,9 +6,10 @@ import Light from './Light.js';
 import LightDirectional from './LightDirectional.js';
 import {Tree} from './Tree.js';
 import RBush from '../vendor/rbush.js';
+import Attractor from './Attractor.js';
 import RBushKnn from '../vendor/rbush-knn.js';
 import {presets} from './Tree.js';
-import * as Ui from './Ui.js';
+import * as Ui from './UiControls.js';
 
 const rbushAttractors = new RBush();
 const rbushBranchs = new RBush();
@@ -287,22 +288,3 @@ function clearCanvas() {
     context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-class Attractor {
-    constructor(position, orientation) {
-        this.position = position;
-        this.orientation = orientation;
-        this.nearestBranch = null;
-        this.nearestDistance = 999999;
-    }
-    
-    attachBranchIfNeeded(branch) {
-        const distance = branch.end.distanceFrom(this.position);
-        
-        if (this.nearestDistance < distance) {
-            return;
-        }
-    
-        this.nearestDistance = distance;
-        this.nearestBranch = branch;
-    }
-} 

@@ -1,17 +1,20 @@
 
-class Attractor {
-
-    constructor(position) {
+export default class Attractor {
+    constructor(position, orientation) {
         this.position = position;
-        this.closestBranch = null;
-        this.distance = 99999;
-        this.minX = this.position.x;
-        this.minY = this.position.y;
-        this.minZ = this.position.z;
-        this.maxX = this.position.x;
-        this.maxY = this.position.y;
-        this.maxZ = this.position.z;
+        this.orientation = orientation;
+        this.nearestBranch = null;
+        this.nearestDistance = 999999;
     }
-}
-
-export default Attractor;
+    
+    attachBranchIfNeeded(branch) {
+        const distance = branch.end.distanceFrom(this.position);
+        
+        if (this.nearestDistance < distance) {
+            return;
+        }
+    
+        this.nearestDistance = distance;
+        this.nearestBranch = branch;
+    }
+} 
