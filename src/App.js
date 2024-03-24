@@ -17,8 +17,6 @@ const illuminatedBranchs = new Set();
 let attractors = [];
 
 const treesSolo = [];
-const treesA = [];
-const treesB = [];
 const treeRender = new TreeRender(Render);
 const lightSource = new LightDirectional(new Vector(0, 0), new Vector(0, 20));
 
@@ -50,23 +48,6 @@ export function init(_canvasId) {
     mousePosition[0] = Render.sceneWidth / 2;
 
     const groundPosition = 50;
-
-    treesA.push(
-        new Tree(new Vector(-1000, groundPosition), presets['typeB']),
-        // new Tree(new Vector(-1050, groundPosition), presets['typeA']),
-        // new Tree(new Vector(-400, groundPosition), presets['typeA']),
-        // new Tree(new Vector(-200, groundPosition), presets['typeB']),
-        // new Tree(new Vector(400, groundPosition), presets['typeB']),
-        new Tree(new Vector(1000, groundPosition), presets['typeA']),
-    );
-
-    treesB.push(
-        new Tree(new Vector(100, groundPosition), presets['typeB']),
-        new Tree(new Vector(1200, groundPosition), presets['typeA']),
-        new Tree(new Vector(800, groundPosition), presets['typeB']),
-        new Tree(new Vector(-300, groundPosition), presets['typeA']),
-        new Tree(new Vector(-600, groundPosition), presets['typeA']),
-    );
 
     treesSolo.push(new Tree(new Vector(0, 0), currentPreset));
 
@@ -185,8 +166,6 @@ function play() {
     clearCanvas();
 
     const treesList = [
-        // treesA,
-        // treesB,
         treesSolo,
     ];
 
