@@ -59,11 +59,20 @@ class UiCut {
     
     draw() {
         if (this.targetBranch !== null) {
-            this.render.drawLine(this.targetBranch.start, this.targetBranch.end, this.targetBranch.getWidth(), `rgb(255, 0, 0)`);
+            this.drawTargetBranch(this.targetBranch);
         }
 
         this.render.draw(this.mainContext);
         this.render.clear();
+    }
+
+    drawTargetBranch(branch) {
+        // this.render.drawLine(this.targetBranch.start, this.targetBranch.end, this.targetBranch.getWidth(), `rgb(255, 0, 0)`);
+        const allBranchs = branch.addToList([]);
+        
+        for (let i = 0; i < allBranchs.length; i ++) {
+            this.render.drawLine(allBranchs[i].start, allBranchs[i].end, allBranchs[i].getWidth(), `rgb(255, 0, 0)`);
+        }
     }
 
     setBranches(rbushBranchs) {
