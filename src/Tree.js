@@ -29,14 +29,15 @@ export const presets = {
         presetName: 'typeB',
         heliotropism: 1,
         density: 1,
+        flexibility: 0.002,
         auxinProduction: 1,
         maxLightDistance: 100,
         newBranchLength: 15,
         rigidity: 10,
-        uselessBeforePrune: 3,
+        uselessBeforePrune: 8,
         pumpQuantityToParent: 5,
         lightBeforeGrow: 8,
-        directionConstrainFactor: 0,
+        directionConstrainFactor: 1,
         leaveSize: 5,
         leaveDispersion: 20,
         leaveColors: [
@@ -58,9 +59,47 @@ export class Tree {
         this.preset = preset;
         this.position = position;
         this.tips = new Set();
-        this.root = new Branch(this, null, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength), 5);
-        this.root.energy = 500;
+        this.root = new Branch(this, null, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength), 0);
+        // this.root.energy = 500;
         this.branchs = [this.root];
+        this.branchesEnergyNeed = new Map();
+        this.age = 1;
+    }
+
+    askEnergy(branch, lightQuantity) {
+        this.branchesEnergyNeed.set(branch, lightQuantity);
+    }
+
+    distributeEnergy() {
+        let totalEnergyAsked = 0;
+        const totalEnergy = Math.min(300, Math.exp(this.age / 10));
+        // const totalEnergy = 300;
+
+        for (const [branch, lightQuantity] of this.branchesEnergyNeed) {
+            totalEnergyAsked += lightQuantity;
+        }
+
+        // console.log('Total ask', totalEnergyAsked, '/', totalEnergy);
+
+        const energyToGive = Math.min(totalEnergyAsked, totalEnergy)
+
+        for (const [branch, lightQuantity] of this.branchesEnergyNeed) {
+            const energyPercentForBranch = lightQuantity / totalEnergyAsked;
+            const energyForBranch = energyToGive * energyPercentForBranch;
+            // console.log('Get', energyForBranch, '/', lightQuantity, `(${Math.round(energyPercentForBranch * 100)}%)`);
+            // console.log('Ask', lightQuantity, 'Get', (energyPercentForBranch * 100), '%', 'So get', energyForBranch, 'on', energyToGive);
+            branch.addEnergy(energyForBranch);
+        }
+    }
+
+    giveLightToBranches() {
+
+    }
+
+    startCycle() {
+        this.age ++;
+        this.branchesEnergyNeed = new Map();
+        this.#resetTips();
     }
 
     endCycle() {
@@ -75,7 +114,7 @@ export class Tree {
         this.root.pruneIfNeeded();
     }
 
-    resetTips() {
+    #resetTips() {
         this.tips = new Set();
     }
     
@@ -85,12 +124,6 @@ export class Tree {
     
     removeTip(branch) {
         this.tips.delete(branch);
-    }
-
-    updateFromTips() {
-        for (let branch of this.tips) {
-            branch.updateWeight(0);
-        }
     }
 
     getBranchs() {

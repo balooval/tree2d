@@ -29,7 +29,7 @@ function addPresetParamsInputs() {
     addRangeControl('newBranchLength', 5, 20, 1);
     addRangeControl('rigidity', 1, 20, 1);
     addRangeControl('density', 1, 30, 1);
-    addRangeControl('directionConstrainFactor', 0, 2, 0.01);
+    addRangeControl('directionConstrainFactor', 0, 80, 1);
     addRangeControl('heliotropism', 0, 5, 0.1);
     addRangeControl('auxinProduction', 0, 50, 1);
 }

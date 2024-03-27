@@ -156,7 +156,7 @@ function treeGrow(trees) {
     UiCut.setBranches(rbushBranchs);
     lightSource.emit(rbushBranchs);
     LightRender.draw(lightSource);
-    // LightLayer.draw();
+    LightLayer.draw();
 
     attractors = createAttractors(lightSource.getPhotons());
 
@@ -165,19 +165,17 @@ function treeGrow(trees) {
     branchs.forEach(branch => attachBranchToAttractors(branch));
     attachAttractorsToBranch(attractors);
     
-    trees.forEach(tree => tree.resetTips());
+    trees.forEach(tree => tree.startCycle());
     branchs.forEach(branch => branch.startCycle());
 
     for (let branch of illuminatedBranchs) {
-        branch.takeLight()
+        branch.askEnergy();
     }
 
+    trees.forEach(tree => tree.distributeEnergy());
     trees.forEach(tree => tree.prune());
-    trees.forEach(tree => tree.updateFromTips());
-    
-    if (applyBend === true) {
-        trees.forEach(tree => tree.bendBranches());
-    }
+    trees.forEach(tree => tree.bendBranches());
+
     trees.forEach(tree => treeRender.draw(tree));
     trees.forEach(tree => tree.endCycle());
 
@@ -191,13 +189,15 @@ function indexBranchs(branchs) {
     for (let i = 0; i < branchs.length; i ++) {
         const branch = branchs[i];
 
-        items.push({
+        const branchBbox = {
             minX: Math.min(branch.start.x, branch.end.x),
             maxX: Math.max(branch.start.x, branch.end.x),
             minY: Math.min(branch.start.y, branch.end.y),
             maxY: Math.max(branch.start.y, branch.end.y),
             branch: branch,
-        });
+        };
+
+        items.push(branchBbox);
     }
     
     rbushBranchs.load(items);

@@ -44,6 +44,7 @@ class Light {
 
             let rayEnd = rayStart.add(this.direction.mulScalar(5000));
             rays.push(...this.#cutRayByBranchsMulti(rayStart, rayEnd, rbushBranchs));
+            // rays.push(...this.#cutRayByBranchsSingle(rayStart, rayEnd, rbushBranchs));
         }
 
         return rays;
@@ -86,8 +87,9 @@ class Light {
 
         let start = rayStart;
         let factor = 1;
-        return intersections.sort((intA, intB) => Math.sign(intA.distance - intB.distance))
-        .slice(0, 4)
+        return intersections
+        .sort((intA, intB) => Math.sign(intA.distance - intB.distance))
+        .slice(0, 8)
         .map(int => {
             const ray = new Ray(start, int.position, factor);
             start = int.position;
@@ -100,12 +102,13 @@ class Light {
         let currentEnd = rayEnd.clone();
         let currentLength = rayEnd.distanceFrom(rayStart);
 
-        const intersectingBranchs = rbushBranchs.search({
+        const rayBbox = {
             minX: Math.min(rayStart.x, rayEnd.x),
             minY: Math.min(rayStart.y, rayEnd.y),
             maxX: Math.max(rayStart.x, rayEnd.x),
             maxY: Math.max(rayStart.y, rayEnd.y),
-        });
+        };
+        const intersectingBranchs = rbushBranchs.search(rayBbox);
 
         for (let i = 0; i < intersectingBranchs.length; i ++) {
             const branch = intersectingBranchs[i].branch;
