@@ -2,7 +2,7 @@ import { randomElement, randomizeArray } from "./Math.js";
 import Render from './renderer/Render.js'
 
 let ID = 0;
-export default class Branch {
+export class Branch {
     constructor(tree, parent, start, end) {
         this.id = ID ++;
         this.tree = tree;
@@ -31,6 +31,8 @@ export default class Branch {
         this.leavesHealth = 1;
         this.leavesSize = 0;
 
+        const angle = this.preset.angle;
+
         this.buds = [
             {
                 active: true,
@@ -43,15 +45,15 @@ export default class Branch {
                 active: true,
                 light: 0,
                 energy: 0,
-                relativeAngle: this.preset.angle,
-                orientation: this.direction.rotateDegrees(this.preset.angle),
+                relativeAngle: angle,
+                orientation: this.direction.rotateDegrees(angle),
             },
             {
                 active: true,
                 light: 0,
                 energy: 0,
-                relativeAngle: this.preset.angle * -1,
-                orientation: this.direction.rotateDegrees(this.preset.angle * -1),
+                relativeAngle: angle * -1,
+                orientation: this.direction.rotateDegrees(angle * -1),
             },
         ];
 
@@ -122,11 +124,6 @@ export default class Branch {
     addWidth(quantity) {
         this.width += quantity;
         this.cyclesWithoutEnergy = 0;
-
-        if (this.parent === null) {
-            return;
-        }
-
         this.parent.addWidth(quantity);
     }
 
@@ -259,5 +256,32 @@ export default class Branch {
 
     removeChild(childBranch) {
         this.childs = this.childs.filter(branch => branch !== childBranch);
+    }
+}
+
+export class Seed {
+    constructor (position) {
+        this.end = position
+        this.start = this.end.add(new Vector(0, -1));
+        this.startToEndVector = this.end.sub(this.start);
+        this.length = this.startToEndVector.length();
+        this.direction = this.startToEndVector.normalize();
+        this.childs = [];
+    }
+
+    getWidth() {
+        return 10;
+    }
+
+    addWidth(quantity) {
+
+    }
+
+    remove() {
+
+    }
+
+    removeChild() {
+
     }
 }

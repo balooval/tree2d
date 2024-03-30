@@ -1,4 +1,4 @@
-import Branch from './Branch.js';
+import {Branch, Seed } from './Branch.js';
 
 export const presets = {
     typeA: {
@@ -8,7 +8,7 @@ export const presets = {
         flexibility: 0.00005,
         maxLightDistance: 100,
         newBranchLength: 30,
-        uselessBeforePrune: 10,
+        uselessBeforePrune: 30,
         directionConstrainFactor: 0.0,
         leaveColors: [
             {h: 70, s: 70, l: 20},
@@ -47,11 +47,12 @@ export class Tree {
     constructor(position, preset) {
         this.preset = preset;
         this.position = position;
+        this.age = 1;
         this.tips = new Set();
-        this.root = new Branch(this, null, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1));
+        const seed = new Seed(position);
+        this.root = new Branch(this, seed, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1));
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();
-        this.age = 1;
     }
 
     askEnergy(branch, lightQuantity) {
