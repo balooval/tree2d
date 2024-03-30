@@ -2,13 +2,15 @@ import Render from './renderer/Render.js'
 import TreeRender from './renderer/TreeRender.js'
 import LightRender from './renderer/LightRender.js'
 import LightLayer from './renderer/LightLayer.js'
-import Light from './Light.js';
 import LightDirectional from './LightDirectional.js';
 import {Tree} from './Tree.js';
 import RBush from '../vendor/rbush.js';
+import Attractor from './Attractor.js';
 import RBushKnn from '../vendor/rbush-knn.js';
 import {presets} from './Tree.js';
-import * as Ui from './Ui.js';
+import * as UiControls from './UiControls.js';
+import * as UiMouse from './UiMouse.js';
+import UiCut from './UiCut.js';
 
 const rbushAttractors = new RBush();
 const rbushBranchs = new RBush();
@@ -16,6 +18,7 @@ const rbushBranchs = new RBush();
 const illuminatedBranchs = new Set();
 let attractors = [];
 
+const treesList = [];
 const treesSolo = [];
 const treeRender = new TreeRender(Render);
 const lightSource = new LightDirectional(new Vector(0, 0), new Vector(0, 20));
@@ -27,29 +30,29 @@ let canvas = null;
 let context = null;
 let run = false;
 let applyBend = true;
-const mousePosition = [400, 100];
-let mouseMode = null;
-let cutPoints = [];
 
 // const backgroundColor = 'rgb(100, 100, 100)';
 const backgroundColor = 'rgb(10, 10, 10)';
 
 export function init(_canvasId) {
     canvasId = _canvasId;
+    UiMouse.init(canvasId);
     canvas = document.getElementById(canvasId);
     context = canvas.getContext('2d');
     clearCanvas();
-
-
+    
+    
     Render.init(canvas);
-    Ui.init(treeRender, currentPreset);
-    Ui.setPreset(currentPreset);
+    UiCut.init(canvas, onCutBranch);
+    UiControls.init(treeRender, currentPreset);
+    UiControls.setPreset(currentPreset);
     LightLayer.init(canvasId);
-    mousePosition[0] = Render.sceneWidth / 2;
 
     const groundPosition = 50;
 
     treesSolo.push(new Tree(new Vector(0, 0), currentPreset));
+
+    treesList.push(treesSolo);
 
     setMouseRunMode(true);
 
@@ -57,7 +60,6 @@ export function init(_canvasId) {
     document.getElementById('applyBend').addEventListener('change', onApplyBendChanged);
     document.getElementById('presetTypeA').addEventListener('change', onTreeTypeSelectChanged);
     document.getElementById('presetTypeB').addEventListener('change', onTreeTypeSelectChanged);
-    document.getElementById(canvasId).addEventListener('mousemove', onMouseMove);
     document.body.addEventListener('keyup', onKeyUp);
 
     onFrame();
@@ -66,32 +68,20 @@ export function init(_canvasId) {
 function setMouseCutMode(state) {
     if (state === true) {
         setMouseRunMode(false);
-        mouseMode = 'CUT';
-        cutPoints = [];
-        document.getElementById(canvasId).addEventListener('mouseup', addCutPoint);
+        UiCut.start();
     } else {
         setMouseRunMode(true);
-        document.getElementById(canvasId).removeEventListener('mouseup', addCutPoint);
+        UiCut.stop();
     }
 }
 
 function setMouseRunMode(state = true) {
     if (state === true) {
-        mouseMode = 'RUN';
         document.getElementById(canvasId).addEventListener('mousedown', onMouseDown);
         document.getElementById(canvasId).addEventListener('mouseup', onMouseUp);
     } else {
         document.getElementById(canvasId).removeEventListener('mousedown', onMouseDown);
         document.getElementById(canvasId).removeEventListener('mouseup', onMouseUp);
-    }
-}
-
-function addCutPoint() {
-    cutPoints.push(Render.canvasToWorldPosition({x:mousePosition[0], y:mousePosition[1]}));
-    console.log('cutPoints', cutPoints);
-    if (cutPoints.length === 2) {
-        cutBranchs(cutPoints);
-        cutPoints = [];
     }
 }
 
@@ -101,41 +91,31 @@ function onApplyBendChanged() {
 
 function onTreeTypeSelectChanged() {
     const typeBChecked = document.getElementById('presetTypeB').checked;
-    // treesSolo.length = 0;
+
     let treeType = 'typeA';
     if (typeBChecked === true) {
         treeType = 'typeB';
     }
-    // treesSolo.push(new Tree(new Vector(0, 0), treeType));
 
     treesSolo[0].preset = presets[treeType];
-    Ui.setPreset(presets[treeType]);
+    UiControls.setPreset(presets[treeType]);
 }
 
 function onFrame() {
+    clearCanvas();
+
     if (run === true) {
         play();
     }
+
+    Render.draw(context);
+
     requestAnimationFrame(onFrame);
 }
 
 function onKeyUp(evt) {
     if (evt.code === 'Space') {
         play();
-    }
-}
-
-function onMouseMove(evt) {
-    var rect = evt.target.getBoundingClientRect();
-    mousePosition[0] = evt.clientX - rect.left;
-    mousePosition[1] = evt.clientY - rect.top;
-
-    if (mouseMode === 'CUT') {
-        // if (cutPoints.length !== 1) {
-        //     return;
-        // }
-        // const cutEnd = Render.canvasToWorldPosition({x:mousePosition[0], y:mousePosition[1]});
-        // Render.drawLine(cutPoints[0], cutEnd, 2, 'rgb(255, 0, 0)');
     }
 }
 
@@ -146,29 +126,14 @@ function onMouseUp(evt) {
     run = false;
 }
 
-function cutBranchs(cutPoints) {
-    const intersectingBranchs = rbushBranchs.search({
-        minX: Math.min(cutPoints[0][0], cutPoints[1][0]),
-        minY: Math.min(cutPoints[0][1], cutPoints[1][1]),
-        maxX: Math.max(cutPoints[0][0], cutPoints[1][0]),
-        maxY: Math.max(cutPoints[0][1], cutPoints[1][1]),
-    });
-
-    for (let i = 0; i < intersectingBranchs.length; i ++) {
-        const branch = intersectingBranchs[i].branch;
-        branch.remove();
+function onCutBranch() {
+    Render.clear();
+    for (const trees of treesList) {
+        trees.forEach(tree => treeRender.draw(tree));
     }
-
-    play();
 }
 
 function play() {
-    clearCanvas();
-
-    const treesList = [
-        treesSolo,
-    ];
-
     for (const trees of treesList) {
         treeGrow(trees);
     }
@@ -179,7 +144,7 @@ function treeGrow(trees) {
     rbushAttractors.clear();
     rbushBranchs.clear();
 
-    const lightPosition = Render.canvasToWorldPosition(new Vector(mousePosition[0], mousePosition[1]));
+    const lightPosition = Render.canvasToWorldPosition(new Vector(UiMouse.mousePosition[0], UiMouse.mousePosition[1]));
     lightSource.reset(new Vector(lightPosition[0], lightPosition[1]));
 
     LightLayer.clear();
@@ -188,6 +153,7 @@ function treeGrow(trees) {
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
     indexBranchs(branchs);
+    UiCut.setBranches(rbushBranchs);
     lightSource.emit(rbushBranchs);
     LightRender.draw(lightSource);
     // LightLayer.draw();
@@ -215,7 +181,7 @@ function treeGrow(trees) {
     trees.forEach(tree => treeRender.draw(tree));
     trees.forEach(tree => tree.endCycle());
 
-    Render.draw(context);
+    // Render.draw(context);
 
 }
 
@@ -287,22 +253,3 @@ function clearCanvas() {
     context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-class Attractor {
-    constructor(position, orientation) {
-        this.position = position;
-        this.orientation = orientation;
-        this.nearestBranch = null;
-        this.nearestDistance = 999999;
-    }
-    
-    attachBranchIfNeeded(branch) {
-        const distance = branch.end.distanceFrom(this.position);
-        
-        if (this.nearestDistance < distance) {
-            return;
-        }
-    
-        this.nearestDistance = distance;
-        this.nearestBranch = branch;
-    }
-} 
