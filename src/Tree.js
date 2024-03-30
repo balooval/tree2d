@@ -29,15 +29,15 @@ export const presets = {
         presetName: 'typeB',
         heliotropism: 1,
         density: 1,
-        flexibility: 0.002,
+        flexibility: 0.0001,
         auxinProduction: 1,
         maxLightDistance: 100,
-        newBranchLength: 15,
+        newBranchLength: 30,
         rigidity: 10,
-        uselessBeforePrune: 8,
+        uselessBeforePrune: 3,
         pumpQuantityToParent: 5,
         lightBeforeGrow: 8,
-        directionConstrainFactor: 1,
+        directionConstrainFactor: 10,
         leaveSize: 5,
         leaveDispersion: 20,
         leaveColors: [
@@ -59,7 +59,7 @@ export class Tree {
         this.preset = preset;
         this.position = position;
         this.tips = new Set();
-        this.root = new Branch(this, null, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength), 0);
+        this.root = new Branch(this, null, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1));
         // this.root.energy = 500;
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();
@@ -72,8 +72,9 @@ export class Tree {
 
     distributeEnergy() {
         let totalEnergyAsked = 0;
-        const totalEnergy = Math.min(300, Math.exp(this.age / 10));
+        const totalEnergy = Math.min(300, Math.exp(this.age / 100));
         // const totalEnergy = 300;
+        // console.log('totalEnergy', totalEnergy);
 
         for (const [branch, lightQuantity] of this.branchesEnergyNeed) {
             totalEnergyAsked += lightQuantity;

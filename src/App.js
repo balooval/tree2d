@@ -158,6 +158,8 @@ function treeGrow(trees) {
     LightRender.draw(lightSource);
     LightLayer.draw();
 
+    // console.log('branchs', branchs.length);
+
     attractors = createAttractors(lightSource.getPhotons());
 
     branchs.forEach(branch => branch.clearAttractors());
@@ -169,7 +171,7 @@ function treeGrow(trees) {
     branchs.forEach(branch => branch.startCycle());
 
     for (let branch of illuminatedBranchs) {
-        branch.askEnergy();
+        branch.takeLight();
     }
 
     trees.forEach(tree => tree.distributeEnergy());

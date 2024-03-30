@@ -2,7 +2,7 @@ import { randomElement, randomizeArray } from "./Math.js";
 
 let ID = 0;
 export default class Branch {
-    constructor(tree, parent, start, end, apexAge) {
+    constructor(tree, parent, start, end) {
         this.id = ID ++;
         this.tree = tree;
         this.start = start;
@@ -25,56 +25,57 @@ export default class Branch {
         this.ligthReceived = 0;
         
         this.energy = 0;
-        this.energyNeededToGrow = 1;
+        this.energyNeededToGrow = 10;
         this.age = 1;
         this.width = 1;
-        this.mustGainWidth = false;
         this.cyclesWithoutEnergy = 0;
 
         this.tree.addTip(this);
 
         this.leavesHealth = 1;
-        this.apexAge = apexAge;
+        this.leavesSize = 0;
 
-        const angle = 90;
+        const angle = 10;
         const angles = randomizeArray([angle, angle * -1]);
 
         this.growDirection = [
-            this.direction,
+            // this.direction,
             this.direction.rotateDegrees(angles[0]),
             this.direction.rotateDegrees(angles[1]),
         ];
 
+        this.growNextDirection = this.direction;
+
         this.energyRatioToKeep = 0.9;
 
-        // if (this.apexAge > 30) {
-        //     this.killApex();
-        // }
+        this.growPhase = true;
     }
 
     startCycle() {
         this.ligthReceived = 0;
-        this.mustGainWidth = false;
         this.cyclesWithoutEnergy ++;
     }
 
     endCycle() {
         this.age ++;
 
-        if (this.ligthReceived < 1 && this.leavesHealth > 0) {
-            this.leavesHealth -= 0.4;
-            this.leavesHealth = Math.max(0, this.leavesHealth);
-        }
-    }
-
-    askEnergy() {
-        if (this.growDirection.length === 0) {
-            return;
+        if (this.ligthReceived === 0) {
+            this.leavesHealth = Math.max(0, this.leavesHealth - 0.1);
         }
 
         if (this.leavesHealth === 0) {
+            this.leavesSize = Math.max(0.2, this.leavesSize - 0.05);
+        }
+    }
+
+    takeLight() {
+        if (this.leavesHealth === 0) {
             return;
         }
+
+        // if (this.growDirection.length === 0) {
+        //     return;
+        // }
         
         for (let i = 0; i < this.attractors.length; i ++) {
             const attractor = this.attractors[i];
@@ -84,7 +85,7 @@ export default class Branch {
             this.ligthReceived += attractorLight;
         }
 
-        this.tree.askEnergy(this, this.ligthReceived * 5);
+        this.tree.askEnergy(this, this.ligthReceived * this.leavesHealth);
 
     }
 
@@ -92,25 +93,58 @@ export default class Branch {
         // console.log('---', this.id);
         this.diffuseEnergy(quantity);
         // this.createChild(); 
-        this.addWidth(quantity * 0.05);
+        this.addWidth(quantity * 0.01);
     }
     
     diffuseEnergy(quantity) {
-        const energyToAdd = quantity * this.energyRatioToKeep;
-        this.energy += energyToAdd;
-        // console.log('Add', this.id, energyToAdd, this.energy);
-        this.createChild();
+        let ratio = this.energyRatioToKeep;
+        if (this.parent === null) {
+            ratio = 1;
+        }
+        const energyToKeep = quantity * ratio;
+        this.energy += energyToKeep;
+        // if (this.id === 0) {
+            // console.log('ID', this.id, 'Add', this.energy);
+        // }
+
+        if (this.growPhase === true) {
+            this.grow(0.1);
+        } else {
+            this.createChild();
+        }
+        
+        // console.log('ID', this.id, 'Energy', this.energy);
+
         if (this.parent === null) {
             return;
         }
         // console.log('diffuseEnergy', quantity, this.energy);
         // this.parent.diffuseEnergy(quantity * (1 - this.energyRatioToKeep));
-        this.parent.diffuseEnergy(quantity - energyToAdd);
+        const energyForParent = quantity - energyToKeep;
+        // console.log('ID', this.id, 'energyForParent', energyForParent);
+        this.parent.diffuseEnergy(energyForParent);
+    }
+
+    grow(percent) {
+        const energyToConsume = this.energyNeededToGrow * percent;
+        // console.log('ID', this.id, 'energyToConsume', energyToConsume);
+        // console.log('ID', this.id, 'this.energy', this.energy);
+        const effectiveEnergyTaken = Math.min(this.energy, energyToConsume);
+        // console.log('ID', this.id, 'effectiveEnergyTaken', effectiveEnergyTaken);
+        this.energy -= effectiveEnergyTaken;
+        // console.log('ID', this.id, 'GROW reste :', this.energy);
+        this.leavesSize += effectiveEnergyTaken * 0.1;
+        this.end.addSelf(this.direction.mulScalar(effectiveEnergyTaken));
+        this.startToEndVector = this.end.sub(this.start);
+        this.length = this.startToEndVector.length();
+        if (this.length >= this.newBranchLength) {
+            this.growPhase = false;
+            // console.log('---------- ID', this.id, 'STOP grow', this.energy);
+        }
     }
 
     addWidth(quantity) {
         this.width += quantity;
-        this.mustGainWidth = true;
         this.cyclesWithoutEnergy = 0;
 
         if (this.parent === null) {
@@ -126,24 +160,31 @@ export default class Branch {
         }
 
         if (this.growDirection.length === 0) {
+            // this.leavesHealth = 1;
+            // this.leavesSize = 1;
             return;
         }
 
-        this.energy -= this.energyNeededToGrow;
-
+        
         this.tree.removeTip(this);
-
+        
         const childEnd = this.#computeAverageAttraction();
-        const child = new Branch(this.tree, this, this.end, childEnd, this.apexAge + 1);
+        const child = new Branch(this.tree, this, this.end, childEnd);
         this.childs.push(child);
-
+        
+        child.energy = this.energy;
+        this.energy = 0;
+        // console.log('++++ ID', this.id, 'CREATE CHILD', this.energy);
+        
         this.killApex();
     }
     
     killApex() {
-        this.energyNeededToGrow *= 2;
-        this.growDirection.shift();
-        this.apexAge = 0;
+        // this.energyNeededToGrow *= 2;
+        // this.growDirection.shift();
+        this.growDirection.push(this.growDirection.shift());
+
+        this.growNextDirection = this.growDirection[0];
     }
 
     #computeAverageAttraction() {
@@ -160,9 +201,9 @@ export default class Branch {
             newBranchEnd.addSelf(normalizedTranslation);
         };
 
-        newBranchEnd.addSelf(this.growDirection[0].mulScalar(this.directionConstrainFactor));
+        newBranchEnd.addSelf(this.growNextDirection.mulScalar(this.directionConstrainFactor));
         newBranchEnd.normalizeSelf();
-        newBranchEnd.mulScalarSelf(this.newBranchLength);
+        newBranchEnd.mulScalarSelf(this.newBranchLength * 0.1);
 
         newBranchEnd.addSelf(this.end); 
 
@@ -235,11 +276,14 @@ export default class Branch {
     getLeaves() {
         const leavesPositions = [];
         const count = 3;
+        // const leafLength = this.leavesSize * 20;
+        const leafLength = this.leavesSize * 10;
+        const angle = this.leavesSize * 30;
         
         for (let i = 0; i < count; i ++) {
-            leavesPositions.push(this.end);
-            leavesPositions.push(this.end.sub(this.direction.mulScalar(8)).add(this.direction.rotateDegrees(90).mulScalarSelf(10)));
-            leavesPositions.push(this.end.sub(this.direction.mulScalar(16)).add(this.direction.rotateDegrees(-90).mulScalarSelf(10)));
+            leavesPositions.push(this.end.add(this.direction.mulScalar(leafLength)));
+            leavesPositions.push(this.end.add(this.direction.rotateDegrees(angle).mulScalarSelf(leafLength)));
+            leavesPositions.push(this.end.add(this.direction.rotateDegrees(angle * -1).mulScalarSelf(leafLength)));
         }
 
         return leavesPositions;
@@ -247,9 +291,15 @@ export default class Branch {
 
     getLeaveColor() {
         const hsl = randomElement(this.preset.leaveColors);
+        return `hsl(${hsl.h + 60}, ${hsl.s}%, ${hsl.l + 10}%)`;
         const h = this.leavesHealth * 60;
         const l = this.leavesHealth * 10;
         return `hsl(${hsl.h + h}, ${hsl.s}%, ${hsl.l + l}%)`;
+    }
+
+    getleavesSize() {
+        return 2;
+        return this.leavesSize * 10;
     }
 
     remove() {

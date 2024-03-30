@@ -23,7 +23,7 @@ class TreeRender {
     #drawBranch(branch) {
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), branch.trunkColor);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.energy > 0 ? 255 : 0}, 0)`);
-        // this.render.drawLine(branch.start, branch.end, 10, `rgb(150, ${branch.energy * 60}, 150)`);
+        // this.render.drawLine(branch.start, branch.end, 10, `rgb(150, ${(branch.energy / branch.energyNeededToGrow) * 255}, 150)`);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.auxinQuantity * 25}, 0)`);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.energyTransferedByCycle * 10}, 0)`);
         // this.render.drawLine(branch.start, branch.end, 10, `rgb(0, ${(branch.length / branch.preset.newBranchLength) * 50}, 0)`);
@@ -53,7 +53,7 @@ class TreeRender {
             return;
         }
 
-        if (branch.leavesHealth === 0) {
+        if (branch.leavesHealth <= 0) {
             return;
         }
 
@@ -63,7 +63,8 @@ class TreeRender {
 
         for (let i = 0; i < count; i ++) {
             const leavePosition = leaves[i];
-            this.render.drawCircle(leavePosition, 10, branch.getLeaveColor());
+            // this.render.drawCircle(leavePosition, branch.getleavesSize(), branch.getLeaveColor());
+            this.render.drawLine(branch.end, leavePosition, branch.getleavesSize() * 4, branch.getLeaveColor());
         }
     }
 }
