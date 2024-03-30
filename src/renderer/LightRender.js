@@ -15,7 +15,7 @@ class LightRender {
             light.photons.forEach(photon => Render.drawCircle(photon.position, 10, 'rgb(255, 255, 255, 0.2)'))
         }
         
-        // light.rays.forEach(ray => LightLayer.drawRay(light, ray))
+        light.rays.forEach(ray => LightLayer.drawRay(light, ray))
         // light.rays.forEach(ray => Render.drawLine(ray.start, ray.end, 5, `rgba(255, 255, 255, ${ray.factor})`))
 
         Render.drawCircle(light.position, 50, 'rgba(250, 200, 50, 0.5)')

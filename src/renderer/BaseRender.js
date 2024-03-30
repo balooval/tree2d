@@ -1,4 +1,7 @@
+import * as ImageLoader from '../ImageLoader.js';
 
+let scale = 2000;
+let worldScale = 1;
 
 class BaseRender {
     constructor() {
@@ -6,7 +9,6 @@ class BaseRender {
         this.context = null;
         this.sceneWidth = 0;
         this.sceneHeight = 0;
-        this.worldScale = 1;
         this.offsetX = 0;
         this.offsetY = 0;
     }
@@ -18,11 +20,16 @@ class BaseRender {
         this.context = this.canvas.getContext('2d');
         this.sceneWidth = this.canvas.width;
         this.sceneHeight = this.canvas.height;
-        this.worldScale = this.sceneHeight / 2000;
+        worldScale = this.sceneHeight / scale;
         this.offsetX = this.sceneWidth / 2;
         this.offsetY = this.sceneHeight;
 
         this.clear();
+    }
+
+    changeScale(quantity) {
+        scale += quantity;
+        worldScale = this.sceneHeight / scale;
     }
 
     draw(context) {
@@ -35,6 +42,21 @@ class BaseRender {
 
     clear() {
         this.context.clearRect(0, 0, this.sceneWidth, this.sceneHeight);
+    }
+
+    drawImage(imageId, worldPosition, angle, imageScale) {
+        const image = ImageLoader.get(imageId);
+        const canvasPosition = this.worldToCanvasPosition(worldPosition);
+
+        this.context.save(); 
+        this.context.translate(canvasPosition[0], canvasPosition[1]);
+        this.context.rotate(angle);
+        this.context.drawImage(
+            image,
+            -(((image.width * imageScale) * worldScale) / 2), 0,
+            (image.width * imageScale) * worldScale, (image.height * imageScale) * worldScale
+        );
+        this.context.restore(); 
     }
 
     drawPolygon(points, color) {
@@ -68,7 +90,7 @@ class BaseRender {
         const position = this.worldToCanvasPosition(worldPosition);
         this.context.beginPath();
         this.context.fillStyle = color;
-        this.context.arc(position[0], position[1], radius * this.worldScale, 0, 6.28);
+        this.context.arc(position[0], position[1], radius * worldScale, 0, 6.28);
         this.context.fill();
     }
 
@@ -77,12 +99,12 @@ class BaseRender {
         this.context.beginPath();
         this.context.strokeStyle = color;
         this.context.lineWidth = 1;
-        this.context.arc(position[0], position[1], radius * this.worldScale, 0, 6.28);
+        this.context.arc(position[0], position[1], radius * worldScale, 0, 6.28);
         this.context.stroke();
     }
 
     worldToCanvasWidth(worldWidth) {
-        return this.worldScale * worldWidth;
+        return worldScale * worldWidth;
     }
 
     worldToCanvasPosition(worldPosition) {
@@ -93,11 +115,11 @@ class BaseRender {
     }
 
     worldToCanvasX(worldX) {
-        return (worldX * this.worldScale) + this.offsetX;
+        return (worldX * worldScale) + this.offsetX;
     }
 
     worldToCanvasY(worldY) {
-        return this.offsetY - (worldY * this.worldScale);
+        return this.offsetY - (worldY * worldScale);
     }
 
     canvasToWorldPosition(canvasPosition) {
@@ -108,11 +130,11 @@ class BaseRender {
     }
 
     canvasToWorldX(canvasX) {
-        return (canvasX - this.offsetX) / this.worldScale;
+        return (canvasX - this.offsetX) / worldScale;
     }
 
     canvasToWorldY(canvasY) {
-        return (this.offsetY - canvasY) / this.worldScale;
+        return (this.offsetY - canvasY) / worldScale;
     }
 }
 

@@ -15,6 +15,19 @@ export function randomElement(list) {
     return list[index];
 }
 
+export function randomizeArray(array) {
+    let currentIndex = array.length;
+  
+    while (currentIndex != 0) {
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
+}
+  
+
 export function lerpPoint(pointA, pointB, percent) {
     return [
         lerpFloat(pointA[0], pointB[0], percent),

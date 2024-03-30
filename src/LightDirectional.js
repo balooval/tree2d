@@ -7,8 +7,8 @@ class Light {
         const startToEnd = this.target.sub(this.position);
         this.length = startToEnd.length();
         this.direction = startToEnd.normalize();
-        this.rayCount = 160;
-        this.width = 80;
+        this.width = 2000;
+        this.rayMargin = 50;
         this.angle = this.position.radiansTo(this.target);
         this.rays = [];
         this.photons = [];
@@ -25,8 +25,11 @@ class Light {
     }
 
     emit(rbushBranchs) {
+        const treesWidth = (rbushBranchs.data.maxX - rbushBranchs.data.minX) + 500;
+        const widthMultiplier = Math.abs(Math.tan(this.angle + (Math.PI / 2))) + 1;
+        this.width = treesWidth * Math.min(3, widthMultiplier);
         this.rays = this.#computeRays(rbushBranchs);
-        this.photons = this.#createPhotons();
+        this.photons = this.#createPhotons(this.rays);
     }
 
     getPhotons() {
@@ -36,14 +39,16 @@ class Light {
     #computeRays(rbushBranchs) {
         const rays = [];
         const stepLength = this.width / this.rayCount;
+        const rayCount = Math.round(this.width / this.rayMargin);
 
-        for (let i = 0; i < this.rayCount; i ++) {
-            const distanceFromOrigin = (i - (this.rayCount / 2)) * stepLength;
-            const rayStart = this.direction.rotateRadians(Math.PI * 0.5).mulScalarSelf(this.width * distanceFromOrigin);
+        for (let i = 0; i < rayCount; i ++) {
+            const distanceFromOrigin = (i - (rayCount / 2)) * this.rayMargin;
+            const rayStart = this.direction.rotateDegrees(90).mulScalarSelf(distanceFromOrigin);
             rayStart.addSelf(this.position);
 
             let rayEnd = rayStart.add(this.direction.mulScalar(5000));
             rays.push(...this.#cutRayByBranchsMulti(rayStart, rayEnd, rbushBranchs));
+            // rays.push(...this.#cutRayByBranchsSingle(rayStart, rayEnd, rbushBranchs));
         }
 
         return rays;
@@ -63,6 +68,7 @@ class Light {
         const intersections = [{
             position: currentEnd,
             distance: currentLength,
+            obstruction: 2,
         }];
 
         for (let i = 0; i < intersectingBranchs.length; i ++) {
@@ -81,17 +87,20 @@ class Light {
             intersections.push({
                 position: contactVector,
                 distance: newLength,
+                obstruction: branch.getLeavesObstruction(),
             });
         }
 
         let start = rayStart;
         let factor = 1;
-        return intersections.sort((intA, intB) => Math.sign(intA.distance - intB.distance))
-        .slice(0, 4)
+        return intersections
+        .sort((intA, intB) => Math.sign(intA.distance - intB.distance))
+        .slice(0, 8)
         .map(int => {
             const ray = new Ray(start, int.position, factor);
             start = int.position;
-            factor *= 0.5;
+            // factor *= 0.5;
+            factor *= 1 / int.obstruction;
             return ray;
         });
     }
@@ -100,12 +109,13 @@ class Light {
         let currentEnd = rayEnd.clone();
         let currentLength = rayEnd.distanceFrom(rayStart);
 
-        const intersectingBranchs = rbushBranchs.search({
+        const rayBbox = {
             minX: Math.min(rayStart.x, rayEnd.x),
             minY: Math.min(rayStart.y, rayEnd.y),
             maxX: Math.max(rayStart.x, rayEnd.x),
             maxY: Math.max(rayStart.y, rayEnd.y),
-        });
+        };
+        const intersectingBranchs = rbushBranchs.search(rayBbox);
 
         for (let i = 0; i < intersectingBranchs.length; i ++) {
             const branch = intersectingBranchs[i].branch;
@@ -129,10 +139,10 @@ class Light {
         return [new Ray(rayStart, currentEnd, 1)];
     }
 
-    #createPhotons() {
+    #createPhotons(rays) {
         const photons = [];
 
-        this.rays.forEach(ray => {
+        rays.forEach(ray => {
             const normalRay = ray.end.sub(ray.start).normalizeSelf()
             const stepDistance = 50 / ray.factor;
             const stepCount = ray.length / stepDistance;
