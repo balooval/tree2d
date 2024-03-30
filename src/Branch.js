@@ -25,7 +25,7 @@ export default class Branch {
         this.ligthReceived = 0;
         
         this.energy = 0;
-        this.energyNeededToGrow = 10;
+        this.energyNeededToGrow = 2;
         this.age = 1;
         this.width = 1;
         this.cyclesWithoutEnergy = 0;
@@ -46,9 +46,10 @@ export default class Branch {
 
         this.growNextDirection = this.direction;
 
-        this.energyRatioToKeep = 0.9;
+        this.energyRatioToKeep = 0.8;
 
         this.growPhase = true;
+        
     }
 
     startCycle() {
@@ -108,7 +109,7 @@ export default class Branch {
         // }
 
         if (this.growPhase === true) {
-            this.grow(0.1);
+            this.grow(1);
         } else {
             this.createChild();
         }
@@ -298,8 +299,12 @@ export default class Branch {
     }
 
     getleavesSize() {
-        return 2;
-        return this.leavesSize * 10;
+        // return 2;
+        return this.leavesSize * 1;
+    }
+
+    getLeavesObstruction() {
+        return Math.max(1, this.leavesSize);
     }
 
     remove() {

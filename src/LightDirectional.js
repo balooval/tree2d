@@ -64,6 +64,7 @@ class Light {
         const intersections = [{
             position: currentEnd,
             distance: currentLength,
+            obstruction: 2,
         }];
 
         for (let i = 0; i < intersectingBranchs.length; i ++) {
@@ -79,9 +80,11 @@ class Light {
             }
             const contactVector = new Vector(contact[0], contact[1]);
             const newLength = contactVector.distanceFrom(rayStart);
+            // console.log('branch.getLeavesObstruction()', branch.getLeavesObstruction());
             intersections.push({
                 position: contactVector,
                 distance: newLength,
+                obstruction: branch.getLeavesObstruction(),
             });
         }
 
@@ -91,9 +94,11 @@ class Light {
         .sort((intA, intB) => Math.sign(intA.distance - intB.distance))
         .slice(0, 8)
         .map(int => {
+            // console.log('int.obstruction', int.obstruction);
             const ray = new Ray(start, int.position, factor);
             start = int.position;
-            factor *= 0.5;
+            // factor *= 0.5;
+            factor *= 1 / int.obstruction;
             return ray;
         });
     }

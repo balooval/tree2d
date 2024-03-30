@@ -60,7 +60,6 @@ export class Tree {
         this.position = position;
         this.tips = new Set();
         this.root = new Branch(this, null, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1));
-        // this.root.energy = 500;
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();
         this.age = 1;
@@ -72,8 +71,8 @@ export class Tree {
 
     distributeEnergy() {
         let totalEnergyAsked = 0;
-        const totalEnergy = Math.min(300, Math.exp(this.age / 100));
-        // const totalEnergy = 300;
+        // const totalEnergy = Math.min(300, Math.exp(this.age / 100));
+        const totalEnergy = 300;
         // console.log('totalEnergy', totalEnergy);
 
         for (const [branch, lightQuantity] of this.branchesEnergyNeed) {
