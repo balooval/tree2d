@@ -3,18 +3,13 @@ import Branch from './Branch.js';
 export const presets = {
     typeA: {
         presetName: 'typeA',
-        heliotropism: 0,
-        density: 20,
-        auxinProduction: 10,
-        maxLightDistance: 120,
-        newBranchLength: 10,
-        rigidity: 2,
-        uselessBeforePrune: 2,
-        pumpQuantityToParent: 5,
-        lightBeforeGrow: 2,
-        directionConstrainFactor: 0.5,
-        leaveSize: 4,
-        leaveDispersion: 30,
+        heliotropism: 1,
+        angle: 10,
+        flexibility: 0.00005,
+        maxLightDistance: 100,
+        newBranchLength: 30,
+        uselessBeforePrune: 10,
+        directionConstrainFactor: 0.0,
         leaveColors: [
             {h: 70, s: 70, l: 20},
             {h: 30, s: 70, l: 20},
@@ -27,19 +22,13 @@ export const presets = {
     },
     typeB: {
         presetName: 'typeB',
+        angle: 90,
         heliotropism: 1,
-        density: 1,
-        flexibility: 0.0001,
-        auxinProduction: 1,
-        maxLightDistance: 100,
+        flexibility: 0.00005,
+        maxLightDistance: 200,
         newBranchLength: 30,
-        rigidity: 10,
-        uselessBeforePrune: 3,
-        pumpQuantityToParent: 5,
-        lightBeforeGrow: 8,
-        directionConstrainFactor: 10,
-        leaveSize: 5,
-        leaveDispersion: 20,
+        uselessBeforePrune: 2,
+        directionConstrainFactor: 0.8,
         leaveColors: [
             {h: 70, s: 70, l: 20},
             {h: 30, s: 70, l: 20},
@@ -71,17 +60,16 @@ export class Tree {
 
     distributeEnergy() {
         let totalEnergyAsked = 0;
-        // const totalEnergy = Math.min(300, Math.exp(this.age / 100));
-        const totalEnergy = 300;
-        // console.log('totalEnergy', totalEnergy);
+        const totalEnergy = Math.min(300, Math.exp(this.age / 100));
 
         for (const [branch, lightQuantity] of this.branchesEnergyNeed) {
             totalEnergyAsked += lightQuantity;
         }
 
-        // console.log('Total ask', totalEnergyAsked, '/', totalEnergy);
 
-        const energyToGive = Math.min(totalEnergyAsked, totalEnergy)
+        const energyToGive = Math.min(totalEnergyAsked, totalEnergy);
+
+        
 
         for (const [branch, lightQuantity] of this.branchesEnergyNeed) {
             const energyPercentForBranch = lightQuantity / totalEnergyAsked;

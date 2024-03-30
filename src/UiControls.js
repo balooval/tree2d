@@ -22,16 +22,13 @@ function onViewLeavesChanged() {
 }
 
 function addPresetParamsInputs() {
-    addRangeControl('leaveSize', 1, 10, 1);
-    addRangeControl('uselessBeforePrune', 1, 10, 1);
-    addRangeControl('maxLightDistance', 50, 200, 1);
-    addRangeControl('lightBeforeGrow', 1, 10, 1);
-    addRangeControl('newBranchLength', 5, 20, 1);
-    addRangeControl('rigidity', 1, 20, 1);
-    addRangeControl('density', 1, 30, 1);
-    addRangeControl('directionConstrainFactor', 0, 80, 1);
-    addRangeControl('heliotropism', 0, 5, 0.1);
-    addRangeControl('auxinProduction', 0, 50, 1);
+    addRangeControl('heliotropism', 0, 100, 1);
+    addRangeControl('flexibility', 0.00001, 0.002, 0.00001);
+    addRangeControl('maxLightDistance', 10, 200, 1);
+    addRangeControl('newBranchLength', 5, 50, 1);
+    addRangeControl('uselessBeforePrune', 0, 20, 1);
+    addRangeControl('angle', 5, 130, 1);
+    addRangeControl('directionConstrainFactor', 0, 1, 0.01);
 }
 
 function addRangeControl(presetName, min, max, step) {

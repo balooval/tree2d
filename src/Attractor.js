@@ -8,6 +8,11 @@ export default class Attractor {
     }
     
     attachBranchIfNeeded(branch) {
+
+        if (branch.buds.length === 0) {
+            return;
+        }
+
         const distance = branch.end.distanceFrom(this.position);
         
         if (this.nearestDistance < distance) {

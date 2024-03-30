@@ -7,8 +7,8 @@ class Light {
         const startToEnd = this.target.sub(this.position);
         this.length = startToEnd.length();
         this.direction = startToEnd.normalize();
-        this.rayCount = 160;
-        this.width = 80;
+        this.width = 2000;
+        this.rayMargin = 50;
         this.angle = this.position.radiansTo(this.target);
         this.rays = [];
         this.photons = [];
@@ -25,8 +25,11 @@ class Light {
     }
 
     emit(rbushBranchs) {
+        const treesWidth = (rbushBranchs.data.maxX - rbushBranchs.data.minX) + 500;
+        const widthMultiplier = Math.abs(Math.tan(this.angle + (Math.PI / 2))) + 1;
+        this.width = treesWidth * Math.min(3, widthMultiplier);
         this.rays = this.#computeRays(rbushBranchs);
-        this.photons = this.#createPhotons();
+        this.photons = this.#createPhotons(this.rays);
     }
 
     getPhotons() {
@@ -36,10 +39,11 @@ class Light {
     #computeRays(rbushBranchs) {
         const rays = [];
         const stepLength = this.width / this.rayCount;
+        const rayCount = Math.round(this.width / this.rayMargin);
 
-        for (let i = 0; i < this.rayCount; i ++) {
-            const distanceFromOrigin = (i - (this.rayCount / 2)) * stepLength;
-            const rayStart = this.direction.rotateRadians(Math.PI * 0.5).mulScalarSelf(this.width * distanceFromOrigin);
+        for (let i = 0; i < rayCount; i ++) {
+            const distanceFromOrigin = (i - (rayCount / 2)) * this.rayMargin;
+            const rayStart = this.direction.rotateDegrees(90).mulScalarSelf(distanceFromOrigin);
             rayStart.addSelf(this.position);
 
             let rayEnd = rayStart.add(this.direction.mulScalar(5000));
@@ -80,7 +84,6 @@ class Light {
             }
             const contactVector = new Vector(contact[0], contact[1]);
             const newLength = contactVector.distanceFrom(rayStart);
-            // console.log('branch.getLeavesObstruction()', branch.getLeavesObstruction());
             intersections.push({
                 position: contactVector,
                 distance: newLength,
@@ -94,7 +97,6 @@ class Light {
         .sort((intA, intB) => Math.sign(intA.distance - intB.distance))
         .slice(0, 8)
         .map(int => {
-            // console.log('int.obstruction', int.obstruction);
             const ray = new Ray(start, int.position, factor);
             start = int.position;
             // factor *= 0.5;
@@ -137,10 +139,10 @@ class Light {
         return [new Ray(rayStart, currentEnd, 1)];
     }
 
-    #createPhotons() {
+    #createPhotons(rays) {
         const photons = [];
 
-        this.rays.forEach(ray => {
+        rays.forEach(ray => {
             const normalRay = ray.end.sub(ray.start).normalizeSelf()
             const stepDistance = 50 / ray.factor;
             const stepCount = ray.length / stepDistance;
