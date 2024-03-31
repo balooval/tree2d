@@ -21,7 +21,7 @@ class TreeRender {
 
     }
 
-    testLeaves(tree) {
+    drawHighQualityLeaves(tree) {
         this.leafDrawer.setFullQuality();
         tree.getBranchs().forEach(branch => {
             this.#drawLeaves(tree, branch);
