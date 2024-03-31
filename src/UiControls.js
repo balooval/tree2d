@@ -27,7 +27,7 @@ function addPresetParamsInputs() {
     addRangeControl('flexibility', 0.00001, 0.002, 0.00001);
     addRangeControl('maxLightDistance', 10, 200, 1);
     addRangeControl('newBranchLength', 5, 50, 1);
-    addRangeControl('uselessBeforePrune', 0, 20, 1);
+    addRangeControl('uselessBeforePrune', 0, 50, 1);
     addRangeControl('angle', 5, 130, 1);
     addRangeControl('directionConstrainFactor', 0, 1, 0.01);
 }

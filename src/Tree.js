@@ -6,7 +6,7 @@ export const presets = {
         energyNeededToGrow: 2,
         heliotropism: 1,
         angle: 10,
-        flexibility: 0.00005,
+        flexibility: 0.0001,
         maxLightDistance: 100,
         newBranchLength: 30,
         uselessBeforePrune: 30,
@@ -51,7 +51,7 @@ export class Tree {
         this.position = position;
         this.age = 1;
         this.tips = new Set();
-        const seed = new Seed(position);
+        const seed = new Seed(this, position);
         this.root = new Branch(this, seed, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1), 1);
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();

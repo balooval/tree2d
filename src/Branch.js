@@ -33,6 +33,7 @@ export class Branch {
         this.mainStrenght = mainStrenght;
         this.budsLight = 0;
         this.buds = this.createBuds();
+        this.scar = false;
     }
 
     createBuds() {
@@ -263,17 +264,21 @@ export class Branch {
     removeChild(childBranch) {
         this.childs = this.childs.filter(branch => branch !== childBranch);
         this.buds.push(...this.createBuds());
+        this.scar = true;
     }
 }
 
 export class Seed {
-    constructor (position) {
+    constructor (tree, position) {
+        this.tree = tree;
         this.end = position
         this.start = this.end.add(new Vector(0, -1));
         this.startToEndVector = this.end.sub(this.start);
         this.length = this.startToEndVector.length();
         this.direction = this.startToEndVector.normalize();
         this.childs = [];
+        this.preset = this.tree.preset;
+        this.trunkColor = randomElement(this.preset.trunkColors);
     }
 
     getWidth() {

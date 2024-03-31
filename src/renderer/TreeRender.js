@@ -31,10 +31,6 @@ class TreeRender {
         // this.render.drawLine(branch.start, branch.end, 10, `rgb(0, ${branch.mainStrenght * 250}, 0)`);
         // return;
 
-        if (branch.parent === null) {
-            return;
-        }
-
         const width = branch.getWidth();
         const parentWidth = branch.parent.getWidth();
 
@@ -46,6 +42,10 @@ class TreeRender {
         ];
 
         this.render.drawPolygon(points, branch.trunkColor);
+
+        if (branch.scar === true) {
+            this.render.drawCircle(branch.end, width, branch.parent.trunkColor);
+        }
     }
 
     #drawLeaves(branch) {
