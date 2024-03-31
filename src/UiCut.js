@@ -1,7 +1,6 @@
-import Render from './renderer/Render.js'
 import * as UiMouse from './UiMouse.js';
 import RBushKnn from '../vendor/rbush-knn.js';
-import BaseRender from './renderer/BaseRender.js';
+import { BaseRender, canvasToWorldPosition } from './renderer/BaseRender.js';
 
 class UiCut {
     constructor() {
@@ -26,12 +25,12 @@ class UiCut {
 
     start() {
         this.active = true;
-        this.onFrame();
     }
     
     stop() {
         this.active = false;
         this.targetBranch = null;
+        this.render.clear();
     }
 
     onClick() {
@@ -46,7 +45,7 @@ class UiCut {
         if (this.active === false) {
             return;
         }
-        const worldPosition = Render.canvasToWorldPosition({x:UiMouse.mousePosition[0], y:UiMouse.mousePosition[1]});
+        const worldPosition = canvasToWorldPosition({x:UiMouse.mousePosition[0], y:UiMouse.mousePosition[1]});
         const nearBranch = RBushKnn(this.rbushBranchs, worldPosition[0], worldPosition[1], 1, undefined, this.maxSearchDistance);
 
         if (nearBranch.length === 0) {
@@ -58,16 +57,20 @@ class UiCut {
     }
     
     draw() {
+        if (this.active === false) {
+            return;
+        }
+
+        this.render.clear();
+
         if (this.targetBranch !== null) {
             this.drawTargetBranch(this.targetBranch);
         }
 
-        this.render.draw(this.mainContext);
-        this.render.clear();
+        this.render.drawIntoContext(this.mainContext);
     }
 
     drawTargetBranch(branch) {
-        // this.render.drawLine(this.targetBranch.start, this.targetBranch.end, this.targetBranch.getWidth(), `rgb(255, 0, 0)`);
         const allBranchs = branch.addToList([]);
         
         for (let i = 0; i < allBranchs.length; i ++) {
@@ -77,15 +80,6 @@ class UiCut {
 
     setBranches(rbushBranchs) {
         this.rbushBranchs = rbushBranchs;
-    }
-
-    onFrame() {
-        if (this.active === false) {
-            return;
-        }
-        this.draw();
-        requestAnimationFrame(() => this.onFrame());
-
     }
 }
 

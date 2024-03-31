@@ -1,5 +1,4 @@
 import { randomElement, randomizeArray } from "./Math.js";
-import Render from './renderer/Render.js'
 
 let ID = 0;
 export class Branch {

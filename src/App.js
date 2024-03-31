@@ -1,7 +1,6 @@
-import Render from './renderer/Render.js'
+import { BaseRender, setOutputCanvas, changeScale, canvasToWorldPosition } from './renderer/BaseRender.js'
 import TreeRender from './renderer/TreeRender.js'
 import LightRender from './renderer/LightRender.js'
-import LightLayer from './renderer/LightLayer.js'
 import LightDirectional from './LightDirectional.js';
 import {Tree} from './Tree.js';
 import RBush from '../vendor/rbush.js';
@@ -21,8 +20,11 @@ let attractors = [];
 
 const treesList = [];
 const treesSolo = [];
+const treeLayer = new BaseRender();
+const lightLayer = new BaseRender();
 const lightSource = new LightDirectional(new Vector(0, 0), new Vector(0, 20));
-const treeRender = new TreeRender(Render, lightSource);
+const treeRender = new TreeRender(treeLayer, lightSource);
+const lightRender = new LightRender(lightLayer);
 
 const currentPreset = presets['typeA'];
 
@@ -62,12 +64,12 @@ function start() {
     context = canvas.getContext('2d');
     clearCanvas();
     
-    
-    Render.init(canvas);
-    UiCut.init(canvas, updateScreen);
+    setOutputCanvas(canvas);
+    treeLayer.init();
+    lightLayer.init();
+    UiCut.init(canvas, updateTrees);
     UiControls.init(treeRender, currentPreset);
     UiControls.setPreset(currentPreset);
-    LightLayer.init(canvasId);
 
     const groundPosition = 200;
 
@@ -129,21 +131,9 @@ function onTreeTypeSelectChanged() {
     UiControls.setPreset(presets[treeType]);
 }
 
-function onFrame() {
-    clearCanvas();
-
-    if (run === true) {
-        play();
-    }
-
-    Render.draw(context);
-
-    requestAnimationFrame(onFrame);
-}
-
 function onKeyUp(evt) {
     if (evt.code === 'Space') {
-        play();
+        updateTrees();
     
     } else if (evt.key === 'c') {
         testDrawLeaves();
@@ -151,53 +141,69 @@ function onKeyUp(evt) {
 }
 
 function testDrawLeaves() {
-    updateScreen();
     for (const trees of treesList) {
         trees.forEach(tree => treeRender.testLeaves(tree));
     }
+    treeLayer.drawIntoContext(context);
 }
 
 function onMouseDown() {
     run = true;
 }
+
 function onMouseUp(evt) {
     run = false;
     testDrawLeaves();
 }
 
-function play() {
-    for (const trees of treesList) {
-        treeGrow(trees);
+function onFrame() {
+    if (run === true) {
+        updateTrees();
     }
+
     updateScreen();
+
+    UiCut.draw();
+
+    requestAnimationFrame(onFrame);
 }
 
 function updateScreen() {
-    Render.clear();
+    clearCanvas();
+    lightLayer.clear();
+    lightRender.draw(lightSource);
+
+    treeLayer.drawIntoContext(context);
+    lightLayer.drawIntoContext(context);
+}
+
+function updateTrees() {
+    for (const trees of treesList) {
+        treeGrow(trees);
+    }
+    
+    drawTrees();
+}
+
+function drawTrees() {
+    treeLayer.clear();
     for (const trees of treesList) {
         trees.forEach(tree => treeRender.draw(tree));
     }
 }
 
 function treeGrow(trees) {
-    
     rbushAttractors.clear();
     rbushBranchs.clear();
 
-    const lightPosition = Render.canvasToWorldPosition(new Vector(UiMouse.mousePosition[0], UiMouse.mousePosition[1]));
+    const lightPosition = canvasToWorldPosition(new Vector(UiMouse.mousePosition[0], UiMouse.mousePosition[1]));
     lightSource.reset(new Vector(lightPosition[0], lightPosition[1]));
 
-    LightLayer.clear();
-    
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
     indexBranchs(branchs);
     UiCut.setBranches(rbushBranchs);
     lightSource.emit(rbushBranchs);
-    LightRender.draw(lightSource);
-    // LightLayer.draw();
-
-    // console.log('branchs', branchs.length);
 
     attractors = createAttractors(lightSource.getPhotons());
 
@@ -288,8 +294,8 @@ function createAttractors(photons) {
 }
 
 function onMouseWheel(evt) {
-    Render.changeScale(evt.deltaY);
-    updateScreen();
+    changeScale(evt.deltaY);
+    drawTrees();
 }
 
 function clearCanvas() {
