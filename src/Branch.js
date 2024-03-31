@@ -308,14 +308,15 @@ export class Seed {
         this.childs = [];
         this.preset = this.tree.preset;
         this.trunkColor = randomElement(this.preset.trunkColors);
+        this.width = 10;
     }
 
     getWidth() {
-        return 100;
+        return Math.max(2, this.width * 2);
     }
 
     addWidth(quantity) {
-
+        this.width += quantity;
     }
 
     remove() {

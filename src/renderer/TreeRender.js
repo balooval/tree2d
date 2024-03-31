@@ -1,10 +1,11 @@
-import { random } from "../Math.js";
+import { degrees, random } from "../Math.js";
 
 class TreeRender {
-    constructor(render) {
+    constructor(render, lightSource) {
         this.render = render;
+        this.lightSource = lightSource;
         this.viewLeaves = true;
-        this.leafDrawer = new Leaf(this.render);
+        this.leafDrawer = new Leaf(this.render, this.lightSource);
     }
 
     setViewLeaves(state) {
@@ -12,17 +13,16 @@ class TreeRender {
     }
 
     draw(tree) {
+        this.leafDrawer.setLowQuality();
         tree.getBranchs().forEach(branch => {
             this.#drawBranch(branch);
-            // this.#drawLeaves(branch);
+            this.#drawLeaves(tree, branch);
         });
 
-        // FallingLeaves.update();
     }
 
-    testLeaves(tree, lightSource) {
-        this.leafDrawer.setLightSource(lightSource);
-        this.leafDrawer.setColor(tree.preset.leafHue);
+    testLeaves(tree) {
+        this.leafDrawer.setFullQuality();
         tree.getBranchs().forEach(branch => {
             this.#drawLeaves(tree, branch);
         });
@@ -68,6 +68,8 @@ class TreeRender {
         if (count === 0) {
             return;
         }
+
+        this.leafDrawer.setColor(tree.preset.leafHue);
         
         const formRatio = 1;
         const heliotropism = new Vector(0, -1);
@@ -82,70 +84,102 @@ class TreeRender {
 }
 
 class Leaf {
-    constructor(render) {
+    constructor(render, lightSource) {
         this.render = render;
         this.particlesCount = 72;
+        this.particlesToDraw = this.particlesCount;
         this.particles = [];
         this.formRatio = 0;
         this.heliotropism = new Vector(0, 0);
-        this.lightSource = null;
+        this.lightSource = lightSource;
         this.hue = 80;
         this.tree = null;
         this.shadowOffset = 0;
+        this.growIsRunning = false;
+
+        this.maxWhileLoop = 999999;
+
+        for (let i = 0; i < this.particlesCount; i ++) {
+            this.particles.push({
+                x: 0,
+                y: 0,
+                orientation: new Vector(0, 1),
+                size: 1,
+                life: 1,
+                shadeValue: 0,
+                shadeGradient: new Vector(0, 1),
+            });
+        }
+    }
+
+    setFullQuality() {
+        this.particlesToDraw = this.particlesCount;
+        this.maxWhileLoop = 999999;
+    }
+
+    setLowQuality() {
+        this.particlesToDraw = 4;
+        this.maxWhileLoop = 10;
     }
 
     setColor(hue) {
         this.hue = hue;
     }
 
-    setLightSource(lightSource) {
-        this.lightSource = lightSource;
-        const radians = this.lightSource.direction.toRadians() - (Math.PI * 1.5);
-        this.shadowOffset = Math.tan(radians);
-        // console.log('direction', this.lightSource.direction, this.lightSource.direction.toRadians());
-    }
-
     draw(tree, position, size, lightQuantity, formRatio, heliotropism) {
         this.tree = tree;
         this.formRatio = formRatio;
         this.heliotropism = heliotropism;
-        this.#addParticles(position, size, lightQuantity);
+        
+        const radians = this.lightSource.direction.toRadians() - (Math.PI * 1.5);
+        this.shadowOffset = Math.tan(radians);
 
-        while (this.particles.length > 0) {
+        this.#setupParticles(position, size, lightQuantity);
+
+        this.growIsRunning = true;
+        let loopCounter = 0;
+
+        while (this.growIsRunning === true) {
             this.#grow();
             this.#drawStep();
+
+            loopCounter ++;
+            if (loopCounter > this.maxWhileLoop) {
+                this.growIsRunning = false;
+            }
         }
     }
 
-    #addParticles(position, size, lightQuantity) {
-        // const lightValue = Math.round(Math.min(120, 50 + (lightQuantity * 10)));
+    #setupParticles(position, size, lightQuantity) {
         const shadeValue = Math.round(lightQuantity * 10);
 
-        for (let i = 0; i < this.particlesCount; i ++) {
+        for (let i = 0; i < this.particlesToDraw; i ++) {
             const orientation = new Vector(1, 0).rotateRadiansSelf(i * 5);
-            this.particles.push({
-                x: position.x,
-                y: position.y,
-                orientation: orientation.add(this.heliotropism),
-                size: (8 * size) + Math.random() * 1,
-                life: (100 * size) + Math.random() * 50,
-                shadeValue: shadeValue,
-                shadeGradient: this.lightSource.direction.dot(orientation) * -1,
-            });
+            this.particles[i].x = position.x;
+            this.particles[i].y = position.y;
+            this.particles[i].orientation = orientation.add(this.heliotropism);
+            this.particles[i].size = (8 * size) + Math.random() * 1;
+            this.particles[i].life = (100 * size) + Math.random() * 50;
+            this.particles[i].shadeValue = shadeValue;
+            this.particles[i].shadeGradient = this.lightSource.direction.dot(orientation) * -1;
         }
     }
 
     #drawStep() {
-        for (let i = 0; i < this.particles.length; i++) {
+        for (let i = 0; i < this.particlesToDraw; i++) {
             if (Math.random() < 0.8) {
                 continue;
             }
-            const p = this.particles[i];
-            const color = `hsl(${this.hue}, 100%, ${p.shadeValue}%)`; // H : 80 => 120
+            const particle = this.particles[i];
+            if (particle.life <= 0) {
+                continue;
+            }
+            const color = `hsl(${this.hue}, 100%, ${particle.shadeValue}%)`; // H : 80 => 120
 
-            this.render.drawCircle(p, p.size, color);
+            // console.log('particle', particle);
+            this.render.drawCircle(particle, particle.size, color);
 
-            this.#dropShadow(p);
+            this.#dropShadow(particle);
         }
     }
 
@@ -161,9 +195,13 @@ class Leaf {
     }
 
     #grow() {
+        this.growIsRunning = false;
         const delta = 16;
-        for (let i = 0; i < this.particles.length; i++) {
+        for (let i = 0; i < this.particlesToDraw; i++) {
             const p = this.particles[i];
+            if (p.life <= 0) {
+                continue;
+            }
             const translationX = p.orientation.x * (4 + this.formRatio) + random(-2, 2);
             const translationY = p.orientation.y * (4 - this.formRatio) + random(-2, 2);
             p.x += translationX;
@@ -178,9 +216,9 @@ class Leaf {
             }
             
             if (p.life <= 0) {
-                this.particles.splice(i--, 1);
                 continue;
             }
+            this.growIsRunning = true;
         }
     }
 }

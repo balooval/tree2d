@@ -21,8 +21,8 @@ let attractors = [];
 
 const treesList = [];
 const treesSolo = [];
-const treeRender = new TreeRender(Render);
 const lightSource = new LightDirectional(new Vector(0, 0), new Vector(0, 20));
+const treeRender = new TreeRender(Render, lightSource);
 
 const currentPreset = presets['typeA'];
 
@@ -153,7 +153,7 @@ function onKeyUp(evt) {
 function testDrawLeaves() {
     updateScreen();
     for (const trees of treesList) {
-        trees.forEach(tree => treeRender.testLeaves(tree, lightSource));
+        trees.forEach(tree => treeRender.testLeaves(tree));
     }
 }
 
