@@ -21,8 +21,8 @@ let attractors = [];
 
 const treesList = [];
 const treesSolo = [];
-const treeRender = new TreeRender(Render);
 const lightSource = new LightDirectional(new Vector(0, 0), new Vector(0, 20));
+const treeRender = new TreeRender(Render, lightSource);
 
 const currentPreset = presets['typeA'];
 
@@ -32,8 +32,9 @@ let context = null;
 let run = false;
 let applyBend = true;
 
+const backgroundColor = 'rgb(200, 200, 200)';
 // const backgroundColor = 'rgb(100, 100, 100)';
-const backgroundColor = 'rgb(10, 10, 10)';
+// const backgroundColor = 'rgb(10, 10, 10)';
 // const backgroundColor = 'rgb(74, 110, 144)';
 
 export function init(_canvasId) {
@@ -68,7 +69,7 @@ function start() {
     UiControls.setPreset(currentPreset);
     LightLayer.init(canvasId);
 
-    const groundPosition = 0;
+    const groundPosition = 200;
 
     treesSolo.push(new Tree(new Vector(0, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));
@@ -145,7 +146,14 @@ function onKeyUp(evt) {
         play();
     
     } else if (evt.key === 'c') {
-        
+        testDrawLeaves();
+    }
+}
+
+function testDrawLeaves() {
+    updateScreen();
+    for (const trees of treesList) {
+        trees.forEach(tree => treeRender.testLeaves(tree));
     }
 }
 
@@ -154,6 +162,7 @@ function onMouseDown() {
 }
 function onMouseUp(evt) {
     run = false;
+    testDrawLeaves();
 }
 
 function play() {

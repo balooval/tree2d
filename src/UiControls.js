@@ -22,13 +22,14 @@ function onViewLeavesChanged() {
 }
 
 function addPresetParamsInputs() {
-    addRangeControl('gravitropism', 0, 0.008, 0.001);
+    addRangeControl('gravitropism', 0, 0.008, 0.0001);
     addRangeControl('flexibility', 0.00001, 0.002, 0.00001);
     addRangeControl('newBranchLength', 5, 50, 1);
     addRangeControl('uselessBeforePrune', 0, 50, 1);
     addRangeControl('angle', 5, 130, 1);
     addRangeControl('directionConstrainFactor', 0, 1, 0.01);
-    addRangeControl('leafScale', 1, 50, 1);
+    addRangeControl('leafScale', 0.2, 2, 0.1);
+    addRangeControl('leafHue', 50, 150, 1);
     addRangeControl('energyNeededToGrow', 1, 10, 1);
     addRangeControl('maxLightDistance', 50, 200, 1);
 }
