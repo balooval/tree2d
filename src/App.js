@@ -34,15 +34,23 @@ let applyBend = true;
 
 // const backgroundColor = 'rgb(100, 100, 100)';
 const backgroundColor = 'rgb(10, 10, 10)';
-// const backgroundColor = 'rgb(171, 226, 255)';
+// const backgroundColor = 'rgb(74, 110, 144)';
 
 export function init(_canvasId) {
     canvasId = _canvasId;
     
     ImageLoader.loadBatch([
         {
-            id: 'leaf',
+            id: 'leaf2',
             url: './assets/leaf2.png',
+        },
+        {
+            id: 'leaf3',
+            url: './assets/leaf3.png',
+        },
+        {
+            id: 'leaf4',
+            url: './assets/leaf4.png',
         },
     ]).then(start);
 }
@@ -149,6 +157,7 @@ function play() {
     for (const trees of treesList) {
         treeGrow(trees);
     }
+    updateScreen();
 }
 
 function updateScreen() {
@@ -167,7 +176,6 @@ function treeGrow(trees) {
     lightSource.reset(new Vector(lightPosition[0], lightPosition[1]));
 
     LightLayer.clear();
-    Render.clear();
     
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
@@ -195,13 +203,11 @@ function treeGrow(trees) {
 
     trees.forEach(tree => tree.distributeEnergy());
     trees.forEach(tree => tree.prune());
-    trees.forEach(tree => tree.bendBranches());
+    if (applyBend) {
+        trees.forEach(tree => tree.bendBranches());
+    }
 
     trees.forEach(tree => tree.endCycle());
-    trees.forEach(tree => treeRender.draw(tree));
-
-    // Render.draw(context);
-
 }
 
 function indexBranchs(branchs) {

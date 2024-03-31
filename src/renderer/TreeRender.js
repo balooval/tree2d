@@ -64,10 +64,10 @@ class TreeRender {
         for (let i = 0; i < count; i ++) {
             const leaf = leaves[i];
             this.render.drawImage(
-                'leaf',
+                branch.preset.leafImage,
                 branch.end,
                 leaf.orientation.toRadians() + Math.PI / 2,
-                Math.log1p(leaf.light * 2)// * 2
+                Math.log1p(leaf.light * branch.preset.leafScale)// * 2
             );
             // this.render.drawLine(branch.end, leaf.orientation.mulScalar(leaf.energy * 5).add(branch.end), leaf.light * 20, 'rgb(255, 0, 0)');
         }

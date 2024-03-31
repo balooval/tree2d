@@ -131,7 +131,36 @@ export class Branch {
     addWidth(quantity) {
         this.width += quantity;
         this.cyclesWithoutEnergy = 0;
+        this.flexToSky();
         this.parent.addWidth(quantity);
+    }
+
+    flexToSky() {
+        if (this.width > 20) {
+            return;
+        }
+        const localFlexibility = this.preset.gravitropism / this.width;
+        if (localFlexibility < 0.0001) {
+            return;
+        }
+        const ground = new Vector(1, 0);
+        const bendFactor = this.end.sub(this.start).normalizeSelf().dot(ground);
+        const bendAngle = bendFactor * localFlexibility;
+        const newEnd = this.end.sub(this.start);
+        newEnd.rotateRadiansSelf(bendAngle);
+        this.end = newEnd.add(this.start);
+        this.startToEndVector = this.end.sub(this.start);
+        this.direction = this.startToEndVector.normalize();
+
+        this.width += Math.abs(bendAngle) * 50;
+
+        for (let i = 0; i < this.buds.length; i ++) {
+            this.buds[i].orientation = this.direction.rotateDegrees(this.buds[i].relativeAngle);
+        }
+
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].followParentBend(this.start, bendAngle);
+        }
     }
 
     #createChild(bud) {        
