@@ -38,7 +38,7 @@ export class Branch {
 
     createBuds() {
         const angle = this.preset.angle;
-        const lateralStrenght = Math.min(1, Math.max(0, (this.tree.age - 10) / 50));
+        const lateralStrenght = Math.min(1, this.tree.age / 50);
         return [
             {
                 active: true,

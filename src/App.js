@@ -143,6 +143,9 @@ function onFrame() {
 function onKeyUp(evt) {
     if (evt.code === 'Space') {
         play();
+    
+    } else if (evt.key === 'c') {
+        
     }
 }
 
