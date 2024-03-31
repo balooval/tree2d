@@ -3,13 +3,17 @@ import {Branch, Seed } from './Branch.js';
 export const presets = {
     typeA: {
         presetName: 'typeA',
+        energyNeededToGrow: 1,
         heliotropism: 1,
+        gravitropism: 0.004,
         angle: 10,
-        flexibility: 0.00005,
+        flexibility: 0.0004,
         maxLightDistance: 100,
-        newBranchLength: 30,
+        newBranchLength: 20,
         uselessBeforePrune: 30,
-        directionConstrainFactor: 0.0,
+        directionConstrainFactor: 0.1,
+        leafScale: 10,
+        leafImage: 'leaf3',
         leaveColors: [
             {h: 70, s: 70, l: 20},
             {h: 30, s: 70, l: 20},
@@ -22,13 +26,17 @@ export const presets = {
     },
     typeB: {
         presetName: 'typeB',
-        angle: 90,
+        energyNeededToGrow: 2,
         heliotropism: 1,
+        gravitropism: 0.001,
+        angle: 90,
         flexibility: 0.00005,
-        maxLightDistance: 200,
-        newBranchLength: 30,
+        maxLightDistance: 100,
+        newBranchLength: 20,
         uselessBeforePrune: 2,
-        directionConstrainFactor: 0.8,
+        directionConstrainFactor: 0.7,
+        leafScale: 4,
+        leafImage: 'leaf2',
         leaveColors: [
             {h: 70, s: 70, l: 20},
             {h: 30, s: 70, l: 20},
@@ -49,8 +57,8 @@ export class Tree {
         this.position = position;
         this.age = 1;
         this.tips = new Set();
-        const seed = new Seed(position);
-        this.root = new Branch(this, seed, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1));
+        const seed = new Seed(this, position);
+        this.root = new Branch(this, seed, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1), 1);
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();
     }

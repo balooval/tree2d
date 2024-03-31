@@ -22,18 +22,21 @@ function onViewLeavesChanged() {
 }
 
 function addPresetParamsInputs() {
-    addRangeControl('heliotropism', 0, 100, 1);
+    addRangeControl('gravitropism', 0, 0.008, 0.001);
     addRangeControl('flexibility', 0.00001, 0.002, 0.00001);
-    addRangeControl('maxLightDistance', 10, 200, 1);
     addRangeControl('newBranchLength', 5, 50, 1);
-    addRangeControl('uselessBeforePrune', 0, 20, 1);
+    addRangeControl('uselessBeforePrune', 0, 50, 1);
     addRangeControl('angle', 5, 130, 1);
     addRangeControl('directionConstrainFactor', 0, 1, 0.01);
+    addRangeControl('leafScale', 1, 50, 1);
+    addRangeControl('energyNeededToGrow', 1, 10, 1);
+    addRangeControl('maxLightDistance', 50, 200, 1);
 }
 
 function addRangeControl(presetName, min, max, step) {
+    const label = (presetName.match(/[A-Z]*[a-z]+/g) ?? [presetName]).join(' ');
     const inputId = `${presetName}-Control`;
-    const presetControl = `<label for="${inputId}" class="form-label">${presetName} <span id="${presetName}-value">-</span></label>
+    const presetControl = `<label for="${inputId}" class="form-label">${label} <span id="${presetName}-value">-</span></label>
     <input type="range" class="form-range" min="${min}" max="${max}" step="${step}" id="${inputId}" value="${currentPreset[presetName]}"></input>`;
     presetParamsContainer.insertAdjacentHTML('beforeend', presetControl);
     document.getElementById(`${presetName}-value`).innerText = currentPreset[presetName];
