@@ -23,6 +23,7 @@ function onViewLeavesChanged() {
 
 function addPresetParamsInputs() {
     addRangeControl('heliotropism', 0, 100, 1);
+    addRangeControl('energyNeededToGrow', 1, 20, 1);
     addRangeControl('flexibility', 0.00001, 0.002, 0.00001);
     addRangeControl('maxLightDistance', 10, 200, 1);
     addRangeControl('newBranchLength', 5, 50, 1);

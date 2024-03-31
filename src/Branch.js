@@ -3,7 +3,7 @@ import Render from './renderer/Render.js'
 
 let ID = 0;
 export class Branch {
-    constructor(tree, parent, start, end) {
+    constructor(tree, parent, start, end, mainStrenght) {
         this.id = ID ++;
         this.tree = tree;
         this.start = start;
@@ -21,7 +21,6 @@ export class Branch {
         this.parent = parent;
         this.weight = 1;
         
-        this.energyNeededToGrow = 5;
         this.age = 1;
         this.width = 1;
         this.cyclesWithoutEnergy = 0;
@@ -31,15 +30,22 @@ export class Branch {
         this.leavesHealth = 1;
         this.leavesSize = 0;
 
-        const angle = this.preset.angle;
+        this.mainStrenght = mainStrenght;
+        this.budsLight = 0;
+        this.buds = this.createBuds();
+    }
 
-        this.buds = [
+    createBuds() {
+        const angle = this.preset.angle;
+        const lateralStrenght = Math.min(1, Math.max(0, (this.tree.age - 10) / 50));
+        return [
             {
                 active: true,
                 light: 0,
                 energy: 0,
                 relativeAngle: 0,
                 orientation: this.direction.clone(),
+                strenght: this.mainStrenght,
             },
             {
                 active: true,
@@ -47,6 +53,7 @@ export class Branch {
                 energy: 0,
                 relativeAngle: angle,
                 orientation: this.direction.rotateDegrees(angle),
+                strenght: this.mainStrenght * lateralStrenght,
             },
             {
                 active: true,
@@ -54,10 +61,9 @@ export class Branch {
                 energy: 0,
                 relativeAngle: angle * -1,
                 orientation: this.direction.rotateDegrees(angle * -1),
+                strenght: this.mainStrenght * lateralStrenght,
             },
         ];
-
-        this.budsLight = 0;
     }
 
     startCycle() {
@@ -95,7 +101,7 @@ export class Branch {
             const budEnergy = percent * quantity;
             this.buds[i].energy += budEnergy;
             
-            if (this.buds[i].energy >= this.energyNeededToGrow) {
+            if (this.buds[i].energy >= this.preset.energyNeededToGrow) {
                 this.buds[i].active = false;
                 this.#createChild(this.buds[i]);
             }
@@ -118,7 +124,7 @@ export class Branch {
             lightQuantity += normalizedAttractorForce;
         };
 
-        return lightQuantity;
+        return lightQuantity * bud.strenght;
     }
 
     addWidth(quantity) {
@@ -131,7 +137,7 @@ export class Branch {
         this.tree.removeTip(this);
         
         const childEnd = this.#computeAverageAttraction(bud.orientation);
-        const child = new Branch(this.tree, this, this.end, childEnd);
+        const child = new Branch(this.tree, this, this.end, childEnd, bud.strenght);
         this.childs.push(child);
     }
 
@@ -228,7 +234,7 @@ export class Branch {
     }
 
     getLeaves() {
-        return this.buds.filter(bud => bud.active).filter(bud => bud.light > 0.5);
+        return this.buds.filter(bud => bud.light > 0.5);
     }
 
     getLeaveColor() {
@@ -256,6 +262,7 @@ export class Branch {
 
     removeChild(childBranch) {
         this.childs = this.childs.filter(branch => branch !== childBranch);
+        this.buds.push(...this.createBuds());
     }
 }
 

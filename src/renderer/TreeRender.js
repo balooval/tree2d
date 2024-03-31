@@ -28,7 +28,7 @@ class TreeRender {
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.energyTransferedByCycle * 10}, 0)`);
         // this.render.drawLine(branch.start, branch.end, 10, `rgb(0, ${(branch.length / branch.preset.newBranchLength) * 50}, 0)`);
         // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, 0, 0)`);
-        // this.render.drawLine(branch.start, branch.end, 5 + (branch.buds.length * 5), `rgb(255, 0, ${branch.buds.length * 100})`);
+        // this.render.drawLine(branch.start, branch.end, 10, `rgb(0, ${branch.mainStrenght * 250}, 0)`);
         // return;
 
         if (branch.parent === null) {
