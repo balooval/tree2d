@@ -3,9 +3,11 @@ let presetParamsContainer;
 let inputViewLeaves;
 let treeRender;
 let currentPreset;
+let onChangeCallback;
 
-export function init(_treeRender) {
+export function init(_treeRender, callback) {
     treeRender = _treeRender;
+    onChangeCallback = callback;
     presetParamsContainer = document.getElementById('presetParams');
     inputViewLeaves = document.getElementById('viewLeaves');
     inputViewLeaves.addEventListener('change', onViewLeavesChanged);
@@ -28,7 +30,8 @@ function addPresetParamsInputs() {
     addRangeControl('uselessBeforePrune', 0, 50, 1);
     addRangeControl('angle', 5, 130, 1);
     addRangeControl('directionConstrainFactor', 0, 1, 0.01);
-    addRangeControl('leafScale', 0.2, 2, 0.1);
+    addRangeControl('trunkScale', 0.2, 2, 0.1);
+    addRangeControl('leafScale', 0.5, 1.5, 0.1);
     addRangeControl('leafHue', 50, 150, 1);
     addRangeControl('energyNeededToGrow', 1, 10, 1);
     addRangeControl('maxLightDistance', 50, 200, 1);
@@ -44,5 +47,6 @@ function addRangeControl(presetName, min, max, step) {
     document.getElementById(inputId).addEventListener('change', evt => {
         currentPreset[presetName] = evt.target.value;
         document.getElementById(`${presetName}-value`).innerText = evt.target.value;
+        onChangeCallback();
     });
 }

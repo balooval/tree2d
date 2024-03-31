@@ -21,29 +21,32 @@ body {
             <div class="col">
                 Tree type :
                 <br>
-                <input class="form-check-input" type="radio" name="presetType" id="presetTypeA" value="presetTypeA"> <label class="form-check-label" for="presetTypeA">Type A</label>
+                <input class="form-check-input" type="radio" name="presetType" id="presetTypeA" value="presetTypeA" checked> <label class="form-check-label" for="presetTypeA">Type A</label>
                 <br>
-                <input class="form-check-input" type="radio" name="presetType" id="presetTypeB" value="presetTypeB" checked> <label class="form-check-label" for="presetTypeB">Type B</label>
+                <input class="form-check-input" type="radio" name="presetType" id="presetTypeB" value="presetTypeB"> <label class="form-check-label" for="presetTypeB">Type B</label>
                 
                 <br>
                 <br>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="cutMode"> <label class="form-check-label" for="cutMode">Cut mode</label>
+                
+                <div id="presetParams" class="col">
                 </div>
-                <div class="form-check form-switch">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" class="btn-check" id="cutMode" autocomplete="off">
+                    <label class="btn btn-outline-danger" for="cutMode">Cut mode</label>
+                </div>
+                <div class="form-check form-switch form-check-inline">
                     <input class="form-check-input" type="checkbox" id="applyBend" checked> <label class="form-check-label" for="applyBend">Apply bending</label>
                 </div>
-                <div class="form-check form-switch">
+                <div class="form-check form-switch form-check-inline">
                     <input class="form-check-input" type="checkbox" id="viewLeaves" checked> <label class="form-check-label" for="viewLeaves">View Leaves</label>
                 </div>
-                <div class="form-check form-switch">
+                <div class="form-check form-switch form-check-inline">
                     <input class="form-check-input" type="checkbox" id="viewPhotons"> <label class="form-check-label" for="viewPhotons">View photons</label>
-                </div>
-                
-                <br>
-                <br>
-                <div id="presetParams" class="col">
-                    
                 </div>
             </div>
         </div>

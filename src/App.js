@@ -63,7 +63,7 @@ function start() {
     treeLayer.init();
     lightLayer.init();
     UiCut.init(canvas, updateTrees);
-    UiControls.init(treeRender, currentPreset);
+    UiControls.init(treeRender, onPresetChanged);
     UiControls.setPreset(currentPreset);
 
     const groundPosition = 200;
@@ -138,6 +138,10 @@ function onMouseDown() {
 
 function onMouseUp(evt) {
     run = false;
+}
+
+function onPresetChanged() {
+    updateTrees();
 }
 
 function onFrame() {
