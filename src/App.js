@@ -69,7 +69,7 @@ function start() {
     UiControls.setPreset(currentPreset);
     LightLayer.init(canvasId);
 
-    const groundPosition = 0;
+    const groundPosition = 200;
 
     treesSolo.push(new Tree(new Vector(0, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));
@@ -153,7 +153,7 @@ function onKeyUp(evt) {
 function testDrawLeaves() {
     updateScreen();
     for (const trees of treesList) {
-        trees.forEach(tree => treeRender.testLeaves(tree, lightSource.direction));
+        trees.forEach(tree => treeRender.testLeaves(tree, lightSource));
     }
 }
 

@@ -20,8 +20,8 @@ class TreeRender {
         // FallingLeaves.update();
     }
 
-    testLeaves(tree, lightDirection) {
-        this.leafDrawer.setLightDirection(lightDirection);
+    testLeaves(tree, lightSource) {
+        this.leafDrawer.setLightSource(lightSource);
         this.leafDrawer.setColor(tree.preset.leafHue);
         tree.getBranchs().forEach(branch => {
             this.#drawLeaves(tree, branch);
@@ -77,7 +77,7 @@ class TreeRender {
         const lightQuantity = branch.budsLight;
         // const lightQuantity = branch.attractors.length;
 
-        this.leafDrawer.draw(branch.end, leavesSize, lightQuantity, formRatio, heliotropism);
+        this.leafDrawer.draw(tree, branch.end, leavesSize, lightQuantity, formRatio, heliotropism);
     }
 }
 
@@ -88,19 +88,25 @@ class Leaf {
         this.particles = [];
         this.formRatio = 0;
         this.heliotropism = new Vector(0, 0);
-        this.lightDirection = new Vector(0, 1);
+        this.lightSource = null;
         this.hue = 80;
+        this.tree = null;
+        this.shadowOffset = 0;
     }
 
     setColor(hue) {
         this.hue = hue;
     }
 
-    setLightDirection(lightDirection) {
-        this.lightDirection = lightDirection;
+    setLightSource(lightSource) {
+        this.lightSource = lightSource;
+        const radians = this.lightSource.direction.toRadians() - (Math.PI * 1.5);
+        this.shadowOffset = Math.tan(radians);
+        // console.log('direction', this.lightSource.direction, this.lightSource.direction.toRadians());
     }
 
-    draw(position, size, lightQuantity, formRatio, heliotropism) {
+    draw(tree, position, size, lightQuantity, formRatio, heliotropism) {
+        this.tree = tree;
         this.formRatio = formRatio;
         this.heliotropism = heliotropism;
         this.#addParticles(position, size, lightQuantity);
@@ -124,7 +130,7 @@ class Leaf {
                 size: (8 * size) + Math.random() * 1,
                 life: (100 * size) + Math.random() * 50,
                 shadeValue: shadeValue,
-                shadeGradient: this.lightDirection.dot(orientation) * -1,
+                shadeGradient: this.lightSource.direction.dot(orientation) * -1,
             });
         }
     }
@@ -138,7 +144,20 @@ class Leaf {
             const color = `hsl(${this.hue}, 100%, ${p.shadeValue}%)`; // H : 80 => 120
 
             this.render.drawCircle(p, p.size, color);
+
+            this.#dropShadow(p);
         }
+    }
+
+    #dropShadow(particle) {
+        const position = {
+            x: particle.x + (this.shadowOffset * particle.y),
+            y: this.tree.position.y,
+        };
+        
+        // position.x += Math.tan(this.lightSource.direction.toRadians()) * particle.y;
+        const color = `rgba(52, 54, 61, 0.01)`;
+        this.render.drawCircle(position, particle.size * 1.5, color);
     }
 
     #grow() {
