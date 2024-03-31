@@ -12,8 +12,9 @@ export const presets = {
         newBranchLength: 20,
         uselessBeforePrune: 30,
         directionConstrainFactor: 0.1,
-        leafScale: 10,
+        leafScale: 1,
         leafImage: 'leaf3',
+        leafHue: 80,
         leaveColors: [
             {h: 70, s: 70, l: 20},
             {h: 30, s: 70, l: 20},
@@ -35,8 +36,9 @@ export const presets = {
         newBranchLength: 20,
         uselessBeforePrune: 2,
         directionConstrainFactor: 0.7,
-        leafScale: 4,
+        leafScale: 1,
         leafImage: 'leaf2',
+        leafHue: 80,
         leaveColors: [
             {h: 70, s: 70, l: 20},
             {h: 30, s: 70, l: 20},

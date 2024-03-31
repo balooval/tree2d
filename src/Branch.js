@@ -260,7 +260,7 @@ export class Branch {
     }
 
     getWidth() {
-        return Math.max(2, this.width * 0.2);
+        return Math.max(2, this.width * 0.4);
     }
 
     getLeaves() {
@@ -311,7 +311,7 @@ export class Seed {
     }
 
     getWidth() {
-        return 10;
+        return 100;
     }
 
     addWidth(quantity) {
