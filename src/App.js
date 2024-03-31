@@ -15,9 +15,11 @@ const treesList = [];
 const treesSolo = [];
 const treeLayer = new BaseRender();
 const lightLayer = new BaseRender();
-const lightSource = new LightDirectional(new Vector(0, 0), new Vector(0, 20));
+const lightSource = new LightDirectional(new Vector(0, 500), new Vector(0, 20));
 const treeRender = new TreeRender(treeLayer, lightSource);
 const lightRender = new LightRender(lightLayer);
+
+const heavyProcesses = new Map();
 
 const currentPreset = presets['typeA'];
 
@@ -127,9 +129,6 @@ function onTreeTypeSelectChanged() {
 function onKeyUp(evt) {
     if (evt.code === 'Space') {
         updateTrees();
-    
-    } else if (evt.key === 'c') {
-        testDrawLeaves();
     }
 }
 
@@ -139,7 +138,6 @@ function onMouseDown() {
 
 function onMouseUp(evt) {
     run = false;
-    testDrawLeaves();
 }
 
 function onFrame() {
@@ -163,9 +161,9 @@ function updateScreen() {
     lightLayer.drawIntoContext(context);
 }
 
-function testDrawLeaves() {
+function drawLeaves() {
     for (const trees of treesList) {
-        trees.forEach(tree => treeRender.testLeaves(tree));
+        trees.forEach(tree => treeRender.drawHighQualityLeaves(tree));
     }
 }
 
@@ -182,12 +180,13 @@ function drawTrees() {
     for (const trees of treesList) {
         trees.forEach(tree => treeRender.draw(tree));
     }
+
+    queueHeavyProcess(drawLeaves);
 }
 
 function onMouseWheel(evt) {
     changeScale(evt.deltaY);
     drawTrees();
-    testDrawLeaves();
 }
 
 function clearCanvas() {
@@ -195,3 +194,14 @@ function clearCanvas() {
     context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
+
+function queueHeavyProcess(process) {
+    let timeoutId = heavyProcesses.get(process);
+    
+    if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+    }
+
+    timeoutId = setTimeout(process, 200);
+    heavyProcesses.set(process, timeoutId);
+}
