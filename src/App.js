@@ -9,7 +9,6 @@ import * as UiControls from './UiControls.js';
 import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
 import * as ImageLoader from './ImageLoader.js';
-import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 
 
 const treesList = [];
@@ -85,6 +84,10 @@ function start() {
     document.getElementById('applyBend').addEventListener('change', onApplyBendChanged);
     document.getElementById('presetTypeA').addEventListener('change', onTreeTypeSelectChanged);
     document.getElementById('presetTypeB').addEventListener('change', onTreeTypeSelectChanged);
+
+    document.getElementById('presetLeavesStandard').addEventListener('change', onLeavesPresetChanged);
+    document.getElementById('presetLeavesSpike').addEventListener('change', onLeavesPresetChanged);
+
     document.body.addEventListener('keyup', onKeyUp);
     document.getElementById(canvasId).addEventListener('wheel', onMouseWheel);
 
@@ -113,6 +116,19 @@ function setMouseRunMode(state = true) {
 
 function onApplyBendChanged() {
     applyBend = document.getElementById('applyBend').checked;
+}
+
+function onLeavesPresetChanged() {
+    const typeBChecked = document.getElementById('presetLeavesSpike').checked;
+
+    let leavesType = 'standard';
+    if (typeBChecked === true) {
+        leavesType = 'spike';
+    }
+
+    treesSolo[0].preset.leavesPreset = leavesType;
+
+    drawTrees();
 }
 
 function onTreeTypeSelectChanged() {

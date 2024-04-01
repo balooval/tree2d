@@ -3,6 +3,21 @@ import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 const glGround = GlMatrix.fromValues(1, 0);
+
+const leavesPresets = {
+    standard: {
+        baseLife: 100,
+        translationSpeed: 4,
+        heliotropism: [0, -1],
+    },
+    spike: {
+        baseLife: 400,
+        translationSpeed: 2,
+        heliotropism: [0, 0],
+    },
+};
+
+
 class TreeRender {
     constructor(render, lightSource) {
         this.render = render;
@@ -137,10 +152,13 @@ class TreeRender {
             return;
         }
 
+        const currentLeavesPreset = leavesPresets[tree.preset.leavesPreset];
+
+        this.leafDrawer.setPreset(currentLeavesPreset);
         this.leafDrawer.setColor(tree.preset.leafHue);
         
         const formRatio = 1;
-        const heliotropism = GlMatrix.fromValues(0, -1);
+        const heliotropism = GlMatrix.fromValues(currentLeavesPreset.heliotropism[0], currentLeavesPreset.heliotropism[1]);
 
         const leavesSize = leaves.reduce((cum, leaf) => cum + leaf.energy, 0) * branch.preset.leafScale;
 
@@ -168,6 +186,8 @@ class Leaf {
         this.particleGlTranslation = GlMatrix.create();
         this.particleGlOrientation = GlMatrix.create();
 
+        this.preset = leavesPresets.standard;
+
         this.maxWhileLoop = 999999;
 
         for (let i = 0; i < this.particlesCount; i ++) {
@@ -180,6 +200,10 @@ class Leaf {
                 shadeGradient: GlMatrix.fromValues(0, 1),
             });
         }
+    }
+
+    setPreset(preset) {
+        this.preset = preset;
     }
 
     setFullQuality() {
@@ -223,6 +247,9 @@ class Leaf {
     #setupParticles(position, size, lightQuantity) {
         const shadeValue = Math.round(lightQuantity * 10);
 
+        // const baseLife = 100;
+        const baseLife = this.preset.baseLife;
+
         for (let i = 0; i < this.particlesToDraw; i ++) {
             GlMatrix.rotate(this.particleGlOrientation, glGround, glOrigin, i * 5);
 
@@ -231,7 +258,7 @@ class Leaf {
             GlMatrix.copy(this.particles[i].glPosition, position);
             GlMatrix.add(this.particles[i].orientation, this.particleGlOrientation, this.heliotropism);
             this.particles[i].size = (8 * size) + Math.random() * 1;
-            this.particles[i].life = (100 * size) + Math.random() * 50;
+            this.particles[i].life = (baseLife * size) + Math.random() * (baseLife / 2);
             this.particles[i].shadeValue = shadeValue;
             this.particles[i].shadeGradient = shadeGradient;
         }
@@ -267,14 +294,16 @@ class Leaf {
     #grow() {
         this.growIsRunning = false;
         const delta = 16;
+        const translationSpeed = this.preset.translationSpeed;
+        const translationVariation = translationSpeed / 2;
 
         for (let i = 0; i < this.particlesToDraw; i++) {
             const p = this.particles[i];
             if (p.life <= 0) {
                 continue;
             }
-            const translationX = p.orientation[0] * (4 + this.formRatio) + random(-2, 2);
-            const translationY = p.orientation[1] * (4 - this.formRatio) + random(-2, 2);
+            const translationX = p.orientation[0] * (translationSpeed + this.formRatio) + random(translationVariation * -1, translationVariation);
+            const translationY = p.orientation[1] * (translationSpeed - this.formRatio) + random(translationVariation * -1, translationVariation);
             GlMatrix.set(this.particleGlTranslation, translationX, translationY)
             GlMatrix.add(p.glPosition, p.glPosition, this.particleGlTranslation);
             p.life -= delta;
