@@ -1,6 +1,7 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { LeafDrawer, leavesPresets } from "./LeavesDrawer.js";
 import { radians } from "../Math.js";
+import TrunkRender from "./TrunkRender.js";
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 
@@ -10,6 +11,7 @@ class TreeRender {
         this.lightSource = lightSource;
         this.viewLeaves = true;
         this.leafDrawer = new LeafDrawer(this.render, this.lightSource);
+        this.trunkRender = new TrunkRender(this.render, this.lightSource);
 
         this.trunkPointA = GlMatrix.create();
         this.trunkPointB = GlMatrix.create();
@@ -23,8 +25,9 @@ class TreeRender {
 
     draw(tree) {
         this.leafDrawer.setLowQuality();
+        this.trunkRender.draw(tree);
         tree.getBranchs().forEach(branch => {
-            this.#drawBranch(branch);
+            // this.#drawBranch(branch);
             this.#drawLeaves(tree, branch);
         });
 
@@ -120,9 +123,9 @@ class TreeRender {
         
         this.render.glDrawPolygon(glPoints, branch.trunkColor);
 
-        if (branch.scar === true) {
-            this.render.glDrawCircle(branch.glEnd, width, branch.parent.trunkColor);
-        }
+        // if (branch.scar === true) {
+        //     this.render.glDrawCircle(branch.glEnd, width, branch.parent.trunkColor);
+        // }
     }
 
     #drawLeaves(tree, branch) {

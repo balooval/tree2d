@@ -27,6 +27,18 @@ export const presets = {
             'rgb(107, 99, 85)',
             'rgb(117, 111, 100)',
         ],
+        trunkHSL: [
+            {
+                h: 38,
+                s: 11,
+                l: 38,
+            },
+            {
+                h: 39,
+                s: 8,
+                l: 43,
+            },
+        ],
     },
     typeB: {
         presetName: 'typeB',

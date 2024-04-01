@@ -158,7 +158,8 @@ export class BaseRender {
         const end = glWorldToCanvasPosition(worldEnd);
 
         this.context.beginPath();
-        this.context.lineCap = 'round';
+        // this.context.lineCap = 'round';
+        this.context.lineCap = 'butt';
         this.context.strokeStyle = color;
         this.context.lineWidth  = worldToCanvasWidth(worldWidth);
         this.context.moveTo(start[0], start[1]);

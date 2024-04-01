@@ -15,6 +15,7 @@ export class Branch {
         this.newBranchLength = this.preset.newBranchLength;
         this.directionConstrainFactor = this.preset.directionConstrainFactor;
         this.trunkColor = randomElement(this.preset.trunkColors);
+        this.trunkHSL = randomElement(this.preset.trunkHSL);
         this.attractors = [];
         this.childs = [];
         this.parent = parent;

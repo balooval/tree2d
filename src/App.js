@@ -66,7 +66,7 @@ function start() {
     UiControls.init(treeRender, onPresetChanged);
     UiControls.setPreset(currentPreset);
 
-    const groundPosition = 200;
+    const groundPosition = 50;
 
     treesSolo.push(new Tree(0, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));
