@@ -10,10 +10,10 @@ const rbushBranchs = new RBush();
 const illuminatedBranchs = new Set();
 let attractors = [];
 
-
 export function treeGrowUpdate(trees, lightSource, applyBend) {
     rbushAttractors.clear();
     rbushBranchs.clear();
+    freeAttractors(attractors);
 
     const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
     lightSource.reset(lightPosition[0], lightPosition[1]);
@@ -39,6 +39,7 @@ export function treeGrowUpdate(trees, lightSource, applyBend) {
     }
 
     trees.forEach(tree => tree.distributeEnergy());
+    trees.forEach(tree => tree.liftBranches());
     trees.forEach(tree => tree.prune());
     if (applyBend) {
         trees.forEach(tree => tree.bendBranches());
@@ -94,7 +95,8 @@ function createAttractors(photons) {
 
     for (let i = 0; i < photons.length; i ++) {
         const photon = photons[i];
-        const attractor = new Attractor(photon.glPosition, photon.glOrientation);
+        const attractor = getAttractor();
+        attractor.reset(photon.glPosition, photon.glOrientation);
         attractors.push(attractor);
 
         items.push({
@@ -110,4 +112,26 @@ function createAttractors(photons) {
 
 
     return attractors;
+}
+
+
+const poolAttractors = [];
+let poolMaxSize = 0;
+
+function getAttractor() {
+    let attractor = poolAttractors.pop();
+
+    if (attractor !== undefined) {
+        return attractor;
+    }
+    for (let i = 0; i < poolMaxSize; i ++) {
+        poolAttractors.push(new Attractor());
+    }
+
+    return new Attractor();
+}
+
+function freeAttractors(attractors) {
+    poolAttractors.push(...attractors);
+    poolMaxSize = Math.max(poolMaxSize, poolAttractors.length);
 }

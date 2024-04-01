@@ -74,6 +74,10 @@ export class Tree {
         this.branchesEnergyNeed.set(branch, lightQuantity);
     }
 
+    liftBranches() {
+        this.root.liftIfNeeded();
+    }
+
     distributeEnergy() {
         let totalEnergyAsked = 0;
         const totalEnergy = Math.min(300, Math.exp(this.age / 100));

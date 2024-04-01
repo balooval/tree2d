@@ -49,6 +49,7 @@ export class Branch {
         this.buds = this.createBuds();
         this.scar = false;
 
+        this.cycleWidthCount = 0;
     }
 
     createBuds() {
@@ -86,6 +87,7 @@ export class Branch {
 
     startCycle() {
         this.cyclesWithoutEnergy ++;
+        this.cycleWidthCount = 0;
     }
 
     endCycle() {
@@ -111,6 +113,18 @@ export class Branch {
     addEnergy(quantity) {
         this.diffuseEnergy(quantity);
         this.addWidth(quantity * 0.02);
+    }
+
+    liftIfNeeded() {
+        if (this.cycleWidthCount === 0) {
+            return;
+        }
+
+        this.flexToSky(this.cycleWidthCount);
+
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].liftIfNeeded();
+        }
     }
     
     diffuseEnergy(quantity) {
@@ -149,12 +163,12 @@ export class Branch {
 
     addWidth(quantity) {
         this.width += quantity;
+        this.cycleWidthCount ++;
         this.cyclesWithoutEnergy = 0;
-        this.flexToSky();
         this.parent.addWidth(quantity);
     }
 
-    flexToSky() {
+    flexToSky(factor) {
         if (this.width > 20) {
             return;
         }
@@ -164,7 +178,7 @@ export class Branch {
         }
 
         const bendFactor = GlMatrix.dot(this.glDirection, glGround);
-        const bendAngle = bendFactor * localFlexibility;
+        const bendAngle = (bendFactor * localFlexibility) * factor;
         GlMatrix.rotate(this.glEnd, this.glEnd, this.glStart, bendAngle);
         GlMatrix.normalize(this.glDirection, GlMatrix.sub(glOutput, this.glEnd, this.glStart));
 
