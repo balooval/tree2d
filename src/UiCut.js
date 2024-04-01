@@ -74,7 +74,7 @@ class UiCut {
         const allBranchs = branch.addToList([]);
         
         for (let i = 0; i < allBranchs.length; i ++) {
-            this.render.drawLine(allBranchs[i].start, allBranchs[i].end, allBranchs[i].getWidth(), `rgb(255, 0, 0)`);
+            this.render.glDrawLine(allBranchs[i].glStart, allBranchs[i].glEnd, allBranchs[i].getWidth(), `rgb(255, 0, 0)`);
         }
     }
 

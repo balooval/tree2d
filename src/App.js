@@ -9,13 +9,14 @@ import * as UiControls from './UiControls.js';
 import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
 import * as ImageLoader from './ImageLoader.js';
+import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 
 
 const treesList = [];
 const treesSolo = [];
 const treeLayer = new BaseRender();
 const lightLayer = new BaseRender();
-const lightSource = new LightDirectional(new Vector(0, 500), new Vector(0, 20));
+const lightSource = new LightDirectional(0, 500, 0, 20);
 const treeRender = new TreeRender(treeLayer, lightSource);
 const lightRender = new LightRender(lightLayer);
 
@@ -68,7 +69,7 @@ function start() {
 
     const groundPosition = 200;
 
-    treesSolo.push(new Tree(new Vector(0, groundPosition), currentPreset));
+    treesSolo.push(new Tree(0, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(-400, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(-230, groundPosition), currentPreset));

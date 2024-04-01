@@ -1,4 +1,5 @@
 import {Branch, Seed } from './Branch.js';
+import * as GlMatrix from "../vendor/gl-matrix/vec2.js";
 
 export const presets = {
     typeA: {
@@ -56,13 +57,13 @@ export const presets = {
 
 export class Tree {
 
-    constructor(position, preset) {
+    constructor(positionX, positionY, preset) {
         this.preset = preset;
-        this.position = position;
+        this.position = GlMatrix.fromValues(positionX, positionY);
         this.age = 1;
         this.tips = new Set();
-        const seed = new Seed(this, position);
-        this.root = new Branch(this, seed, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1), 1);
+        const seed = new Seed(this, this.position[0], this.position[1]);
+        this.root = new Branch(this, seed, this.position[0], this.position[1], this.position[0] + 0, this.position[1] + this.preset.newBranchLength * 0.1, 1);
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();
     }

@@ -1,7 +1,7 @@
 import Attractor from './Attractor.js';
 import RBush from '../vendor/rbush.js';
 import RBushKnn from '../vendor/rbush-knn.js';
-import { canvasToWorldPosition } from './renderer/BaseRender.js';
+import { intCanvasToWorldPosition } from './renderer/BaseRender.js';
 import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
 
@@ -15,8 +15,8 @@ export function treeGrowUpdate(trees, lightSource, applyBend) {
     rbushAttractors.clear();
     rbushBranchs.clear();
 
-    const lightPosition = canvasToWorldPosition(new Vector(UiMouse.mousePosition[0], UiMouse.mousePosition[1]));
-    lightSource.reset(new Vector(lightPosition[0], lightPosition[1]));
+    const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
+    lightSource.reset(lightPosition[0], lightPosition[1]);
 
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
@@ -54,10 +54,10 @@ function indexBranchs(branchs) {
         const branch = branchs[i];
 
         const branchBbox = {
-            minX: Math.min(branch.start.x, branch.end.x),
-            maxX: Math.max(branch.start.x, branch.end.x),
-            minY: Math.min(branch.start.y, branch.end.y),
-            maxY: Math.max(branch.start.y, branch.end.y),
+            minX: Math.min(branch.glStart[0], branch.glEnd[0]),
+            maxX: Math.max(branch.glStart[0], branch.glEnd[0]),
+            minY: Math.min(branch.glStart[1], branch.glEnd[1]),
+            maxY: Math.max(branch.glStart[1], branch.glEnd[1]),
             branch: branch,
         };
 
@@ -68,7 +68,7 @@ function indexBranchs(branchs) {
 }
 
 function attachBranchToAttractors(branch) {
-    const nearAttractors = RBushKnn(rbushAttractors, branch.end.x, branch.end.y, undefined, undefined, branch.maxLightDistance);
+    const nearAttractors = RBushKnn(rbushAttractors, branch.glEnd[0], branch.glEnd[1], undefined, undefined, branch.maxLightDistance);
     nearAttractors.forEach(attractorItem => attractorItem.attractor.attachBranchIfNeeded(branch));
 }
 
@@ -94,14 +94,14 @@ function createAttractors(photons) {
 
     for (let i = 0; i < photons.length; i ++) {
         const photon = photons[i];
-        const attractor = new Attractor(photon.position, photon.orientation);
+        const attractor = new Attractor(photon.glPosition, photon.glOrientation);
         attractors.push(attractor);
 
         items.push({
-            minX: photon.position.x,
-            maxX: photon.position.x,
-            minY: photon.position.y,
-            maxY: photon.position.y,
+            minX: photon.glPosition[0],
+            maxX: photon.glPosition[0],
+            minY: photon.glPosition[1],
+            maxY: photon.glPosition[1],
             attractor: attractor,
         });
     }

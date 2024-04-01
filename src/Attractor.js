@@ -1,8 +1,10 @@
+import * as GlMatrix from "../vendor/gl-matrix/vec2.js";
 
 export default class Attractor {
-    constructor(position, orientation) {
-        this.position = position;
-        this.orientation = orientation;
+    constructor(glPosition, glOrientation) {
+        this.glPosition = glPosition
+        this.glOrientation = glOrientation
+
         this.nearestBranch = null;
         this.nearestDistance = 999999;
     }
@@ -13,7 +15,7 @@ export default class Attractor {
             return;
         }
 
-        const distance = branch.end.distanceFrom(this.position);
+        const distance = GlMatrix.dist(branch.glEnd, this.glPosition);
         
         if (this.nearestDistance < distance) {
             return;

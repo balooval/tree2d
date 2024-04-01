@@ -1,11 +1,19 @@
-import { degrees, random } from "../Math.js";
+import { degrees, random, radians } from "../Math.js";
+import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 
+const glOrigin = GlMatrix.fromValues(0, 0);
+const glGround = GlMatrix.fromValues(1, 0);
 class TreeRender {
     constructor(render, lightSource) {
         this.render = render;
         this.lightSource = lightSource;
         this.viewLeaves = true;
         this.leafDrawer = new Leaf(this.render, this.lightSource);
+
+        this.trunkPointA = GlMatrix.create();
+        this.trunkPointB = GlMatrix.create();
+        this.trunkPointC = GlMatrix.create();
+        this.trunkPointD = GlMatrix.create();
     }
 
     setViewLeaves(state) {
@@ -29,30 +37,90 @@ class TreeRender {
     }
 
     #drawBranch(branch) {
-        // this.render.drawLine(branch.start, branch.end, branch.getWidth(), branch.trunkColor);
-        // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.energy > 0 ? 255 : 0}, 0)`);
-        // this.render.drawLine(branch.start, branch.end, 10, `rgb(150, ${(branch.energy / branch.energyNeededToGrow) * 255}, 150)`);
-        // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.auxinQuantity * 25}, 0)`);
-        // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, ${branch.energyTransferedByCycle * 10}, 0)`);
-        // this.render.drawLine(branch.start, branch.end, 10, `rgb(0, ${(branch.length / branch.preset.newBranchLength) * 50}, 0)`);
-        // this.render.drawLine(branch.start, branch.end, branch.getWidth(), `rgb(0, 0, 0)`);
-        // this.render.drawLine(branch.start, branch.end, 10, `rgb(0, ${branch.mainStrenght * 250}, 0)`);
+        // this.render.glDrawLine(branch.glStart, branch.glEnd, branch.getWidth(), branch.trunkColor);
+        // this.render.glDrawLine(branch.glStart, branch.glEnd, branch.getWidth(), `rgb(0, ${branch.energy > 0 ? 255 : 0}, 0)`);
+        // this.render.glDrawLine(branch.glStart, branch.glEnd, 10, `rgb(150, ${(branch.energy / branch.energyNeededToGrow) * 255}, 150)`);
+        // this.render.glDrawLine(branch.glStart, branch.glEnd, branch.getWidth(), `rgb(0, ${branch.auxinQuantity * 25}, 0)`);
+        // this.render.glDrawLine(branch.glStart, branch.glEnd, branch.getWidth(), `rgb(0, ${branch.energyTransferedByCycle * 10}, 0)`);
+        // this.render.glDrawLine(branch.glStart, branch.glEnd, 10, `rgb(0, ${(branch.length / branch.preset.newBranchLength) * 50}, 0)`);
+        // this.render.glDrawLine(branch.glStart, branch.glEnd, branch.getWidth(), `rgb(0, 0, 0)`);
+        // this.render.glDrawLine(branch.glStart, branch.glEnd, 10, `rgb(0, ${branch.mainStrenght * 250}, 0)`);
         // return;
 
         const width = branch.getWidth();
         const parentWidth = branch.parent.getWidth();
 
-        const points = [
-            branch.end.add(branch.direction.rotateDegrees(90).mulScalarSelf(width)),
-            branch.end.add(branch.direction.rotateDegrees(-90).mulScalarSelf(width)),
-            branch.parent.end.add(branch.parent.direction.rotateDegrees(-90).mulScalarSelf(parentWidth)),
-            branch.parent.end.add(branch.parent.direction.rotateDegrees(90).mulScalarSelf(parentWidth)),
-        ];
+        GlMatrix.add(
+            this.trunkPointA,
+            branch.glEnd,
+            GlMatrix.scale(
+                this.trunkPointA,
+                GlMatrix.rotate(
+                    this.trunkPointA,
+                    branch.glDirection,
+                    glOrigin,
+                    radians(90)
+                ),
+                width
+            )
+        );
 
-        this.render.drawPolygon(points, branch.trunkColor);
+        GlMatrix.add(
+            this.trunkPointB,
+            branch.glEnd,
+            GlMatrix.scale(
+                this.trunkPointB,
+                GlMatrix.rotate(
+                    this.trunkPointB,
+                    branch.glDirection,
+                    glOrigin,
+                    radians(-90)
+                ),
+                width
+            )
+        );
+
+        GlMatrix.add(
+            this.trunkPointC,
+            branch.parent.glEnd,
+            GlMatrix.scale(
+                this.trunkPointC,
+                GlMatrix.rotate(
+                    this.trunkPointC,
+                    branch.parent.glDirection,
+                    glOrigin,
+                    radians(-90)
+                ),
+                parentWidth
+            )
+        );
+
+        GlMatrix.add(
+            this.trunkPointD,
+            branch.parent.glEnd,
+            GlMatrix.scale(
+                this.trunkPointD,
+                GlMatrix.rotate(
+                    this.trunkPointD,
+                    branch.parent.glDirection,
+                    glOrigin,
+                    radians(90)
+                ),
+                parentWidth
+            )
+        );
+
+        const glPoints = [
+            this.trunkPointA,
+            this.trunkPointB,
+            this.trunkPointC,
+            this.trunkPointD,
+        ];
+        
+        this.render.glDrawPolygon(glPoints, branch.trunkColor);
 
         if (branch.scar === true) {
-            this.render.drawCircle(branch.end, width, branch.parent.trunkColor);
+            this.render.glDrawCircle(branch.glEnd, width, branch.parent.trunkColor);
         }
     }
 
@@ -72,14 +140,14 @@ class TreeRender {
         this.leafDrawer.setColor(tree.preset.leafHue);
         
         const formRatio = 1;
-        const heliotropism = new Vector(0, -1);
+        const heliotropism = GlMatrix.fromValues(0, -1);
 
         const leavesSize = leaves.reduce((cum, leaf) => cum + leaf.energy, 0) * branch.preset.leafScale;
 
         const lightQuantity = branch.budsLight;
         // const lightQuantity = branch.attractors.length;
 
-        this.leafDrawer.draw(tree, branch.end, leavesSize, lightQuantity, formRatio, heliotropism);
+        this.leafDrawer.draw(tree, branch.glEnd, leavesSize, lightQuantity, formRatio, heliotropism);
     }
 }
 
@@ -90,24 +158,26 @@ class Leaf {
         this.particlesToDraw = this.particlesCount;
         this.particles = [];
         this.formRatio = 0;
-        this.heliotropism = new Vector(0, 0);
+        this.heliotropism = GlMatrix.create();
         this.lightSource = lightSource;
         this.hue = 80;
         this.tree = null;
         this.shadowOffset = 0;
         this.growIsRunning = false;
+        this.shadowGlPosition = GlMatrix.create();
+        this.particleGlTranslation = GlMatrix.create();
+        this.particleGlOrientation = GlMatrix.create();
 
         this.maxWhileLoop = 999999;
 
         for (let i = 0; i < this.particlesCount; i ++) {
             this.particles.push({
-                x: 0,
-                y: 0,
-                orientation: new Vector(0, 1),
+                glPosition: GlMatrix.fromValues(0, 0),
+                orientation: GlMatrix.fromValues(0, 1),
                 size: 1,
                 life: 1,
                 shadeValue: 0,
-                shadeGradient: new Vector(0, 1),
+                shadeGradient: GlMatrix.fromValues(0, 1),
             });
         }
     }
@@ -131,8 +201,8 @@ class Leaf {
         this.formRatio = formRatio;
         this.heliotropism = heliotropism;
         
-        const radians = this.lightSource.direction.toRadians() - (Math.PI * 1.5);
-        this.shadowOffset = Math.tan(radians);
+        const angle = Math.atan2(this.lightSource.glDirection[0], this.lightSource.glDirection[1]) * -1;
+        this.shadowOffset = Math.tan(angle);
 
         this.#setupParticles(position, size, lightQuantity);
 
@@ -154,14 +224,16 @@ class Leaf {
         const shadeValue = Math.round(lightQuantity * 10);
 
         for (let i = 0; i < this.particlesToDraw; i ++) {
-            const orientation = new Vector(1, 0).rotateRadiansSelf(i * 5);
-            this.particles[i].x = position.x;
-            this.particles[i].y = position.y;
-            this.particles[i].orientation = orientation.add(this.heliotropism);
+            GlMatrix.rotate(this.particleGlOrientation, glGround, glOrigin, i * 5);
+
+            const shadeGradient = GlMatrix.dot(this.lightSource.glDirection, this.particleGlOrientation) * -1;
+
+            GlMatrix.copy(this.particles[i].glPosition, position);
+            GlMatrix.add(this.particles[i].orientation, this.particleGlOrientation, this.heliotropism);
             this.particles[i].size = (8 * size) + Math.random() * 1;
             this.particles[i].life = (100 * size) + Math.random() * 50;
             this.particles[i].shadeValue = shadeValue;
-            this.particles[i].shadeGradient = this.lightSource.direction.dot(orientation) * -1;
+            this.particles[i].shadeGradient = shadeGradient;
         }
     }
 
@@ -174,41 +246,39 @@ class Leaf {
             if (particle.life <= 0) {
                 continue;
             }
+
             const color = `hsl(${this.hue}, 100%, ${particle.shadeValue}%)`; // H : 80 => 120
-
-            // console.log('particle', particle);
-            this.render.drawCircle(particle, particle.size, color);
-
+            this.render.glDrawCircle(particle.glPosition, particle.size, color);
             this.#dropShadow(particle);
         }
     }
 
     #dropShadow(particle) {
-        const position = {
-            x: particle.x + (this.shadowOffset * particle.y),
-            y: this.tree.position.y,
-        };
-        
-        // position.x += Math.tan(this.lightSource.direction.toRadians()) * particle.y;
+        GlMatrix.set(
+            this.shadowGlPosition,
+            particle.glPosition[0] + (this.shadowOffset * particle.glPosition[1]),
+            this.tree.position[1]
+        );
+
         const color = `rgba(52, 54, 61, 0.01)`;
-        this.render.drawCircle(position, particle.size * 1.5, color);
+        this.render.glDrawCircle(this.shadowGlPosition, particle.size * 1.5, color);
     }
 
     #grow() {
         this.growIsRunning = false;
         const delta = 16;
+
         for (let i = 0; i < this.particlesToDraw; i++) {
             const p = this.particles[i];
             if (p.life <= 0) {
                 continue;
             }
-            const translationX = p.orientation.x * (4 + this.formRatio) + random(-2, 2);
-            const translationY = p.orientation.y * (4 - this.formRatio) + random(-2, 2);
-            p.x += translationX;
-            p.y += translationY;
+            const translationX = p.orientation[0] * (4 + this.formRatio) + random(-2, 2);
+            const translationY = p.orientation[1] * (4 - this.formRatio) + random(-2, 2);
+            GlMatrix.set(this.particleGlTranslation, translationX, translationY)
+            GlMatrix.add(p.glPosition, p.glPosition, this.particleGlTranslation);
             p.life -= delta;
             p.size -= delta / 35;
-            // p.shadeValue = Math.min(90, Math.max(13, p.shadeValue + translationY));
             p.shadeValue = Math.min(90, Math.max(13, p.shadeValue + p.shadeGradient));
             
             if (p.size <= 0) {
