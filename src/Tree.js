@@ -1,4 +1,5 @@
 import {Branch, Seed } from './Branch.js';
+import * as GlMatrix from "../vendor/gl-matrix/vec2.js";
 
 export const presets = {
     typeA: {
@@ -13,6 +14,7 @@ export const presets = {
         newBranchLength: 20,
         uselessBeforePrune: 30,
         directionConstrainFactor: 0.1,
+        leavesPreset: 'standard',
         leafScale: 1,
         leafImage: 'leaf3',
         leafHue: 80,
@@ -24,6 +26,18 @@ export const presets = {
         trunkColors: [
             'rgb(107, 99, 85)',
             'rgb(117, 111, 100)',
+        ],
+        trunkHSL: [
+            {
+                h: 38,
+                s: 11,
+                l: 38,
+            },
+            {
+                h: 39,
+                s: 8,
+                l: 43,
+            },
         ],
     },
     typeB: {
@@ -38,6 +52,7 @@ export const presets = {
         newBranchLength: 20,
         uselessBeforePrune: 2,
         directionConstrainFactor: 0.7,
+        leavesPreset: 'spike',
         leafScale: 1,
         leafImage: 'leaf2',
         leafHue: 80,
@@ -56,19 +71,23 @@ export const presets = {
 
 export class Tree {
 
-    constructor(position, preset) {
+    constructor(positionX, positionY, preset) {
         this.preset = preset;
-        this.position = position;
+        this.position = GlMatrix.fromValues(positionX, positionY);
         this.age = 1;
         this.tips = new Set();
-        const seed = new Seed(this, position);
-        this.root = new Branch(this, seed, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength * 0.1), 1);
+        const seed = new Seed(this, this.position[0], this.position[1]);
+        this.root = new Branch(this, seed, this.position[0], this.position[1], this.position[0] + 0, this.position[1] + this.preset.newBranchLength * 0.1, 1);
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();
     }
 
     askEnergy(branch, lightQuantity) {
         this.branchesEnergyNeed.set(branch, lightQuantity);
+    }
+
+    liftBranches() {
+        this.root.liftIfNeeded();
     }
 
     distributeEnergy() {

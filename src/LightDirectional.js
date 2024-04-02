@@ -1,33 +1,43 @@
-import {segmentIntersection, randomize} from './Math.js'
+import {segmentIntersection, randomize, radians} from './Math.js'
+import * as GlMatrix from "../vendor/gl-matrix/vec2.js";
+
+
 class Light {
 
-    constructor(position, target) {
-        this.position = position;
-        this.target = target;
-        const startToEnd = this.target.sub(this.position);
-        this.length = startToEnd.length();
-        this.direction = startToEnd.normalize();
+    constructor(positionX, positionY, targetX, targetY) {
         this.width = 2000;
         this.rayMargin = 50;
-        this.angle = this.position.radiansTo(this.target);
+        
+        this.glPosition = GlMatrix.fromValues(positionX, positionY);
+        this.glTarget = GlMatrix.fromValues(targetX, targetY);
+        this.length = GlMatrix.dist(this.glPosition, this.glTarget);
+        this.glDirection = GlMatrix.create();
+        GlMatrix.sub(this.glDirection, this.glTarget, this.glPosition);
+        GlMatrix.normalize(this.glDirection, this.glDirection);
+        
+        this.glRayStart = GlMatrix.create();
+        this.glRayEnd = GlMatrix.create();
+        
         this.rays = [];
         this.photons = [];
     }
 
-    reset(position) {
-        this.position = position;
-        const startToEnd = this.target.sub(this.position);
-        this.length = startToEnd.length();
-        this.direction = startToEnd.normalize();
-        this.angle = this.position.radiansTo(this.target);
+    reset(positionX, positionY) {
+        GlMatrix.set(this.glPosition, positionX, positionY);
+        this.length = GlMatrix.dist(this.glPosition, this.glTarget);
+        GlMatrix.sub(this.glDirection, this.glTarget, this.glPosition);
+        GlMatrix.normalize(this.glDirection, this.glDirection);
+        
+        freeRays(this.rays);
+        freePhotons(this.photons);
         this.rays = [];
         this.photons = [];
     }
 
     emit(rbushBranchs) {
         const treesWidth = (rbushBranchs.data.maxX - rbushBranchs.data.minX) + 500;
-        const widthMultiplier = Math.abs(Math.tan(this.angle + (Math.PI / 2))) + 1;
-        this.width = treesWidth * Math.min(3, widthMultiplier);
+        const treesHeight = (rbushBranchs.data.maxY - rbushBranchs.data.minY) * 2;
+        this.width = Math.max(treesWidth, treesHeight + 300) * 1;
         this.rays = this.#computeRays(rbushBranchs);
         this.photons = this.#createPhotons(this.rays);
     }
@@ -38,35 +48,42 @@ class Light {
 
     #computeRays(rbushBranchs) {
         const rays = [];
-        const stepLength = this.width / this.rayCount;
         const rayCount = Math.round(this.width / this.rayMargin);
 
         for (let i = 0; i < rayCount; i ++) {
             const distanceFromOrigin = (i - (rayCount / 2)) * this.rayMargin;
-            const rayStart = this.direction.rotateDegrees(90).mulScalarSelf(distanceFromOrigin);
-            rayStart.addSelf(this.position);
+            
+            GlMatrix.rotate(
+                this.glRayStart,
+                this.glDirection,
+                GlMatrix.fromValues(0, 0),
+                radians(90)
+            );
+            GlMatrix.scale(this.glRayStart, this.glRayStart, distanceFromOrigin);
+            GlMatrix.add(this.glRayStart, this.glRayStart, this.glPosition);
 
-            let rayEnd = rayStart.add(this.direction.mulScalar(5000));
-            rays.push(...this.#cutRayByBranchsMulti(rayStart, rayEnd, rbushBranchs));
-            // rays.push(...this.#cutRayByBranchsSingle(rayStart, rayEnd, rbushBranchs));
+            GlMatrix.scale(this.glRayEnd, this.glDirection, 5000);
+            GlMatrix.add(this.glRayEnd, this.glRayEnd, this.glRayStart);
+
+            const spliRays = this.#cutRayByBranchsMulti(this.glRayStart, this.glRayEnd, rbushBranchs);
+            rays.push(...spliRays);
         }
 
         return rays;
     }
 
-    #cutRayByBranchsMulti(rayStart, rayEnd, rbushBranchs) {
-        let currentEnd = rayEnd.clone();
-        let currentLength = rayEnd.distanceFrom(rayStart);
+    #cutRayByBranchsMulti(glRayStart, glRayEnd, rbushBranchs) {
+        let currentLength = GlMatrix.dist(glRayEnd, glRayStart);
 
         const intersectingBranchs = rbushBranchs.search({
-            minX: Math.min(rayStart.x, rayEnd.x),
-            minY: Math.min(rayStart.y, rayEnd.y),
-            maxX: Math.max(rayStart.x, rayEnd.x),
-            maxY: Math.max(rayStart.y, rayEnd.y),
+            minX: Math.min(glRayStart[0], glRayEnd[0]),
+            minY: Math.min(glRayStart[1], glRayEnd[1]),
+            maxX: Math.max(glRayStart[0], glRayEnd[0]),
+            maxY: Math.max(glRayStart[1], glRayEnd[1]),
         });
 
         const intersections = [{
-            position: currentEnd,
+            position: glRayEnd,
             distance: currentLength,
             obstruction: 2,
         }];
@@ -74,16 +91,16 @@ class Light {
         for (let i = 0; i < intersectingBranchs.length; i ++) {
             const branch = intersectingBranchs[i].branch;
             const contact = segmentIntersection(
-                rayStart.x, rayStart.y,
-                currentEnd.x, currentEnd.y,
-                branch.start.x, branch.start.y,
-                branch.end.x, branch.end.y,
+                glRayStart[0], glRayStart[1],
+                glRayEnd[0], glRayEnd[1],
+                branch.glStart[0], branch.glStart[1],
+                branch.glEnd[0], branch.glEnd[1],
             );
             if (contact === null) {
                 continue;
             }
-            const contactVector = new Vector(contact[0], contact[1]);
-            const newLength = contactVector.distanceFrom(rayStart);
+            const contactVector = GlMatrix.fromValues(contact[0], contact[1]);
+            const newLength = GlMatrix.dist(contactVector, glRayStart);
             intersections.push({
                 position: contactVector,
                 distance: newLength,
@@ -91,93 +108,112 @@ class Light {
             });
         }
 
-        let start = rayStart;
+        const start = glRayStart;
         let factor = 1;
         return intersections
         .sort((intA, intB) => Math.sign(intA.distance - intB.distance))
         .slice(0, 8)
         .map(int => {
-            const ray = new Ray(start, int.position, factor);
-            start = int.position;
-            // factor *= 0.5;
+            const ray = getRay();
+            ray.reset(start, int.position, factor)
+            GlMatrix.copy(start, int.position);
             factor *= 1 / int.obstruction;
             return ray;
         });
-    }
-
-    #cutRayByBranchsSingle(rayStart, rayEnd, rbushBranchs) {
-        let currentEnd = rayEnd.clone();
-        let currentLength = rayEnd.distanceFrom(rayStart);
-
-        const rayBbox = {
-            minX: Math.min(rayStart.x, rayEnd.x),
-            minY: Math.min(rayStart.y, rayEnd.y),
-            maxX: Math.max(rayStart.x, rayEnd.x),
-            maxY: Math.max(rayStart.y, rayEnd.y),
-        };
-        const intersectingBranchs = rbushBranchs.search(rayBbox);
-
-        for (let i = 0; i < intersectingBranchs.length; i ++) {
-            const branch = intersectingBranchs[i].branch;
-            const contact = segmentIntersection(
-                rayStart.x, rayStart.y,
-                currentEnd.x, currentEnd.y,
-                branch.start.x, branch.start.y,
-                branch.end.x, branch.end.y,
-            );
-            if (contact === null) {
-                continue;
-            }
-            const contactVector = new Vector(contact[0], contact[1]);
-            const newLength = contactVector.distanceFrom(rayStart);
-            if (newLength < currentLength) {
-                currentLength = newLength;
-                currentEnd = contactVector;
-            }
-        }
-        
-        return [new Ray(rayStart, currentEnd, 1)];
     }
 
     #createPhotons(rays) {
         const photons = [];
 
         rays.forEach(ray => {
-            const normalRay = ray.end.sub(ray.start).normalizeSelf()
             const stepDistance = 50 / ray.factor;
             const stepCount = ray.length / stepDistance;
             
             for (let i = 1; i <= stepCount; i ++) {
-                const photoRay = normalRay.mulScalar(i * stepDistance);
-                photoRay.addSelf(ray.start);
+                const photon = getPhoton();
 
-                photoRay.x = randomize(photoRay.x, stepDistance * 0.4);
-                photoRay.y = randomize(photoRay.y, stepDistance * 0.4);
+                GlMatrix.scale(photon.glPosition, ray.direction, i * stepDistance);
+                GlMatrix.add(photon.glPosition, photon.glPosition, ray.glStart);
 
-                const photon = new Photon(photoRay, this.direction);
+                GlMatrix.set(
+                    photon.glPosition,
+                    randomize(photon.glPosition[0], stepDistance * 0.4),
+                    randomize(photon.glPosition[1], stepDistance * 0.4)
+                );
+
+                GlMatrix.copy(
+                    photon.glOrientation,
+                    this.glDirection,
+                );
+
                 photons.push(photon);
             }
         });
 
         return photons;
     }
-
 }
 
 class Ray {
-    constructor(start, end, factor) {
-        this.start = start;
-        this.end = end;
+    constructor() {
+        this.factor = 1;
+        this.glStart = GlMatrix.create();
+        this.glEnd = GlMatrix.create();
+        this.direction = GlMatrix.create();
+        this.length = 1;
+    }
+
+    reset(glStart, glEnd, factor) {
         this.factor = factor;
-        this.length = this.end.clone().subSelf(this.start).length();
+        GlMatrix.copy(this.glStart, glStart);
+        GlMatrix.copy(this.glEnd, glEnd);
+        this.length = GlMatrix.distance(this.glEnd, this.glStart);
+        GlMatrix.normalize(this.direction, GlMatrix.sub(this.direction, this.glEnd, this.glStart));
     }
 }
 
 class Photon {
-    constructor(position, orientation) {
-        this.position = position;
-        this.orientation = orientation;
+    constructor() {
+        this.glPosition = GlMatrix.create();
+        this.glOrientation = GlMatrix.create();
     }
 }
+
+
+
+const poolRays = [];
+
+function getRay() {
+    let ray = poolRays.pop();
+
+    if (ray !== undefined) {
+        return ray;
+    }
+
+    return new Ray();
+}
+
+function freeRays(rays) {
+    poolRays.push(...rays);
+}
+
+
+
+const poolPhotons = [];
+
+function getPhoton() {
+    let photon = poolPhotons.pop();
+
+    if (photon !== undefined) {
+        return photon;
+    }
+
+    return new Photon();
+}
+
+function freePhotons(photons) {
+    poolPhotons.push(...photons);
+}
+
 
 export default Light;

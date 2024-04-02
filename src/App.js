@@ -9,14 +9,19 @@ import * as UiControls from './UiControls.js';
 import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
 import * as ImageLoader from './ImageLoader.js';
+import { LeafDrawer } from './renderer/LeavesDrawer.js';
+import TrunkRender from './renderer/TrunkRender.js';
 
 
 const treesList = [];
 const treesSolo = [];
+const lightSource = new LightDirectional(0, 500, 0, 20);
 const treeLayer = new BaseRender();
+const leafLayer = new BaseRender();
+const trunkRender = new TrunkRender(treeLayer, lightSource);
+const leafDrawer = new LeafDrawer(leafLayer, lightSource, treeLayer);
+const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, leafDrawer);
 const lightLayer = new BaseRender();
-const lightSource = new LightDirectional(new Vector(0, 500), new Vector(0, 20));
-const treeRender = new TreeRender(treeLayer, lightSource);
 const lightRender = new LightRender(lightLayer);
 
 const heavyProcesses = new Map();
@@ -60,15 +65,16 @@ function start() {
     clearCanvas();
     
     setOutputCanvas(canvas);
+    leafLayer.init();
     treeLayer.init();
     lightLayer.init();
     UiCut.init(canvas, updateTrees);
     UiControls.init(treeRender, onPresetChanged);
     UiControls.setPreset(currentPreset);
 
-    const groundPosition = 200;
+    const groundPosition = 50;
 
-    treesSolo.push(new Tree(new Vector(0, groundPosition), currentPreset));
+    treesSolo.push(new Tree(0, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(-400, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(-230, groundPosition), currentPreset));
@@ -84,6 +90,10 @@ function start() {
     document.getElementById('applyBend').addEventListener('change', onApplyBendChanged);
     document.getElementById('presetTypeA').addEventListener('change', onTreeTypeSelectChanged);
     document.getElementById('presetTypeB').addEventListener('change', onTreeTypeSelectChanged);
+
+    document.getElementById('presetLeavesStandard').addEventListener('change', onLeavesPresetChanged);
+    document.getElementById('presetLeavesSpike').addEventListener('change', onLeavesPresetChanged);
+
     document.body.addEventListener('keyup', onKeyUp);
     document.getElementById(canvasId).addEventListener('wheel', onMouseWheel);
 
@@ -112,6 +122,19 @@ function setMouseRunMode(state = true) {
 
 function onApplyBendChanged() {
     applyBend = document.getElementById('applyBend').checked;
+}
+
+function onLeavesPresetChanged() {
+    const typeBChecked = document.getElementById('presetLeavesSpike').checked;
+
+    let leavesType = 'standard';
+    if (typeBChecked === true) {
+        leavesType = 'spike';
+    }
+
+    treesSolo[0].preset.leavesPreset = leavesType;
+
+    drawTrees();
 }
 
 function onTreeTypeSelectChanged() {

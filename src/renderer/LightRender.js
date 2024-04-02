@@ -1,16 +1,19 @@
 
 const viewLightInput = document.getElementById('viewPhotons');
+import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 
 class LightRender {
     constructor(render) {
         this.render = render;
+        this.lightTargetStart = GlMatrix.create();
+        this.lightTargetEnd = GlMatrix.create();
     }
 
     draw(light) {
         // Render.drawLine(light.position, light.target, 2, 'rgb(250, 200, 50)');
         // light.rays.forEach(ray => Render.drawLine(ray.start, ray.end, 1, 'rgb(250, 200, 50)'))
         if (viewLightInput.checked) {
-            light.photons.forEach(photon => this.render.drawCircle(photon.position, 10, 'rgb(255, 255, 255, 0.2)'))
+            light.photons.forEach(photon => this.render.glDrawCircle(photon.glPosition, 10, 'rgb(255, 255, 255)'))
         }
         
         
@@ -18,12 +21,18 @@ class LightRender {
         // light.rays.forEach(ray => Render.drawLine(ray.start, ray.end, 5, `rgba(255, 255, 255, ${ray.factor})`))
 
         this.drawEmiter(light);
-        // Render.drawLine(light.position, light.position.add(light.direction.mulScalar(500)), 1, 'rgba(250, 200, 50, 0.4)')
     }
 
     drawEmiter(light) {
-        this.render.drawEmptyCircle(light.position, 50, 'rgb(120, 120, 120)');
-        this.render.drawLine(light.position.add(light.direction.mulScalar(60)), light.position.add(light.direction.mulScalar(200)), 1, 'rgb(120, 120, 120)');
+        this.render.glDrawEmptyCircle(light.glPosition, 50, 'rgb(120, 120, 120)');
+
+        GlMatrix.scale(this.lightTargetStart, light.glDirection, 60);
+        GlMatrix.add(this.lightTargetStart, this.lightTargetStart, light.glPosition);
+
+        GlMatrix.scale(this.lightTargetEnd, light.glDirection, 200);
+        GlMatrix.add(this.lightTargetEnd, this.lightTargetEnd, light.glPosition);
+
+        this.render.glDrawLine(this.lightTargetStart, this.lightTargetEnd, 1, 'rgb(120, 120, 120)');
     }
 }
 
