@@ -78,7 +78,7 @@ export class LeafDrawer {
         const angle = Math.atan2(this.lightSource.glDirection[0], this.lightSource.glDirection[1]) * -1;
         this.shadowOffset = Math.tan(angle);
 
-        this.#setupParticles(position, size, lightQuantity);
+        this.#setupParticles(position, Math.min(4, size), lightQuantity);
 
         this.growIsRunning = true;
         let loopCounter = 0;
