@@ -1,17 +1,16 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
-import { LeafDrawer, leavesPresets } from "./LeavesDrawer.js";
+import { leavesPresets } from "./LeavesDrawer.js";
 import { radians } from "../Math.js";
-import TrunkRender from "./TrunkRender.js";
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 
 class TreeRender {
-    constructor(render, lightSource) {
+    constructor(render, lightSource, trunkRender, leafDrawer) {
         this.render = render;
         this.lightSource = lightSource;
         this.viewLeaves = true;
-        this.leafDrawer = new LeafDrawer(this.render, this.lightSource);
-        this.trunkRender = new TrunkRender(this.render, this.lightSource);
+        this.leafDrawer = leafDrawer;
+        this.trunkRender = trunkRender;
 
         this.trunkPointA = GlMatrix.create();
         this.trunkPointB = GlMatrix.create();
@@ -24,6 +23,7 @@ class TreeRender {
     }
 
     draw(tree) {
+        this.leafDrawer.render.clear();
         this.leafDrawer.setLowQuality();
         this.trunkRender.draw(tree);
         tree.getBranchs().forEach(branch => {
@@ -31,13 +31,16 @@ class TreeRender {
             this.#drawLeaves(tree, branch);
         });
 
+        this.leafDrawer.render.drawIntoContext(this.render.context);
     }
 
     drawHighQualityLeaves(tree) {
+        this.leafDrawer.render.clear();
         this.leafDrawer.setFullQuality();
         tree.getBranchs().forEach(branch => {
             this.#drawLeaves(tree, branch);
         });
+        this.leafDrawer.render.drawIntoContext(this.render.context);
     }
 
     #drawBranch(branch) {

@@ -9,14 +9,19 @@ import * as UiControls from './UiControls.js';
 import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
 import * as ImageLoader from './ImageLoader.js';
+import { LeafDrawer } from './renderer/LeavesDrawer.js';
+import TrunkRender from './renderer/TrunkRender.js';
 
 
 const treesList = [];
 const treesSolo = [];
-const treeLayer = new BaseRender();
-const lightLayer = new BaseRender();
 const lightSource = new LightDirectional(0, 500, 0, 20);
-const treeRender = new TreeRender(treeLayer, lightSource);
+const treeLayer = new BaseRender();
+const leafLayer = new BaseRender();
+const trunkRender = new TrunkRender(treeLayer, lightSource);
+const leafDrawer = new LeafDrawer(leafLayer, lightSource, treeLayer);
+const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, leafDrawer);
+const lightLayer = new BaseRender();
 const lightRender = new LightRender(lightLayer);
 
 const heavyProcesses = new Map();
@@ -60,6 +65,7 @@ function start() {
     clearCanvas();
     
     setOutputCanvas(canvas);
+    leafLayer.init();
     treeLayer.init();
     lightLayer.init();
     UiCut.init(canvas, updateTrees);

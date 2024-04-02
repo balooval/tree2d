@@ -1,5 +1,6 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { random } from "../Math.js";
+import { glWorldToCanvasPosition } from "./BaseRender.js";
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 const glGround = GlMatrix.fromValues(1, 0);
@@ -18,8 +19,9 @@ export const leavesPresets = {
 };
 
 export class LeafDrawer {
-    constructor(render, lightSource) {
+    constructor(render, lightSource, treeLayer) {
         this.render = render;
+        this.treeLayer = treeLayer;
         this.particlesCount = 72;
         this.particlesToDraw = this.particlesCount;
         this.particles = [];
@@ -129,14 +131,29 @@ export class LeafDrawer {
     }
 
     #dropShadow(particle) {
+        if (Math.random() < 0.8) {
+            return;
+        }
         GlMatrix.set(
             this.shadowGlPosition,
             particle.glPosition[0] + (this.shadowOffset * particle.glPosition[1]),
             this.tree.position[1]
         );
 
-        const color = `rgba(52, 54, 61, 0.01)`;
-        this.render.glDrawCircle(this.shadowGlPosition, particle.size * 1.5, color);
+        const distanceFromGround = GlMatrix.dist(this.shadowGlPosition, particle.glPosition) * 0.1;
+        const color = `rgba(52, 54, 61, ${Math.max(0.005, 0.1 / distanceFromGround)})`;
+        this.render.glDrawCircle(this.shadowGlPosition, particle.size * (distanceFromGround * 0.01), color); // 
+        
+        this.treeLayer.context.globalCompositeOperation = 'source-atop';
+        const gradient = this.treeLayer.context.createLinearGradient(
+            ...glWorldToCanvasPosition(particle.glPosition),
+            ...glWorldToCanvasPosition(this.shadowGlPosition),
+        );
+        gradient.addColorStop(0, 'rgba(0, 30, 50, 0.09)');
+        gradient.addColorStop(0.8, 'rgba(0, 30, 50, 0)');
+        this.treeLayer.glDrawLine(particle.glPosition, this.shadowGlPosition, particle.size * 0.1, gradient);
+
+        this.treeLayer.context.globalCompositeOperation = 'source-over';
     }
 
     #grow() {

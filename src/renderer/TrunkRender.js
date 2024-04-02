@@ -62,10 +62,11 @@ class TrunkRender {
             const darkness = Math.min(1, (((1 / depthPass) * (i + 1)) * 0.6) + 0.4); // 1 | 0.5, 1 | 0.3, 0.6, 1 | ...
             const color = `hsl(${branch.trunkHSL.h}, ${branch.trunkHSL.s}%, ${branch.trunkHSL.l * darkness}%)`;
 
-            if (depthPass > depthPassMax) {
-                depthPassMax = depthPass;
-                console.log('depthPass', depthPass, darkness);
-            }
+            // if (depthPass > depthPassMax) {
+            //     depthPassMax = depthPass;
+            //     console.log('depthPass', depthPass, darkness);
+            // }
+            
             for (let j = 1; j <= crackCount; j ++) {
                 const radialScale = (Math.cos((((j / crackCount) - 0.5) * 2) * (Math.PI / 2))) + 0.2;
                 const crackWidthPercent = (percentStep * (0.5 * ((depthPass - i) / depthPass))) * radialScale; // 1 | 1, 0.5 | 1, 0.6, 0.3 | ... 

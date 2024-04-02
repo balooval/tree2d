@@ -47,7 +47,7 @@ function worldToCanvasPosition(worldPosition) {
     ];
 }
 
-function glWorldToCanvasPosition(worldPosition) {
+export function glWorldToCanvasPosition(worldPosition) {
     return [
         worldToCanvasX(worldPosition[0]),
         worldToCanvasY(worldPosition[1]),
