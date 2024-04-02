@@ -296,7 +296,7 @@ export class Branch {
     }
 
     getWidth() {
-        return Math.max(2, this.width * this.preset.trunkScale);
+        return Math.max(1, this.width * this.preset.trunkScale);
     }
 
     getLeaves() {

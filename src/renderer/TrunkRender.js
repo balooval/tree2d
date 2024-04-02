@@ -3,6 +3,8 @@ import { radians, randomize, lerpPoint } from "../Math.js";
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 
+let depthPassMax = 0;
+
 class TrunkRender {
     constructor(render, lightSource) {
         this.render = render;
@@ -44,6 +46,57 @@ class TrunkRender {
     }
 
     #drawCracks(branch) {
+
+        const trunkWidth = Math.min(
+            GlMatrix.dist(this.trunkPointA, this.trunkPointB),
+            GlMatrix.dist(this.trunkPointC, this.trunkPointD),
+        );
+        
+        const crackCount = Math.round(trunkWidth / 15);
+        const depthPass = Math.min(3, 1 + Math.round(crackCount / 4));
+        // const depthPass = 1;
+        const percentStep = 1 / (crackCount + 1);
+        
+        
+        for (let i = 0; i < depthPass; i ++) {
+            const darkness = Math.min(1, (((1 / depthPass) * (i + 1)) * 0.6) + 0.4); // 1 | 0.5, 1 | 0.3, 0.6, 1 | ...
+            const color = `hsl(${branch.trunkHSL.h}, ${branch.trunkHSL.s}%, ${branch.trunkHSL.l * darkness}%)`;
+
+            if (depthPass > depthPassMax) {
+                depthPassMax = depthPass;
+                console.log('depthPass', depthPass, darkness);
+            }
+            for (let j = 1; j <= crackCount; j ++) {
+                const radialScale = (Math.cos((((j / crackCount) - 0.5) * 2) * (Math.PI / 2))) + 0.2;
+                const crackWidthPercent = (percentStep * (0.5 * ((depthPass - i) / depthPass))) * radialScale; // 1 | 1, 0.5 | 1, 0.6, 0.3 | ... 
+                const horizontalVariation = (crackWidthPercent * 0.5) * radialScale;
+                const lerpPercent = percentStep * j;
+
+                const heightVariation = 0.1;
+                // const heightVariation = 0;
+
+                const topLeft = lerpPoint(this.trunkPointD, this.trunkPointC, lerpPercent - randomize(crackWidthPercent, horizontalVariation));
+                const topRight = lerpPoint(this.trunkPointD, this.trunkPointC, lerpPercent + randomize(crackWidthPercent, horizontalVariation));
+                const bottomRight = lerpPoint(this.trunkPointA, this.trunkPointB, lerpPercent + randomize(crackWidthPercent, horizontalVariation));
+                const bottomLeft = lerpPoint(this.trunkPointA, this.trunkPointB, lerpPercent - randomize(crackWidthPercent, horizontalVariation));
+                                
+                const topLeftB = lerpPoint(topLeft, bottomLeft, randomize(1, heightVariation));
+                const bottomLeftB = lerpPoint(topLeft, bottomLeft, randomize(0, heightVariation));
+                const topRightB = lerpPoint(topRight, bottomRight, randomize(1, heightVariation));
+                const bottomRightB = lerpPoint(topRight, bottomRight, randomize(0, heightVariation));
+
+                const crackPoints = [
+                    topLeftB,
+                    topRightB,
+                    bottomRightB,
+                    bottomLeftB,
+                ];
+
+                this.render.glDrawPolygon(crackPoints, color);
+            }
+        }
+
+        /*
         const distance = Math.max(
             GlMatrix.dist(this.trunkPointA, this.trunkPointB),
             GlMatrix.dist(this.trunkPointC, this.trunkPointD),
@@ -72,10 +125,17 @@ class TrunkRender {
                 this.render.glDrawLine(startB, endB, width, color);
             }
         };
+        */
 
 
 
         /*
+        const distance = Math.max(
+            GlMatrix.dist(this.trunkPointA, this.trunkPointB),
+            GlMatrix.dist(this.trunkPointC, this.trunkPointD),
+        );
+
+        
         const crackSpace = 12;
         const passes = [
             {
