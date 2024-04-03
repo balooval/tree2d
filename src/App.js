@@ -14,6 +14,7 @@ import { GrassDrawer } from './renderer/GrassDrawer.js';
 import TrunkRender from './renderer/TrunkRender.js';
 
 
+const groundPosition = 100;
 const treesList = [];
 const treesSolo = [];
 const lightSource = new LightDirectional(0, 500, 0, 20);
@@ -74,7 +75,6 @@ function start() {
     UiControls.init(treeRender, onPresetChanged);
     UiControls.setPreset(currentPreset);
 
-    const groundPosition = 100;
 
     treesSolo.push(new Tree(0, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));
@@ -88,6 +88,7 @@ function start() {
 
     setMouseRunMode(true);
 
+    document.getElementById('btn-reset-tree').addEventListener('change', resetTree);
     document.getElementById('cutMode').addEventListener('change', evt => setMouseCutMode(evt.target.checked));
     document.getElementById('applyBend').addEventListener('change', onApplyBendChanged);
     document.getElementById('presetTypeA').addEventListener('change', onTreeTypeSelectChanged);
@@ -100,6 +101,12 @@ function start() {
     document.getElementById(canvasId).addEventListener('wheel', onMouseWheel);
 
     onFrame();
+}
+
+function resetTree() {
+    grassDrawer.reset();
+    treesSolo[0] = new Tree(0, groundPosition, currentPreset);
+    drawTrees();
 }
 
 function setMouseCutMode(state) {

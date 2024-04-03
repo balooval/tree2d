@@ -18,7 +18,6 @@ const grassPresets = {
 
 export class GrassDrawer {
     constructor(render, lightSource, treeLayer) {
-        this.delta = 16;
         this.delta = 100;
         this.render = render;
         this.treeLayer = treeLayer;
@@ -74,6 +73,10 @@ export class GrassDrawer {
 
     setColor(hue) {
         this.hue = hue;
+    }
+
+    reset() {
+        this.delta = 100;
     }
 
     draw(tree) {
