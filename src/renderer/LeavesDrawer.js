@@ -1,5 +1,5 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
-import { random } from "../Math.js";
+import { random, randomizeListValues } from "../Math.js";
 import { glWorldToCanvasPosition } from "./BaseRender.js";
 
 const glOrigin = GlMatrix.fromValues(0, 0);
@@ -39,6 +39,11 @@ export class LeafDrawer {
         this.preset = leavesPresets.standard;
 
         this.maxWhileLoop = 999999;
+
+        this.leafPointA = GlMatrix.create();
+        this.leafPointB = GlMatrix.create();
+        this.leafPointC = GlMatrix.create();
+        this.leafPointD = GlMatrix.create();
 
         for (let i = 0; i < this.particlesCount; i ++) {
             this.particles.push({
@@ -124,8 +129,29 @@ export class LeafDrawer {
                 continue;
             }
 
-            const color = `hsl(${this.hue}, 100%, ${particle.shadeValue}%)`; // H : 80 => 120
-            this.render.glDrawCircle(particle.glPosition, particle.size, color);
+            const color = `hsl(${this.hue}, 65%, ${particle.shadeValue}%)`; // H : 80 => 120
+            // this.render.glDrawCircle(particle.glPosition, particle.size, color);
+            const widthFactor = 0.5;
+            const baseFactor = particle.size * 0.4;
+            const randomVariation = particle.size * 0.2;
+
+            GlMatrix.set(this.leafPointA, particle.glPosition[0] + particle.size * widthFactor, particle.glPosition[1] + baseFactor);
+            GlMatrix.set(this.leafPointB, particle.glPosition[0], particle.glPosition[1] + particle.size);
+            GlMatrix.set(this.leafPointC, particle.glPosition[0] - particle.size * widthFactor, particle.glPosition[1] + baseFactor);
+            GlMatrix.set(this.leafPointD, particle.glPosition[0], particle.glPosition[1] - particle.size);
+
+
+            const glPoints = [
+                randomizeListValues(this.leafPointA, randomVariation),
+                randomizeListValues(this.leafPointB, randomVariation),
+                randomizeListValues(this.leafPointC, randomVariation),
+                randomizeListValues(this.leafPointD, randomVariation),
+            ];
+            
+            this.render.glDrawPolygon(glPoints, color);
+
+
+
             this.#dropShadow(particle);
         }
     }

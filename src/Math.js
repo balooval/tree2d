@@ -10,6 +10,15 @@ export function randomize(value, radius) {
     return value + (Math.random() * amplitude) - radius;
 }
 
+export function randomizeListValues(values, radius) {
+    const length = values.length;
+    const newValues = Array(length);
+    for (let i = 0; i < length; i ++) {
+        newValues[i] = randomize(values[i], radius);
+    }
+    return newValues;
+}
+
 export function randomElement(list) {
     const index = Math.floor(Math.random() * list.length);
     return list[index];
