@@ -10,6 +10,7 @@ import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
 import * as ImageLoader from './ImageLoader.js';
 import { LeafDrawer } from './renderer/LeavesDrawer.js';
+import { GrassDrawer } from './renderer/GrassDrawer.js';
 import TrunkRender from './renderer/TrunkRender.js';
 
 
@@ -20,7 +21,8 @@ const treeLayer = new BaseRender();
 const leafLayer = new BaseRender();
 const trunkRender = new TrunkRender(treeLayer, lightSource);
 const leafDrawer = new LeafDrawer(leafLayer, lightSource, treeLayer);
-const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, leafDrawer);
+const grassDrawer = new GrassDrawer(treeLayer, lightSource);
+const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, leafDrawer, grassDrawer);
 const lightLayer = new BaseRender();
 const lightRender = new LightRender(lightLayer);
 
@@ -72,7 +74,7 @@ function start() {
     UiControls.init(treeRender, onPresetChanged);
     UiControls.setPreset(currentPreset);
 
-    const groundPosition = 50;
+    const groundPosition = 100;
 
     treesSolo.push(new Tree(0, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));

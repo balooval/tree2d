@@ -102,7 +102,6 @@ export class LeafDrawer {
     #setupParticles(position, size, lightQuantity) {
         const shadeValue = Math.round(lightQuantity * 10);
 
-        // const baseLife = 100;
         const baseLife = this.preset.baseLife;
 
         for (let i = 0; i < this.particlesToDraw; i ++) {
@@ -130,7 +129,8 @@ export class LeafDrawer {
             }
 
             const color = `hsl(${this.hue}, 65%, ${particle.shadeValue}%)`; // H : 80 => 120
-            // this.render.glDrawCircle(particle.glPosition, particle.size, color);
+            this.render.glDrawCircle(particle.glPosition, particle.size, color);
+            /*
             const widthFactor = 0.5;
             const baseFactor = particle.size * 0.4;
             const randomVariation = particle.size * 0.2;
@@ -149,7 +149,7 @@ export class LeafDrawer {
             ];
             
             this.render.glDrawPolygon(glPoints, color);
-
+            */
 
 
             this.#dropShadow(particle);

@@ -5,11 +5,12 @@ import { radians } from "../Math.js";
 const glOrigin = GlMatrix.fromValues(0, 0);
 
 class TreeRender {
-    constructor(render, lightSource, trunkRender, leafDrawer) {
+    constructor(render, lightSource, trunkRender, leafDrawer, grassDrawer) {
         this.render = render;
         this.lightSource = lightSource;
         this.viewLeaves = true;
         this.leafDrawer = leafDrawer;
+        this.grassDrawer = grassDrawer;
         this.trunkRender = trunkRender;
 
         this.trunkPointA = GlMatrix.create();
@@ -26,6 +27,7 @@ class TreeRender {
         this.leafDrawer.render.clear();
         this.leafDrawer.setLowQuality();
         this.trunkRender.draw(tree);
+        this.grassDrawer.draw(tree);
         tree.getBranchs().forEach(branch => {
             // this.#drawBranch(branch);
             this.#drawLeaves(tree, branch);
