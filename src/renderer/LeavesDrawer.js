@@ -10,12 +10,19 @@ export const leavesPresets = {
         baseLife: 100,
         translationSpeed: 4,
         heliotropism: [0, -1],
+        shape: 'round',
     },
     spike: {
-        baseLife: 400,
-        translationSpeed: 2,
-        heliotropism: [0, 0],
-    },
+        baseLife: 100,
+        translationSpeed: 4,
+        heliotropism: [0, 0.5],
+        shape: 'quad',
+    }
+    // spike: {
+    //     baseLife: 400,
+    //     translationSpeed: 2,
+    //     heliotropism: [0, 0],
+    // },
 };
 
 export class LeafDrawer {
@@ -129,27 +136,30 @@ export class LeafDrawer {
             }
 
             const color = `hsl(${this.hue}, 65%, ${particle.shadeValue}%)`; // H : 80 => 120
-            this.render.glDrawCircle(particle.glPosition, particle.size, color);
-            /*
-            const widthFactor = 0.5;
-            const baseFactor = particle.size * 0.4;
-            const randomVariation = particle.size * 0.2;
 
-            GlMatrix.set(this.leafPointA, particle.glPosition[0] + particle.size * widthFactor, particle.glPosition[1] + baseFactor);
-            GlMatrix.set(this.leafPointB, particle.glPosition[0], particle.glPosition[1] + particle.size);
-            GlMatrix.set(this.leafPointC, particle.glPosition[0] - particle.size * widthFactor, particle.glPosition[1] + baseFactor);
-            GlMatrix.set(this.leafPointD, particle.glPosition[0], particle.glPosition[1] - particle.size);
-
-
-            const glPoints = [
-                randomizeListValues(this.leafPointA, randomVariation),
-                randomizeListValues(this.leafPointB, randomVariation),
-                randomizeListValues(this.leafPointC, randomVariation),
-                randomizeListValues(this.leafPointD, randomVariation),
-            ];
+            if (this.preset.shape === 'round') {
+                this.render.glDrawCircle(particle.glPosition, particle.size, color);
+            } else {
             
-            this.render.glDrawPolygon(glPoints, color);
-            */
+                const widthFactor = 0.5;
+                const baseFactor = particle.size * 0.4;
+                const randomVariation = particle.size * 0.2;
+
+                GlMatrix.set(this.leafPointA, particle.glPosition[0] + particle.size * widthFactor, particle.glPosition[1] + baseFactor);
+                GlMatrix.set(this.leafPointB, particle.glPosition[0], particle.glPosition[1] + particle.size);
+                GlMatrix.set(this.leafPointC, particle.glPosition[0] - particle.size * widthFactor, particle.glPosition[1] + baseFactor);
+                GlMatrix.set(this.leafPointD, particle.glPosition[0], particle.glPosition[1] - particle.size);
+
+
+                const glPoints = [
+                    randomizeListValues(this.leafPointA, randomVariation),
+                    randomizeListValues(this.leafPointB, randomVariation),
+                    randomizeListValues(this.leafPointC, randomVariation),
+                    randomizeListValues(this.leafPointD, randomVariation),
+                ];
+                
+                this.render.glDrawPolygon(glPoints, color);
+            }    
 
 
             this.#dropShadow(particle);
