@@ -17,6 +17,21 @@ export function setOutputCanvas(canvas) {
     offsetY = sceneHeight;
 }
 
+export function getScale() {
+    return worldScale;
+}
+
+export function getWorldWidth() {
+    return scale;
+}
+
+export function getOffsets() {
+    return [
+        offsetX,
+        offsetY,
+    ];
+}
+
 export function changeScale(quantity) {
     scale += quantity;
     worldScale = outputCanvas.height / scale;

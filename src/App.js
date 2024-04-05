@@ -12,6 +12,9 @@ import * as ImageLoader from './ImageLoader.js';
 import { LeafDrawer } from './renderer/LeavesDrawer.js';
 import { GrassDrawer } from './renderer/GrassDrawer.js';
 import TrunkRender from './renderer/TrunkRender.js';
+import * as Render3D from './renderer/Render3d.js';
+import { Butterfly } from './Butterfly.js';
+import { BackgroundGrass } from './BackgroundGrass.js';
 
 
 const groundPosition = 100;
@@ -36,6 +39,10 @@ let canvas = null;
 let context = null;
 let run = false;
 let applyBend = true;
+
+let canvas3D;
+const butterflies = [];
+let backgroundGrass;
 
 const backgroundColor = 'rgb(200, 200, 200)';
 // const backgroundColor = 'rgb(100, 100, 100)';
@@ -66,8 +73,14 @@ function start() {
     canvas = document.getElementById(canvasId);
     context = canvas.getContext('2d');
     clearCanvas();
-    
+
     setOutputCanvas(canvas);
+
+    canvas3D = document.createElement('canvas');
+    canvas3D.width = canvas.width;
+    canvas3D.height = canvas.height;
+    Render3D.init(canvas3D);
+    
     leafLayer.init();
     treeLayer.init();
     lightLayer.init();
@@ -99,6 +112,17 @@ function start() {
 
     document.body.addEventListener('keyup', onKeyUp);
     document.getElementById(canvasId).addEventListener('wheel', onMouseWheel);
+
+    butterflies.push(
+        new Butterfly(0, groundPosition + 100),
+        new Butterfly(0, groundPosition + 100),
+        new Butterfly(0, groundPosition + 100),
+        new Butterfly(0, groundPosition + 100),
+        new Butterfly(0, groundPosition + 100),
+    );
+    
+    
+    backgroundGrass = new BackgroundGrass(groundPosition);
 
     onFrame();
 }
@@ -181,6 +205,11 @@ function onFrame() {
         updateTrees();
     }
 
+    if (document.hasFocus() === true) {
+        backgroundGrass.update();
+        butterflies.forEach(butterfly => butterfly.update());
+    }
+
     updateScreen();
 
     UiCut.draw();
@@ -190,6 +219,10 @@ function onFrame() {
 
 function updateScreen() {
     clearCanvas();
+
+    Render3D.update();
+    Render3D.drawIntoContext(context);
+
     lightLayer.clear();
     lightRender.draw(lightSource);
 
