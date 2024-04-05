@@ -14,6 +14,7 @@ import { GrassDrawer } from './renderer/GrassDrawer.js';
 import TrunkRender from './renderer/TrunkRender.js';
 import * as Render3D from './renderer/Render3d.js';
 import { Butterfly } from './Butterfly.js';
+import { BackgroundGrass } from './BackgroundGrass.js';
 
 
 const groundPosition = 100;
@@ -41,6 +42,7 @@ let applyBend = true;
 
 let canvas3D;
 const butterflies = [];
+let backgroundGrass;
 
 const backgroundColor = 'rgb(200, 200, 200)';
 // const backgroundColor = 'rgb(100, 100, 100)';
@@ -118,11 +120,9 @@ function start() {
         new Butterfly(0, groundPosition + 100),
         new Butterfly(0, groundPosition + 100),
     );
-    // new Butterfly(0, 0);
-    // new Butterfly(-1000, 0);
-    // new Butterfly(-1000, 1600);
-    // new Butterfly(1000, 0);
-    // new Butterfly(1000, 1600);
+    
+    
+    backgroundGrass = new BackgroundGrass(groundPosition);
 
     onFrame();
 }
@@ -206,6 +206,7 @@ function onFrame() {
     }
 
     if (document.hasFocus() === true) {
+        backgroundGrass.update();
         butterflies.forEach(butterfly => butterfly.update());
     }
 

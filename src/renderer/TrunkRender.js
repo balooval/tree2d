@@ -1,5 +1,6 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { radians, randomize, lerpPoint } from "../Math.js";
+import { glWorldToCanvasPosition } from "./BaseRender.js";
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 
@@ -38,10 +39,18 @@ class TrunkRender {
             this.trunkPointC,
             this.trunkPointD,
         ];
+
+        const parentColor = `hsl(${branch.parent.trunkHSL.h}, ${branch.parent.trunkHSL.s}%, ${branch.parent.trunkHSL.l}%)`;
+        const color = `hsl(${branch.trunkHSL.h}, ${branch.trunkHSL.s}%, ${branch.trunkHSL.l}%)`;
         
+        const gradient = this.render.context.createLinearGradient(
+            ...glWorldToCanvasPosition(branch.parent.glEnd),
+            ...glWorldToCanvasPosition(branch.glEnd),
+        );
+        gradient.addColorStop(0, parentColor);
+        gradient.addColorStop(1, color);
         
-        this.render.glDrawPolygon(glPoints, `hsl(${branch.trunkHSL.h}, ${branch.trunkHSL.s}%, ${branch.trunkHSL.l}%)`);
-        // this.render.glDrawPolygon(glPoints, 'rgb(255, 0, 0)');
+        this.render.glDrawPolygon(glPoints, gradient);
         this.#drawCracks(branch);
     }
 

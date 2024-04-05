@@ -338,6 +338,7 @@ export class Seed {
         this.tree = tree;
         this.childs = [];
         this.preset = this.tree.preset;
+        this.trunkHSL = randomElement(this.preset.trunkHSL);
         this.trunkColor = randomElement(this.preset.trunkColors);
         this.width = 10;
 

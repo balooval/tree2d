@@ -9,7 +9,7 @@ import {
     DoubleSide,
     BufferGeometry,
     BufferAttribute,
-} from '../../vendor/three.module.js';
+} from '../vendor/three.module.js';
 
 const gravity = GlMatrix.fromValues(0, -0.2);
 
@@ -27,7 +27,7 @@ export class Butterfly {
 
         const wingMaterial = new MeshBasicMaterial( {color: 0xffeedd, side: DoubleSide} ); 
         const bodyMaterial = new MeshBasicMaterial( {color: 0x909090, side: DoubleSide} ); 
-        const size = 10;
+        const size = 5;
 
 
         const wingGeometry = new BufferGeometry();
@@ -73,7 +73,9 @@ export class Butterfly {
             this.wingRotation *= -1;
         }
 
+        if (this.age % 10 === 0) {
             this.updateDirectionToDestination();
+        }
 
         if (currentDistance < 10) {
             this.getNewDestination();
@@ -100,6 +102,9 @@ export class Butterfly {
         GlMatrix.add(this.orientation, this.orientation, gravity);
 
         this.mesh.lookAt(this.destination[0], this.destination[1], 0);
+
+        const speed = randomize(1.8, 0.6);
+        GlMatrix.set(this.speed, speed, speed);
     }
 
     getDistanceToDestination() {

@@ -15,7 +15,7 @@ let canvas;
 export function init(destinationCanvas) {
     canvas = destinationCanvas;
     const ratio = canvas.width / canvas.height;
-    renderer = new WebGLRenderer({canvas: canvas, alpha: true});
+    renderer = new WebGLRenderer({canvas: canvas, alpha: true, antialias: true});
 	const offsets = BaseRender.getOffsets();
 	const scale = BaseRender.getScale();
     // console.log('scale', scale);
