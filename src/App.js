@@ -51,24 +51,6 @@ const backgroundColor = 'rgb(200, 200, 200)';
 
 export function init(_canvasId) {
     canvasId = _canvasId;
-    
-    ImageLoader.loadBatch([
-        {
-            id: 'leaf2',
-            url: './assets/leaf2.png',
-        },
-        {
-            id: 'leaf3',
-            url: './assets/leaf3.png',
-        },
-        {
-            id: 'leaf4',
-            url: './assets/leaf4.png',
-        },
-    ]).then(start);
-}
-
-function start() {
     UiMouse.init(canvasId);
     canvas = document.getElementById(canvasId);
     context = canvas.getContext('2d');
