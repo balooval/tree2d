@@ -10,15 +10,9 @@ class LightRender {
     }
 
     draw(light) {
-        // Render.drawLine(light.position, light.target, 2, 'rgb(250, 200, 50)');
-        // light.rays.forEach(ray => Render.drawLine(ray.start, ray.end, 1, 'rgb(250, 200, 50)'))
         if (viewLightInput.checked) {
             light.photons.forEach(photon => this.render.glDrawCircle(photon.glPosition, 10, 'rgb(255, 255, 255)'))
         }
-        
-        
-        // light.rays.forEach(ray => this.render.drawLine(ray.start, ray.end, light.width, 'rgb(255, 255, 255, 0.1)'));
-        // light.rays.forEach(ray => Render.drawLine(ray.start, ray.end, 5, `rgba(255, 255, 255, ${ray.factor})`))
 
         this.drawEmiter(light);
     }

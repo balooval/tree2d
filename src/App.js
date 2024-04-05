@@ -103,7 +103,6 @@ export function init(_canvasId) {
         new Butterfly(0, groundPosition + 100),
     );
     
-    
     backgroundGrass = new BackgroundGrass(groundPosition);
 
     onFrame();
@@ -237,6 +236,7 @@ function drawTrees() {
 
 function onMouseWheel(evt) {
     changeScale(evt.deltaY);
+    Render3D.changeScale();
     drawTrees();
 }
 

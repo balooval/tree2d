@@ -10,30 +10,31 @@ export let renderer;
 export let camera;
 export let scene = null;
 let canvas;
-
+let ratio;
 
 export function init(destinationCanvas) {
     canvas = destinationCanvas;
-    const ratio = canvas.width / canvas.height;
+    ratio = canvas.width / canvas.height;
     renderer = new WebGLRenderer({canvas: canvas, alpha: true, antialias: true});
-	const offsets = BaseRender.getOffsets();
-	const scale = BaseRender.getScale();
-    // console.log('scale', scale);
-    // console.log('offsets', offsets);
+	scene = new Scene();
+	const width = BaseRender.getWorldWidth();
+	camera = new OrthographicCamera(-100, 100, 100, -100, 1, 1000);
+	changeScale()
+	scene.add(camera);
+}
+
+export function changeScale() {
 	const width = BaseRender.getWorldWidth();
 	const height = width / ratio;
-	camera = new OrthographicCamera(width / -2, width / 2, height / 2, height / -2, 1, 1000);
-	window.onresize = function () {
-		renderer.setSize(canvas.width, canvas.height);
-		camera.aspect = ratio;
-		camera.updateProjectionMatrix();
-	};
-	window.onresize();
-	scene = new Scene();
-	camera.position.set(0, offsets[1], 100);
-	camera.lookAt(new Vector3(0, offsets[1], 0));
-	scene.add(camera);
-} 
+	camera.left = width / -2;
+	camera.right = width / 2;
+	camera.top = height / 2;
+	camera.bottom = height / -2;
+	const offsetY = height / 2;
+	camera.position.set(0, offsetY, 100);
+	camera.lookAt(new Vector3(0, offsetY, 0));
+	camera.updateProjectionMatrix();
+}
 
 export function update() {
 	if (document.hasFocus() === false) {

@@ -59,8 +59,6 @@ export class Butterfly {
         this.mesh.position.set(this.position[0], this.position[1], 0);
         Render3D.scene.add(this.mesh);
 
-        this.debug = new Debug(0, 0);
-
         this.getNewDestination();
     }
 
@@ -93,7 +91,6 @@ export class Butterfly {
     getNewDestination() {
         GlMatrix.set(this.destination, randomize(0, 1000), randomize(400, 200));
         this.updateDirectionToDestination();
-        this.debug.updatePosition(this.destination[0], this.destination[1]);
     }
     
     updateDirectionToDestination() {
@@ -113,8 +110,7 @@ export class Butterfly {
 }
 
 
-
-export class Debug {
+class Debug {
     constructor(posX, posY) {
         this.position = GlMatrix.fromValues(posX, posY);
         const size = 50;
@@ -122,7 +118,7 @@ export class Debug {
         const material = new MeshBasicMaterial( {color: 0x0000aa} ); 
         this.mesh = new Mesh(geometry, material);
         this.mesh.position.set(this.position[0], this.position[1], 0);
-        // Render3D.scene.add(this.mesh);
+        Render3D.scene.add(this.mesh);
     }
 
     updatePosition(posX, posY) {
