@@ -1,20 +1,23 @@
-import Branch from './Branch.js';
+import {Branch, Seed } from './Branch.js';
+import * as GlMatrix from "../vendor/gl-matrix/vec2.js";
 
 export const presets = {
     typeA: {
         presetName: 'typeA',
-        heliotropism: 0,
-        density: 20,
-        auxinProduction: 10,
-        maxLightDistance: 120,
-        newBranchLength: 10,
-        rigidity: 2,
-        uselessBeforePrune: 2,
-        pumpQuantityToParent: 5,
-        lightBeforeGrow: 2,
-        directionConstrainFactor: 0.5,
-        leaveSize: 4,
-        leaveDispersion: 30,
+        energyNeededToGrow: 1,
+        heliotropism: 1,
+        gravitropism: 0.004,
+        angle: 10,
+        trunkScale: 0.4,
+        flexibility: 0.0004,
+        maxLightDistance: 100,
+        newBranchLength: 20,
+        uselessBeforePrune: 30,
+        directionConstrainFactor: 0.1,
+        leavesPreset: 'standard',
+        leafScale: 1,
+        leafImage: 'leaf3',
+        leafHue: 80,
         leaveColors: [
             {h: 70, s: 70, l: 20},
             {h: 30, s: 70, l: 20},
@@ -24,21 +27,35 @@ export const presets = {
             'rgb(107, 99, 85)',
             'rgb(117, 111, 100)',
         ],
+        trunkHSL: [
+            {
+                h: 38,
+                s: 11,
+                l: 38,
+            },
+            {
+                h: 39,
+                s: 8,
+                l: 43,
+            },
+        ],
     },
     typeB: {
         presetName: 'typeB',
+        energyNeededToGrow: 2,
         heliotropism: 1,
-        density: 1,
-        auxinProduction: 1,
+        gravitropism: 0,
+        angle: 58,
+        trunkScale: 0.4,
+        flexibility: 0.00008,
         maxLightDistance: 100,
-        newBranchLength: 15,
-        rigidity: 10,
-        uselessBeforePrune: 3,
-        pumpQuantityToParent: 5,
-        lightBeforeGrow: 8,
-        directionConstrainFactor: 0,
-        leaveSize: 5,
-        leaveDispersion: 20,
+        newBranchLength: 10,
+        uselessBeforePrune: 30,
+        directionConstrainFactor: 0.04,
+        leavesPreset: 'spike',
+        leafScale: 0.6,
+        leafImage: 'leaf2',
+        leafHue: 95,
         leaveColors: [
             {h: 70, s: 70, l: 20},
             {h: 30, s: 70, l: 20},
@@ -49,18 +66,77 @@ export const presets = {
             'rgb(82, 62, 29)',
             'rgb(61, 37, 16)',
         ],
+        trunkHSL: [
+            {
+                h: 37,
+                s: 31,
+                l: 21,
+            },
+            {
+                h: 37,
+                s: 48,
+                l: 22,
+            },
+            {
+                h: 28,
+                s: 58,
+                l: 15,
+            },
+        ],
     },
 };
 
 export class Tree {
 
-    constructor(position, preset) {
+    constructor(positionX, positionY, preset) {
         this.preset = preset;
-        this.position = position;
+        this.position = GlMatrix.fromValues(positionX, positionY);
+        this.age = 1;
         this.tips = new Set();
-        this.root = new Branch(this, null, position, new Vector(position.x + 0, position.y + this.preset.newBranchLength), 5);
-        this.root.energy = 500;
+        const seed = new Seed(this, this.position[0], this.position[1]);
+        this.root = new Branch(this, seed, this.position[0], this.position[1], this.position[0] + 0, this.position[1] + this.preset.newBranchLength * 0.1, 1);
         this.branchs = [this.root];
+        this.branchesEnergyNeed = new Map();
+    }
+
+    askEnergy(branch, lightQuantity) {
+        this.branchesEnergyNeed.set(branch, lightQuantity);
+    }
+
+    liftBranches() {
+        this.root.liftIfNeeded();
+    }
+
+    distributeEnergy() {
+        let totalEnergyAsked = 0;
+        const totalEnergy = Math.min(300, Math.exp(this.age / 100));
+
+        for (const [branch, lightQuantity] of this.branchesEnergyNeed) {
+            totalEnergyAsked += lightQuantity;
+        }
+
+
+        const energyToGive = Math.min(totalEnergyAsked, totalEnergy);
+
+        
+
+        for (const [branch, lightQuantity] of this.branchesEnergyNeed) {
+            const energyPercentForBranch = lightQuantity / totalEnergyAsked;
+            const energyForBranch = energyToGive * energyPercentForBranch;
+            // console.log('Get', energyForBranch, '/', lightQuantity, `(${Math.round(energyPercentForBranch * 100)}%)`);
+            // console.log('Ask', lightQuantity, 'Get', (energyPercentForBranch * 100), '%', 'So get', energyForBranch, 'on', energyToGive);
+            branch.addEnergy(energyForBranch);
+        }
+    }
+
+    giveLightToBranches() {
+
+    }
+
+    startCycle() {
+        this.age ++;
+        this.branchesEnergyNeed = new Map();
+        this.#resetTips();
     }
 
     endCycle() {
@@ -75,7 +151,7 @@ export class Tree {
         this.root.pruneIfNeeded();
     }
 
-    resetTips() {
+    #resetTips() {
         this.tips = new Set();
     }
     
@@ -85,12 +161,6 @@ export class Tree {
     
     removeTip(branch) {
         this.tips.delete(branch);
-    }
-
-    updateFromTips() {
-        for (let branch of this.tips) {
-            branch.updateWeight(0);
-        }
     }
 
     getBranchs() {

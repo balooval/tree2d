@@ -16,40 +16,57 @@ body {
     <div class="container">
         <div class="row">
             <div class="col">
-                <canvas style="cursor:pointer;" id="canvas" width="1000" height="800"></canvas>
+                <div class="row">
+                    <div class="col">
+                        <canvas style="cursor:pointer;" id="canvas" width="1000" height="800"></canvas>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-check form-check-inline">
+                            <input type="checkbox" class="btn-check" id="btn-reset-tree" autocomplete="off">
+                            <label class="btn btn-danger" for="btn-reset-tree">Reset</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="checkbox" class="btn-check" id="cutMode" autocomplete="off">
+                            <label class="btn btn-outline-danger" for="cutMode">Cut mode</label>
+                        </div>
+                        <div class="form-check form-switch form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="applyBend" checked> <label class="form-check-label" for="applyBend">Apply bending</label>
+                        </div>
+                        <div class="form-check form-switch form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="viewLeaves" checked> <label class="form-check-label" for="viewLeaves">View Leaves</label>
+                        </div>
+                        <div class="form-check form-switch form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="viewPhotons"> <label class="form-check-label" for="viewPhotons">View photons</label>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col">
                 Tree type :
                 <br>
-                <input class="form-check-input" type="radio" name="presetType" id="presetTypeA" value="presetTypeA"> <label class="form-check-label" for="presetTypeA">Type A</label>
+                <input class="form-check-input" type="radio" name="presetType" id="presetTypeA" value="presetTypeA" checked> <label class="form-check-label" for="presetTypeA">Type A</label>
                 <br>
-                <input class="form-check-input" type="radio" name="presetType" id="presetTypeB" value="presetTypeB" checked> <label class="form-check-label" for="presetTypeB">Type B</label>
+                <input class="form-check-input" type="radio" name="presetType" id="presetTypeB" value="presetTypeB"> <label class="form-check-label" for="presetTypeB">Type B</label>
                 
                 <br>
                 <br>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="cutMode"> <label class="form-check-label" for="cutMode">Cut mode</label>
-                </div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="applyBend" checked> <label class="form-check-label" for="applyBend">Apply bending</label>
-                </div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="viewLeaves" checked> <label class="form-check-label" for="viewLeaves">View Leaves</label>
-                </div>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="viewPhotons"> <label class="form-check-label" for="viewPhotons">View light</label>
-                </div>
+
+                Leaves type :
+                <br>
+                <input class="form-check-input" type="radio" name="leavesPreset" id="presetLeavesStandard" value="presetStandard" checked> <label class="form-check-label" for="presetLeavesStandard">Standard</label>
+                <br>
+                <input class="form-check-input" type="radio" name="leavesPreset" id="presetLeavesSpike" value="presetSpike"> <label class="form-check-label" for="presetLeavesSpike">Spike</label>
                 
                 <br>
                 <br>
+                
                 <div id="presetParams" class="col">
-                    
                 </div>
             </div>
         </div>
-    </div>
     
-    <script src="./vendor/vector2js.js"></script>
     <script type="module">
         import * as App from "./src/App.js";
 

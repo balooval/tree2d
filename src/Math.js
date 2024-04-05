@@ -10,10 +10,32 @@ export function randomize(value, radius) {
     return value + (Math.random() * amplitude) - radius;
 }
 
+export function randomizeListValues(values, radius) {
+    const length = values.length;
+    const newValues = Array(length);
+    for (let i = 0; i < length; i ++) {
+        newValues[i] = randomize(values[i], radius);
+    }
+    return newValues;
+}
+
 export function randomElement(list) {
     const index = Math.floor(Math.random() * list.length);
     return list[index];
 }
+
+export function randomizeArray(array) {
+    let currentIndex = array.length;
+  
+    while (currentIndex != 0) {
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
+}
+  
 
 export function lerpPoint(pointA, pointB, percent) {
     return [

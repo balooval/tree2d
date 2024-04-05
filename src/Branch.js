@@ -1,206 +1,237 @@
-import { randomElement } from "./Math.js";
+import { randomElement, radians } from "./Math.js";
+import * as GlMatrix from "../vendor/gl-matrix/vec2.js";
 
+const glOrigin = GlMatrix.fromValues(0, 0);
+const glGround = GlMatrix.fromValues(1, 0);
+const glOutput = GlMatrix.fromValues(0, 0);
 
-export default class Branch {
-    constructor(tree, parent, start, end) {
+let ID = 0;
+export class Branch {
+    constructor(tree, parent, startX, startY, endX, endY, mainStrenght) {
+        this.id = ID ++;
         this.tree = tree;
-        this.start = start;
-        this.end = end;
-        this.startToEndVector = this.end.sub(this.start);
-        this.length = this.startToEndVector.length();
-        this.direction = this.startToEndVector.normalize();
         this.preset = this.tree.preset;
         this.maxLightDistance = this.preset.maxLightDistance;
         this.newBranchLength = this.preset.newBranchLength;
-        this.lightBeforeGrow = this.preset.lightBeforeGrow;
-        this.pumpQuantityToParent = this.preset.pumpQuantityToParent;
         this.directionConstrainFactor = this.preset.directionConstrainFactor;
         this.trunkColor = randomElement(this.preset.trunkColors);
+        this.trunkHSL = randomElement(this.preset.trunkHSL);
         this.attractors = [];
         this.childs = [];
         this.parent = parent;
-        this.totalChildsCount = 0;
-        this.energy = 0;
-        this.uselessBeforePrune = 50;
-        this.stepsWithUselesEnergy = 0;
-        this.auxinProduction = this.preset.auxinProduction;
-        this.auxinQuantity = 0;
-        this.totalEnergyTransfered = 1;
-        this.energyTransferedByCycle = 0;
         this.weight = 1;
-        this.tickness = 1;
-        this.density = this.preset.density;
-        this.heliotropism = this.preset.heliotropism;
-        this.ligthReceived = 0;
-        this.totalLigthReceived = 0;
-        this.leavesHealth = 1;
+        
+        this.age = 1;
+        this.width = 1;
+        this.cyclesWithoutEnergy = 0;
 
         this.tree.addTip(this);
-    }
 
-    getLeaves() {
-        const leavesPositions = [];
-        const count = 3;
+        this.leavesHealth = 1;
+        this.leavesSize = 0;
         
-        for (let i = 0; i < count; i ++) {
-            leavesPositions.push(this.end);
-            leavesPositions.push(this.end.sub(this.direction.mulScalar(8)).add(this.direction.rotateDegrees(90).mulScalarSelf(10)));
-            leavesPositions.push(this.end.sub(this.direction.mulScalar(16)).add(this.direction.rotateDegrees(-90).mulScalarSelf(10)));
-        }
+        this.glNewBranchEnd = GlMatrix.create();
+        this.attractorLightPercentVector = GlMatrix.create();
+        this.glNormalizedTranslation = GlMatrix.create();
+        this.budOrientationVector = GlMatrix.create();
+        this.budConstrainVector = GlMatrix.create();
+        this.glVectorToAttractor = GlMatrix.create();
 
-        return leavesPositions;
+        this.glStart = GlMatrix.fromValues(startX, startY);
+        this.glEnd = GlMatrix.fromValues(endX, endY);
+
+        this.glDirection = GlMatrix.create();
+        GlMatrix.sub(this.glDirection, this.glEnd, this.glStart)
+        GlMatrix.normalize(this.glDirection, this.glDirection);
+        this.length = GlMatrix.dist(this.glEnd, this.glStart)
+
+        this.mainStrenght = mainStrenght;
+        this.budsLight = 0;
+        this.buds = this.createBuds();
+        this.scar = false;
+
+        this.cycleWidthCount = 0;
     }
 
-    getLeafSize() {
-        return this.preset.leaveSize;// * (0.5 + this.totalLigthReceived * 0.1);
+    createBuds() {
+        const angle = this.preset.angle;
+        const angleRadian = radians(angle);
+        const lateralStrenght = Math.min(1, this.tree.age / 50);
+
+        return [
+            {
+                active: true,
+                light: 0,
+                energy: 0,
+                relativeAngle: 0,
+                strenght: this.mainStrenght,
+                glOrientation: GlMatrix.clone(this.glDirection),
+            },
+            {
+                active: true,
+                light: 0,
+                energy: 0,
+                relativeAngle: angle,
+                strenght: this.mainStrenght * lateralStrenght,
+                glOrientation: GlMatrix.rotate(this.budOrientationVector, this.glDirection, glOrigin, angleRadian),
+            },
+            {
+                active: true,
+                light: 0,
+                energy: 0,
+                relativeAngle: angle * -1,
+                strenght: this.mainStrenght * lateralStrenght,
+                glOrientation: GlMatrix.rotate(this.budOrientationVector, this.glDirection, glOrigin, angleRadian * -1),
+            },
+        ];
     }
 
     startCycle() {
-        this.energyTransferedByCycle = 0;
-        this.ligthReceived = 0;
+        this.cyclesWithoutEnergy ++;
+        this.cycleWidthCount = 0;
     }
 
     endCycle() {
-        // this.tickness += (this.energyTransferedByCycle * this.weight) / (this.length * 100);
-        this.tickness = Math.max(
-            this.tickness,
-            (this.energyTransferedByCycle * this.weight) / (this.length * 30)
-        );
+        this.age ++;
 
-        if (this.ligthReceived < 1 && this.leavesHealth > 0) {
-            this.leavesHealth -= 0.1;
-            
-            if (this.leavesHealth < 0) {
-                // FallingLeaves.addLeaf(this.end.clone(), this.getLeafSize(), this.getLeaveColor());
-            }
-            
-            this.leavesHealth = Math.max(0, this.leavesHealth);
-        }
-
-        this.totalEnergyTransfered += this.energyTransferedByCycle;
-
-        if (this.energyTransferedByCycle === 0) {
-            this.stepsWithUselesEnergy ++;
-        }
-
-        this.auxinQuantity *= 0.9;
-
-        if (this.parent === null) {
-            this.energy = 1000;
-        }
-    }
-
-    bend() {
-        const localFlexibility = 1 / (((this.tickness * this.density) * this.preset.rigidity) * 90000);
-        const ground = new Vector(-1, 0);
-        const bendFactor = this.end.sub(this.start).normalizeSelf().dot(ground);
-        const bendAngle = (bendFactor * this.length * this.weight) * localFlexibility;
-        const newEnd = this.end.sub(this.start);
-        newEnd.rotateRadiansSelf(bendAngle);
-        this.end = newEnd.add(this.start);
-        this.startToEndVector = this.end.sub(this.start);
-        this.direction = this.startToEndVector.normalize();
-
-        for (let i = 0; i < this.childs.length; i ++) {
-            this.childs[i].followParentBend(this.start, bendAngle);
-        }
-        
-        for (let i = 0; i < this.childs.length; i ++) {
-            this.childs[i].bend();
-        }
-    }
-
-    updateWeight(parentWeight) {
-        this.weight = this.end.sub(this.start).length() + parentWeight;
-
-        if (this.parent === null) {
-            // console.log('this.weight', this.weight);
-            return;
-        }
-
-        this.parent.updateWeight(this.weight);
-    }
-
-    followParentBend(start, bendAngle) {
-        this.start = this.start.sub(start).rotateRadiansSelf(bendAngle).addSelf(start);
-        this.end = this.end.sub(start).rotateRadiansSelf(bendAngle).addSelf(start);
-        this.startToEndVector = this.end.sub(this.start);
-        this.direction = this.startToEndVector.normalize();
-
-        for (let i = 0; i < this.childs.length; i ++) {
-            this.childs[i].followParentBend(start, bendAngle);
-        }
     }
 
     takeLight() {
-        if (this.attractors.length === 0) {
+        if (this.buds.length === 0) {
             return;
         }
 
-        if (this.auxinQuantity > 1) {
+        this.budsLight = 0;
+
+        for (let i = 0; i < this.buds.length; i ++) {
+            this.buds[i].light = this.#computeBudLight(this.buds[i]);
+            this.budsLight += this.buds[i].light;
+        }
+
+        this.tree.askEnergy(this, this.budsLight);
+    }
+
+    addEnergy(quantity) {
+        this.diffuseEnergy(quantity);
+        this.addWidth(quantity * 0.02);
+    }
+
+    liftIfNeeded() {
+        if (this.cycleWidthCount === 0) {
             return;
         }
-        
+
+        this.flexToSky(this.cycleWidthCount);
+
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].liftIfNeeded();
+        }
+    }
+    
+    diffuseEnergy(quantity) {
+        for (let i = 0; i < this.buds.length; i ++) {
+            const percent = this.buds[i].light / this.budsLight;
+            const budEnergy = percent * quantity;
+            this.buds[i].energy += budEnergy;
+            
+            if (this.buds[i].energy >= this.preset.energyNeededToGrow) {
+                this.buds[i].active = false;
+                this.#createChild(this.buds[i]);
+            }
+        }
+
+        this.buds = this.buds.filter(bud => bud.active);
+    }
+
+    #computeBudLight(bud) {
         let lightQuantity = 0;
 
         for (let i = 0; i < this.attractors.length; i ++) {
             const attractor = this.attractors[i];
-            const distance = attractor.position.distanceFrom(this.end);
 
-            const attractorLightPercent = this.getAttractorLightPercent(attractor);
-            const attractorLight = ((this.maxLightDistance - distance) / this.maxLightDistance) * attractorLightPercent;
-            lightQuantity += attractorLight;
+            const vectorToAttractorLength = GlMatrix.length(GlMatrix.sub(glOutput, attractor.glPosition, this.glEnd));
+            let normalizedAttractorForce = (this.maxLightDistance - vectorToAttractorLength) / this.maxLightDistance;
+            let lightPercentByOrientation = (GlMatrix.dot(GlMatrix.negate(glOutput, bud.glOrientation), attractor.glOrientation) + 1) / 2;
+            let lightPercentByPosition = (GlMatrix.dot(bud.glOrientation, GlMatrix.normalize(glOutput, GlMatrix.sub(glOutput, attractor.glPosition, this.glEnd))) + 1) / 2;
+
+            normalizedAttractorForce *= lightPercentByOrientation;
+            normalizedAttractorForce *= lightPercentByPosition;
+            lightQuantity += normalizedAttractorForce;
+        };
+
+        return lightQuantity * bud.strenght;
+    }
+
+    addWidth(quantity) {
+        this.width += quantity;
+        this.cycleWidthCount ++;
+        this.cyclesWithoutEnergy = 0;
+        this.parent.addWidth(quantity);
+    }
+
+    flexToSky(factor) {
+        if (this.width > 20) {
+            return;
         }
-
-        this.ligthReceived += lightQuantity;
-        this.totalLigthReceived += lightQuantity;
-
-        if (this.energy < this.lightBeforeGrow) {
-            if (this.parent !== null) {
-                const pumpedEnergy = this.parent.pumpEnergy(this.pumpQuantityToParent);
-                this.energy += pumpedEnergy;
-            }
+        const localFlexibility = this.preset.gravitropism / this.width;
+        if (localFlexibility < 0.0001) {
             return;
         }
 
-        this.createChild(lightQuantity);
+        const bendFactor = GlMatrix.dot(this.glDirection, glGround);
+        const bendAngle = (bendFactor * localFlexibility) * factor;
+        GlMatrix.rotate(this.glEnd, this.glEnd, this.glStart, bendAngle);
+        GlMatrix.normalize(this.glDirection, GlMatrix.sub(glOutput, this.glEnd, this.glStart));
+
+        this.width += Math.abs(bendAngle) * 50;
+
+        for (let i = 0; i < this.buds.length; i ++) {
+            GlMatrix.rotate(this.buds[i].glOrientation, this.glDirection, glOrigin, radians(this.buds[i].relativeAngle));
+        }
+
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].followParentBend(bendAngle, this.glStart);
+        }
     }
 
-    pumpEnergy(quantity) {
-        this.stepsWithUselesEnergy = 0;
-        // J'en ai assez, je te retourne ce dont tu a besoin
-        let energyToGive;
-
-        energyToGive = this.takeEnergy(quantity);
-
-        if (energyToGive >= quantity) {
-            this.energyTransferedByCycle += energyToGive;
-            return energyToGive;
-        }
+    #createChild(bud) {        
+        this.tree.removeTip(this);
         
-        if (this.parent === null) {
-            this.energyTransferedByCycle += energyToGive;
-            return energyToGive;
-        }
-        
-        // Il m'en manque, je refais mon stock et te retourne ce que tu me demande
-        const parentEnergy = this.parent.pumpEnergy(this.pumpQuantityToParent);
-        this.energy += parentEnergy;
-        
-        energyToGive += this.takeEnergy(quantity - energyToGive);
-        
-        this.energyTransferedByCycle += energyToGive;
-        return energyToGive;
+        const childEnd = this.#computeAverageAttraction(bud);
+        const child = new Branch(this.tree, this, this.glEnd[0], this.glEnd[1], childEnd[0], childEnd[1], bud.strenght);
+        this.childs.push(child);
     }
 
-    takeEnergy(quantity) {
-        const energyToGive = Math.min(this.energy, quantity);
-        this.energy -= energyToGive;
-        return energyToGive;
+    #computeAverageAttraction(bud) {
+        const glLightAttraction = GlMatrix.fromValues(0, 0);
+        
+        for (let i = 0; i < this.attractors.length; i ++) {
+            const attractor = this.attractors[i];
+            
+            GlMatrix.sub(this.glVectorToAttractor, attractor.glPosition, this.glEnd);            
+            let glNormalizedAttractorForce = (this.maxLightDistance - GlMatrix.length(this.glVectorToAttractor)) / this.maxLightDistance;
+            glNormalizedAttractorForce *= this.getAttractorLightPercent(attractor);
+            
+            GlMatrix.scale(this.glNormalizedTranslation, GlMatrix.normalize(this.glNormalizedTranslation, this.glVectorToAttractor), glNormalizedAttractorForce);
+            
+            GlMatrix.add(glLightAttraction, glLightAttraction, this.glNormalizedTranslation);
+        };
+        
+
+        GlMatrix.normalize(glLightAttraction, glLightAttraction);
+
+        GlMatrix.scale(this.budConstrainVector, bud.glOrientation, this.directionConstrainFactor);
+        GlMatrix.scale(this.glNewBranchEnd, glLightAttraction, 1 - this.directionConstrainFactor);
+        GlMatrix.add(this.glNewBranchEnd, this.glNewBranchEnd, this.budConstrainVector);
+        GlMatrix.normalize(this.glNewBranchEnd, this.glNewBranchEnd);
+        GlMatrix.scale(this.glNewBranchEnd, this.glNewBranchEnd, this.newBranchLength);
+        GlMatrix.add(this.glNewBranchEnd, this.glNewBranchEnd, this.glEnd);
+
+        return this.glNewBranchEnd;
     }
 
     pruneIfNeeded() {
-        if (this.stepsWithUselesEnergy > this.uselessBeforePrune && this.parent !== null) {
+        if (this.cyclesWithoutEnergy > this.preset.uselessBeforePrune && this.parent !== null) {
             this.remove();
         }
 
@@ -209,78 +240,47 @@ export default class Branch {
         }
     }
 
-    remove() {
-        this.parent.childs = this.parent.childs.filter(branch => branch !== this);
-        if (this.childs.length > 0) {
-            return;
+    bend() {
+        const localFlexibility = this.preset.flexibility / this.width;
+
+        const ground = GlMatrix.fromValues(-1, 0);
+        const bendFactor = GlMatrix.dot(this.glDirection, ground);
+        const bendAngle = (bendFactor * this.length * this.weight) * localFlexibility;
+        GlMatrix.rotate(this.glEnd, this.glEnd, this.glStart, bendAngle);
+        GlMatrix.normalize(this.glDirection, GlMatrix.sub(glOutput, this.glEnd, this.glStart));
+        this.length = GlMatrix.dist(this.glEnd, this.glStart)
+
+        for (let i = 0; i < this.buds.length; i ++) {
+            GlMatrix.rotate(this.buds[i].glOrientation, this.glDirection, glOrigin, radians(this.buds[i].relativeAngle));
         }
-        this.tree.removeTip(this);
-        if (this.parent.childs.length === 0) {
-            this.tree.addTip(this.parent);
+
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].followParentBend(bendAngle, this.glStart);
+        }
+        
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].bend();
         }
     }
 
-    getWidth() {
-        const tickness = Math.atan(this.tickness);
-        return Math.max(1, Math.min(this.tickness, 50) * tickness);
-        return Math.max(3, Math.min(this.tickness, 100));
-    }
+    followParentBend(bendAngle, glBendStart) {
+        GlMatrix.rotate(this.glStart, this.glStart, glBendStart, bendAngle);
+        GlMatrix.rotate(this.glEnd, this.glEnd, glBendStart, bendAngle);
+        GlMatrix.normalize(this.glDirection, GlMatrix.sub(glOutput, this.glEnd, this.glStart));
+        this.length = GlMatrix.dist(this.glEnd, this.glStart)
+        
 
-    getLeaveColor() {
-        const hsl = randomElement(this.preset.leaveColors);
-        const h = this.leavesHealth * 60;
-        const l = this.leavesHealth * 10;
-        return `hsl(${hsl.h + h}, ${hsl.s}%, ${hsl.l + l}%)`;
-    }
-
-    createChild(lightQuantity) {
-        this.auxinQuantity += this.auxinProduction;
-
-        const childEnd = this.computeAverageAttraction(lightQuantity);
-        const child = new Branch(this.tree, this, this.end, childEnd);
-        this.childs.push(child);
-        this.addChildCount(1);
-    }
-
-    addChildCount(count) {
-        this.totalChildsCount += count;
-        if (this.parent === null) {
-            return;
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].followParentBend(bendAngle, glBendStart);
         }
-        this.parent.addChildCount(count);
-    }
-
-    computeAverageAttraction(lightQuantity) {
-        const newBranchEnd = new Vector(0, 0);
-
-        for (let i = 0; i < this.attractors.length; i ++) {
-            const attractor = this.attractors[i];
-            const vectorToAttractor = attractor.position.sub(this.end);
-            
-            let normalizedAttractorForce = (this.maxLightDistance - vectorToAttractor.length()) / this.maxLightDistance;
-            normalizedAttractorForce *= this.getAttractorLightPercent(attractor);
-
-            const normalizedTranslation = vectorToAttractor.normalize().mulScalarSelf(normalizedAttractorForce);
-            newBranchEnd.addSelf(normalizedTranslation);
-        };
-
-        newBranchEnd.addSelf(this.direction.mulScalar(this.directionConstrainFactor));
-
-        newBranchEnd.normalizeSelf();
-        // newBranchEnd.mulScalarSelf(this.newBranchLength);
-        const lengthLightFactor = 1 / Math.max(1, lightQuantity * this.heliotropism);
-        // console.log('lightQuantity', lightQuantity, lengthLightFactor);
-        const finalLength = (this.newBranchLength * 0.2) + (lengthLightFactor * (this.newBranchLength * 2));
-        newBranchEnd.mulScalarSelf(finalLength);
-        // newBranchEnd.mulScalarSelf(this.newBranchLength  / Math.max(lightQuantity, 1)); // TODO: faire mieux qu'une soustraction
-
-        newBranchEnd.addSelf(this.end); 
-
-        return newBranchEnd;
     }
 
     getAttractorLightPercent(attractor) {
-        return ((this.end.sub(attractor.position).normalizeSelf().dot(attractor.orientation)) + 1) / 2;
+        GlMatrix.sub(this.attractorLightPercentVector, this.glEnd, attractor.glPosition);
+        GlMatrix.normalize(this.attractorLightPercentVector, this.attractorLightPercentVector);
+        const percent = GlMatrix.dot(this.attractorLightPercentVector,attractor.glOrientation);
+
+        return (percent + 1) / 2;
     }
 
     clearAttractors() {
@@ -293,5 +293,78 @@ export default class Branch {
             branchs = this.childs[i].addToList(branchs);
         }
         return branchs;
+    }
+
+    getWidth() {
+        return Math.max(1, this.width * this.preset.trunkScale);
+    }
+
+    getLeaves() {
+        return this.buds.filter(bud => bud.light > 0.5);
+    }
+
+    getLeaveColor() {
+        const hsl = randomElement(this.preset.leaveColors);
+        return `hsl(${hsl.h + 60}, ${hsl.s}%, ${hsl.l + 10}%)`;
+    }
+
+    getLeavesObstruction() {
+        return this.childs.length + this.buds.length;
+    }
+
+    remove() {
+        this.parent.removeChild(this);
+        
+        if (this.childs.length > 0) {
+            return;
+        }
+        this.tree.removeTip(this);
+        if (this.parent.childs.length === 0) {
+            this.tree.addTip(this.parent);
+        }
+
+        this.childs = [];
+    }
+
+    removeChild(childBranch) {
+        this.childs = this.childs.filter(branch => branch !== childBranch);
+        this.buds.push(...this.createBuds());
+        this.scar = true;
+    }
+}
+
+export class Seed {
+    constructor (tree, positionX, positionY) {
+        this.tree = tree;
+        this.childs = [];
+        this.preset = this.tree.preset;
+        this.trunkHSL = randomElement(this.preset.trunkHSL);
+        this.trunkColor = randomElement(this.preset.trunkColors);
+        this.width = 10;
+
+        this.glEnd = GlMatrix.fromValues(positionX, positionY);
+        this.glStart = GlMatrix.sub(GlMatrix.create(), this.glEnd, GlMatrix.fromValues(0, -1));
+        
+        this.glDirection = GlMatrix.create();
+        GlMatrix.sub(this.glDirection, this.glEnd, this.glStart)
+        GlMatrix.normalize(this.glDirection, this.glDirection);
+        
+        this.length = GlMatrix.dist(this.glEnd, this.glStart)
+    }
+
+    getWidth() {
+        return Math.max(2, this.width * 2);
+    }
+
+    addWidth(quantity) {
+        this.width += quantity;
+    }
+
+    remove() {
+
+    }
+
+    removeChild() {
+
     }
 }
