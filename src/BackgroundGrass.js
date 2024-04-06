@@ -145,9 +145,8 @@ export class BackgroundGrass {
             this.grassMesh.getMatrixAt(i, this.matrix);
             this.matrix.decompose(this.updatePosition, this.updateQuaternion, this.updateScale);
 
-            const noiseValue = noise.perlin2(this.updatePosition.x * 0.007, 1);
-            this.updatePosition.x += Math.cos(this.time * 0.1) * (noiseValue * 10);
-            // console.log('this.updatePosition.x', this.updatePosition.x);
+            const noiseValue = noise.perlin2(this.updatePosition.x + this.time * 0.01, 1);
+            this.updatePosition.x += (noiseValue * 20);
 
             this.matrix.compose(this.updatePosition, this.updateQuaternion, this.updateScale);
             this.seedMesh.setMatrixAt(i, this.matrix);
