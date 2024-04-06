@@ -17,7 +17,7 @@ import { Butterfly } from './Butterfly.js';
 import { BackgroundGrass } from './BackgroundGrass.js';
 
 
-const groundPosition = 100;
+const groundPosition = 70;
 const treesList = [];
 const treesSolo = [];
 const lightSource = new LightDirectional(0, 500, 0, 20);

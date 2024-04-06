@@ -18,25 +18,28 @@ const gravity = GlMatrix.fromValues(0, -0.2);
 
 export class BackgroundGrass {
     constructor(groundPosition) {
-        const material = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
+        const grassMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
+        const seedMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
 
         this.time = 0;
-        const width = 4;
-        const height = 3;
+        const width = 5;
+        const height = 2;
+        const grassWidth = 500;
+        this.seedCount = 200;
+        this.grassCount = 10000;
 
-        this.seedCount = 1000;
         const seedGeometry = new BufferGeometry();
         const seedVertices = new Float32Array([
             0, height * 12, 0,
-            width * -1, height * 14, 0,
-            width * 1, height * 14, 0,
+            width * -1.5, height * 14, 0,
+            width * 1.5, height * 14, 0,
 
-            0, height * 14, 0,
-            width * -1, height * 17, 0,
-            width * 1, height * 17, 0,
+            0, height * 12, 0,
+            width * -1, height * 15, 0,
+            width * 1, height * 15, 0,
         ]);
         seedGeometry.setAttribute('position', new BufferAttribute(seedVertices, 3));
-        this.seedMesh = new InstancedMesh(seedGeometry, material, this.seedCount);
+        this.seedMesh = new InstancedMesh(seedGeometry, seedMaterial, this.seedCount);
 
         const grassGeometry = new BufferGeometry();
         const grassVertices = new Float32Array([
@@ -55,24 +58,20 @@ export class BackgroundGrass {
 
         grassGeometry.setAttribute('position', new BufferAttribute(grassVertices, 3));
         
-        this.grassCount = 10000;
         this.matrix = new Matrix4();
-        this.grassMesh = new InstancedMesh(grassGeometry, material, this.grassCount);
+        this.grassMesh = new InstancedMesh(grassGeometry, grassMaterial, this.grassCount);
         const color = new Color(`hsl(80, 50%, 50%)`);
+        const seedColor = new Color(`hsl(55, 84%, 75%)`);
         const quaternion = new Quaternion();
 
         noise.seed(Math.random());
         // noise.seed(26);
 
         let currentPoGroup = 0;
-        let currentPosX = randomize(0, 700);
+        let currentPosX = randomize(0, grassWidth);
         let currentDepth = randomize(0, 35);
         
         for (let i = 0; i < this.grassCount; i ++) {
-            // randomizeMatrix(this.matrix, groundPosition * 0.8);
-
-            
-
             const position = new Vector3();
             const scale = new Vector3();
 
@@ -80,12 +79,12 @@ export class BackgroundGrass {
 
             currentPoGroup ++;
             if (currentPoGroup % 10 === 0) {
-                currentPosX = randomize(0, 700);
                 currentDepth = randomize(0, 70);
+                currentPosX = randomize(0, grassWidth + currentDepth * 2);
             }
 
             position.x = currentPosX + randomize(0, 10);
-            position.y = groundPosition + randomize(0, 5) - (currentDepth * 1);
+            position.y = groundPosition - randomize(25, 5) - (currentDepth * 1);
             position.z = currentDepth;
             // const scaleRatio = 1 - Math.abs(0 - position.x) * 0.001;
             const scaleRatio = 1;
@@ -104,7 +103,7 @@ export class BackgroundGrass {
 
             const noiseValueA = noise.perlin2(position.x * 0.007, currentDepth * 0.01);
             const noiseValueB = noise.perlin2(position.x * 0.07, currentDepth * 0.1);
-            const noiseValue = noiseValueA + (noiseValueB * 0.3);
+            const noiseValue = noiseValueA + (noiseValueB * 0.4);
 
             const hue = 0.18 + (noiseValue + 1) * 0.05;
             const sat = 0.4 + (noiseValue * 0.1);
@@ -120,7 +119,11 @@ export class BackgroundGrass {
 
             if (i < this.seedCount) {
                 this.seedMesh.setMatrixAt(i, this.matrix);
-                this.seedMesh.setColorAt(i, color);
+                // 55°, 84%, 75%
+                // seedColor.setHSL(0.152, 0.8 + (noiseValue * 0.05), 0.75);
+                // seedColor.setHSL(0.5 + noiseValue * 0.2, 0.8 + (noiseValue * 0.1), 0.85);
+                seedColor.setHSL(0.15, 0.8, 0.7 + (noiseValue * 0.2));
+                this.seedMesh.setColorAt(i, seedColor);
             }
         }
 
@@ -135,45 +138,60 @@ export class BackgroundGrass {
     }
 
     update() {
-        return;
+        // return;
         this.time ++;
+
+        for (let i = 0; i < this.seedCount; i ++) {
+            this.grassMesh.getMatrixAt(i, this.matrix);
+            this.matrix.decompose(this.updatePosition, this.updateQuaternion, this.updateScale);
+
+            const noiseValue = noise.perlin2(this.updatePosition.x * 0.007, 1);
+            this.updatePosition.x += Math.cos(this.time * 0.1) * (noiseValue * 10);
+            // console.log('this.updatePosition.x', this.updatePosition.x);
+
+            this.matrix.compose(this.updatePosition, this.updateQuaternion, this.updateScale);
+            this.seedMesh.setMatrixAt(i, this.matrix);
+        }
+        this.seedMesh.instanceMatrix.needsUpdate = true;
+        
+        return;
 
         for (let i = 0; i < this.grassCount; i ++) {
             this.grassMesh.getMatrixAt(i, this.matrix);
-            
             this.matrix.decompose(this.updatePosition, this.updateQuaternion, this.updateScale);
+
+            // const angleOffset = 0.1//(Math.cos(this.time * 0.001))
+            // const test = getAxisAndAngelFromQuaternion(this.updateQuaternion);
+            // this.updateQuaternion.setFromAxisAngle(test.axis, test.angle + angleOffset);
+            
+            /*
             const angle = (Math.cos((this.time * 0.01) + (i * 0.003)) * 0.2)
             this.updateQuaternion.setFromAxisAngle(new Vector3(0, 0, 1), angle);
+            */
             this.matrix.compose(this.updatePosition, this.updateQuaternion, this.updateScale);
 
             this.grassMesh.setMatrixAt(i, this.matrix);
 
-            if (i < this.seedCount) {
-                this.seedMesh.setMatrixAt(i, this.matrix);
-            }
+            // if (i < this.seedCount) {
+            //     this.seedMesh.setMatrixAt(i, this.matrix);
+            // }
         }
 
         this.grassMesh.instanceMatrix.needsUpdate = true;
-        this.seedMesh.instanceMatrix.needsUpdate = true;
+        // this.seedMesh.instanceMatrix.needsUpdate = true;
     }
 }
 
-function randomizeMatrix(matrix, groundPosition) {
-
-    const position = new Vector3();
-    const quaternion = new Quaternion();
-    const scale = new Vector3();
-
-    position.x = randomize(0, 700);
-    position.y = groundPosition + randomize(15, 3);
-    position.z = 0//Math.random() * 100;
-    const scaleRatio = 1 - Math.abs(0 - position.x) * 0.001;
-    scale.x = scale.y = scale.z = randomize(1, 0.5) * scaleRatio;
-
-    // quaternion.setFromAxisAngle(new Vector3(1, 0, 0), 1);
-
-    if (Math.random() > 0.95) {
-        scale.y *= 2;
+function getAxisAndAngelFromQuaternion(q) {
+    const angle = 2 * Math.acos(q.w);
+    var s;
+    if (1 - q.w * q.w < 0.000001) {
+      // test to avoid divide by zero, s is always positive due to sqrt
+      // if s close to zero then direction of axis not important
+      // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
+      s = 1;
+    } else { 
+      s = Math.sqrt(1 - q.w * q.w);
     }
-    matrix.compose(position, quaternion, scale);
-};
+    return { axis: new Vector3(q.x/s, q.y/s, q.z/s), angle };
+}
