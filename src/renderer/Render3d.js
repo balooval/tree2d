@@ -11,6 +11,7 @@ export let camera;
 export let scene = null;
 let canvas;
 let ratio;
+let objectsToAdd = [];
 
 export function init(destinationCanvas) {
     canvas = destinationCanvas;
@@ -21,6 +22,18 @@ export function init(destinationCanvas) {
 	camera = new OrthographicCamera(-100, 100, 100, -100, 1, 1000);
 	changeScale()
 	scene.add(camera);
+
+	objectsToAdd.forEach(object => scene.add(object));
+	objectsToAdd = [];
+}
+
+export function addToScene(object) {
+	if (scene === null) {
+		objectsToAdd.push(object);
+		return;
+	}
+
+	scene.add(object);
 }
 
 export function changeScale() {

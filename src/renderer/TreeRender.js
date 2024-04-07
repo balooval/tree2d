@@ -24,25 +24,26 @@ class TreeRender {
     }
 
     draw(tree) {
-        this.leafDrawer.render.clear();
+        // this.leafDrawer.render.clear();
         this.leafDrawer.setLowQuality();
         this.trunkRender.draw(tree);
         // this.grassDrawer.draw(tree);
         tree.getBranchs().forEach(branch => {
             // this.#drawBranch(branch);
-            this.#drawLeaves(tree, branch);
+            // this.#drawLeaves(tree, branch);
         });
 
-        this.leafDrawer.render.drawIntoContext(this.render.context);
+        // this.leafDrawer.render.drawIntoContext(this.render.context);
     }
 
     drawHighQualityLeaves(tree) {
-        this.leafDrawer.render.clear();
+        // this.leafDrawer.render.clear();
         this.leafDrawer.setFullQuality();
         tree.getBranchs().forEach(branch => {
             this.#drawLeaves(tree, branch);
         });
-        this.leafDrawer.render.drawIntoContext(this.render.context);
+        this.leafDrawer.endDraw();
+        // this.leafDrawer.render.drawIntoContext(this.render.context);
     }
 
     #drawBranch(branch) {

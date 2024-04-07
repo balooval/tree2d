@@ -1,6 +1,19 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
-import { random, randomizeListValues } from "../Math.js";
+import { random, randomize } from "../Math.js";
 import { glWorldToCanvasPosition } from "./BaseRender.js";
+import * as Render3D from './Render3d.js';
+import {
+	Vector3,
+	MeshBasicMaterial,
+	InstancedMesh,
+    Quaternion,
+    DoubleSide,
+    BufferGeometry,
+    BufferAttribute,
+    Matrix4,
+    Color,
+    Object3D,
+} from '../../vendor/three.module.js';
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 const glGround = GlMatrix.fromValues(1, 0);
@@ -25,7 +38,7 @@ export const leavesPresets = {
     // },
 };
 
-export class LeafDrawer {
+export class LeafDrawer3d {
     constructor(render, lightSource, treeLayer) {
         this.render = render;
         this.treeLayer = treeLayer;
@@ -62,6 +75,58 @@ export class LeafDrawer {
                 shadeGradient: GlMatrix.fromValues(0, 1),
             });
         }
+
+        this.matrix = new Matrix4();
+        this.leafCount = 500000;
+        const leafMaterial = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide});
+        this.leafGeometry = this.#createGeometry();
+        this.leafMesh = new InstancedMesh(this.leafGeometry, leafMaterial, this.leafCount);
+        Render3D.addToScene(this.leafMesh);
+
+
+        this.currentInstanceIndex = 0;
+        const position = new Vector3();
+        const scale = new Vector3();
+        const quaternion = new Quaternion();
+        const color = new Color(`hsl(80, 50%, 50%)`);
+
+        for (let i = 0; i < this.leafCount; i++) {
+            const currentDepth = 0;
+
+            position.x = 0;
+            position.y = 0;
+            position.z = currentDepth;
+
+            scale.x = scale.y = scale.z = 1;
+
+            this.matrix.compose(position, quaternion, scale);
+
+            color.setHSL(0.1, 0.3, 0.4);
+
+            this.leafMesh.setMatrixAt(i, this.matrix);
+            this.leafMesh.setColorAt(i, color);
+        }
+        this.leafMesh.instanceMatrix.needsUpdate = true;
+        this.leafMesh.instanceColor.needsUpdate = true;
+    }
+
+    #createGeometry() {
+        const width = 1;
+        const height = 2;
+
+        const leafGeometry = new BufferGeometry();
+        const leafVertices = new Float32Array([
+            width * -0.5, 0, 0,
+            width * 0.5, 0, 0,
+            0, height * 0.5, 0,
+            
+            0, height * 0.5, 0,
+            width * -0.5, height, 0,
+            width * 0.5, height, 0,
+        ]);
+
+        leafGeometry.setAttribute('position', new BufferAttribute(leafVertices, 3));
+        return leafGeometry;
     }
 
     setPreset(preset) {
@@ -71,6 +136,7 @@ export class LeafDrawer {
     setFullQuality() {
         this.particlesToDraw = this.particlesCount;
         this.maxWhileLoop = 999999;
+        this.currentInstanceIndex = 0;
     }
 
     setLowQuality() {
@@ -83,10 +149,11 @@ export class LeafDrawer {
     }
 
     endDraw() {
-        
+        this.leafMesh.count = this.currentInstanceIndex;
     }
 
     draw(tree, position, size, lightQuantity, formRatio, heliotropism) {
+        
         this.tree = tree;
         this.formRatio = formRatio;
         this.heliotropism = heliotropism;
@@ -101,13 +168,16 @@ export class LeafDrawer {
 
         while (this.growIsRunning === true) {
             this.#grow();
-            this.#drawStep();
+            this.#drawStep(loopCounter);
 
             loopCounter ++;
             if (loopCounter > this.maxWhileLoop) {
                 this.growIsRunning = false;
             }
         }
+
+        this.leafMesh.instanceMatrix.needsUpdate = true;
+        this.leafMesh.instanceColor.needsUpdate = true;
     }
 
     #setupParticles(position, size, lightQuantity) {
@@ -129,71 +199,50 @@ export class LeafDrawer {
         }
     }
 
-    #drawStep() {
+    #drawStep(loopCounter) {
+        const position = new Vector3();
+        const scale = new Vector3();
+        const quaternion = new Quaternion();
+        const color = new Color(`hsl(80, 50%, 50%)`);
+
         for (let i = 0; i < this.particlesToDraw; i++) {
-            if (Math.random() < 0.8) {
-                continue;
+            // const instanceIndex = i + (this.particlesCount * loopCounter);
+            if (this.currentInstanceIndex > this.leafCount) {
+                return;
             }
+            
+
+            // if (Math.random() < 0.8) {
+            //     continue;
+            // }
+
             const particle = this.particles[i];
+
             if (particle.life <= 0) {
                 continue;
             }
 
-            const color = `hsl(${this.hue}, 65%, ${particle.shadeValue}%)`; // H : 80 => 120
+            color.setHSL(this.hue / 360, 0.65, particle.shadeValue / 100);
+            // color.setHSL(0.22, 0.3, 0.2);
 
-            if (this.preset.shape === 'round') {
-                this.render.glDrawCircle(particle.glPosition, particle.size, color);
-            } else {
-            
-                const widthFactor = 0.5;
-                const baseFactor = particle.size * 0.4;
-                const randomVariation = particle.size * 0.2;
+            const currentDepth = 0;
 
-                GlMatrix.set(this.leafPointA, particle.glPosition[0] + particle.size * widthFactor, particle.glPosition[1] + baseFactor);
-                GlMatrix.set(this.leafPointB, particle.glPosition[0], particle.glPosition[1] + particle.size);
-                GlMatrix.set(this.leafPointC, particle.glPosition[0] - particle.size * widthFactor, particle.glPosition[1] + baseFactor);
-                GlMatrix.set(this.leafPointD, particle.glPosition[0], particle.glPosition[1] - particle.size);
+            position.x = particle.glPosition[0];
+            position.y = particle.glPosition[1];
+            position.z = currentDepth;
 
+            scale.x = scale.y = scale.z = particle.size;
 
-                const glPoints = [
-                    randomizeListValues(this.leafPointA, randomVariation),
-                    randomizeListValues(this.leafPointB, randomVariation),
-                    randomizeListValues(this.leafPointC, randomVariation),
-                    randomizeListValues(this.leafPointD, randomVariation),
-                ];
-                
-                this.render.glDrawPolygon(glPoints, color);
-            }    
+            const angle = randomize(0, 2);
+            quaternion.setFromAxisAngle(new Vector3(0, 0, 1), angle);
 
+            this.matrix.compose(position, quaternion, scale);
 
-            this.#dropShadow(particle);
+            this.leafMesh.setMatrixAt(this.currentInstanceIndex, this.matrix);
+            this.leafMesh.setColorAt(this.currentInstanceIndex, color);
+
+            this.currentInstanceIndex ++;
         }
-    }
-
-    #dropShadow(particle) {
-        if (Math.random() < 0.8) {
-            return;
-        }
-        GlMatrix.set(
-            this.shadowGlPosition,
-            particle.glPosition[0] + (this.shadowOffset * particle.glPosition[1]),
-            this.tree.position[1]
-        );
-
-        const distanceFromGround = GlMatrix.dist(this.shadowGlPosition, particle.glPosition) * 0.1;
-        const color = `rgba(52, 54, 61, ${Math.max(0.005, 0.1 / distanceFromGround)})`;
-        this.render.glDrawCircle(this.shadowGlPosition, particle.size * (distanceFromGround * 0.01), color); // 
-        
-        this.treeLayer.context.globalCompositeOperation = 'source-atop';
-        const gradient = this.treeLayer.context.createLinearGradient(
-            ...glWorldToCanvasPosition(particle.glPosition),
-            ...glWorldToCanvasPosition(this.shadowGlPosition),
-        );
-        gradient.addColorStop(0, 'rgba(0, 30, 50, 0.09)');
-        gradient.addColorStop(0.8, 'rgba(0, 30, 50, 0)');
-        this.treeLayer.glDrawLine(particle.glPosition, this.shadowGlPosition, particle.size * 0.1, gradient);
-
-        this.treeLayer.context.globalCompositeOperation = 'source-over';
     }
 
     #grow() {

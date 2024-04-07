@@ -14,7 +14,6 @@ import {
     Object3D,
 } from '../vendor/three.module.js';
 
-const gravity = GlMatrix.fromValues(0, -0.2);
 
 export class BackgroundGrass {
     constructor(groundPosition) {
