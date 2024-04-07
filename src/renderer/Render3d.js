@@ -3,7 +3,11 @@ import {
 	Scene,
 	Vector3,
 	WebGLRenderer,
-
+	PlaneGeometry,
+	MeshBasicMaterial,
+	Mesh,
+	CanvasTexture,
+	DoubleSide,
 } from '../../vendor/three.module.js';
 import * as BaseRender from './BaseRender.js';
 export let renderer;
@@ -11,7 +15,10 @@ export let camera;
 export let scene = null;
 let canvas;
 let ratio;
+let texture2d;
 let objectsToAdd = [];
+
+
 
 export function init(destinationCanvas) {
     canvas = destinationCanvas;

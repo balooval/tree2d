@@ -2,6 +2,8 @@ import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { random, randomize } from "../Math.js";
 import { glWorldToCanvasPosition } from "./BaseRender.js";
 import * as Render3D from './Render3d.js';
+import FragmentShader from '../shaders/fragment.js';
+import VertexShader from '../shaders/vertex.js';
 import {
 	Vector3,
 	MeshBasicMaterial,
@@ -12,7 +14,7 @@ import {
     BufferAttribute,
     Matrix4,
     Color,
-    Object3D,
+    ShaderMaterial,
 } from '../../vendor/three.module.js';
 
 const glOrigin = GlMatrix.fromValues(0, 0);
@@ -76,9 +78,22 @@ export class LeafDrawer3d {
             });
         }
 
+        this.time = 0;
+
         this.matrix = new Matrix4();
         this.leafCount = 500000;
         const leafMaterial = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide});
+
+        const uniforms = {
+            time: {type: 'float', value: this.time}
+        }
+        const leafMaterialA = new ShaderMaterial({
+            uniforms: uniforms,
+            fragmentShader: FragmentShader,
+            vertexShader: VertexShader,
+        })
+
+
         this.leafGeometry = this.#createGeometry();
         this.leafMesh = new InstancedMesh(this.leafGeometry, leafMaterial, this.leafCount);
         Render3D.addToScene(this.leafMesh);
@@ -112,7 +127,7 @@ export class LeafDrawer3d {
 
     #createGeometry() {
         const width = 1;
-        const height = 2;
+        const height = 1;
 
         const leafGeometry = new BufferGeometry();
         const leafVertices = new Float32Array([
@@ -121,8 +136,8 @@ export class LeafDrawer3d {
             0, height * 0.5, 0,
             
             0, height * 0.5, 0,
-            width * -0.5, height, 0,
-            width * 0.5, height, 0,
+            width * -0.5, height * 1, 0,
+            width * 0.5, height * 1, 0,
         ]);
 
         leafGeometry.setAttribute('position', new BufferAttribute(leafVertices, 3));
@@ -146,6 +161,11 @@ export class LeafDrawer3d {
 
     setColor(hue) {
         this.hue = hue;
+    }
+
+    update() {
+        this.time ++;
+        // this.leafMesh.material.uniforms.time.value = this.time;
     }
 
     endDraw() {
