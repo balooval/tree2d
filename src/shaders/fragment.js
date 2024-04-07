@@ -1,6 +1,5 @@
 
 export default `
-uniform float time; 
 varying vec3 vUv;
 varying vec3 vInstanceColor;
 

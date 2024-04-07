@@ -25,7 +25,7 @@ class TreeRender {
 
     draw(tree) {
         // this.leafDrawer.render.clear();
-        this.leafDrawer.setLowQuality();
+        // this.leafDrawer.setLowQuality();
         this.trunkRender.draw(tree);
         // this.grassDrawer.draw(tree);
         tree.getBranchs().forEach(branch => {

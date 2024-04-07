@@ -33,11 +33,6 @@ export const leavesPresets = {
         heliotropism: [0, 0.5],
         shape: 'quad',
     }
-    // spike: {
-    //     baseLife: 400,
-    //     translationSpeed: 2,
-    //     heliotropism: [0, 0],
-    // },
 };
 
 export class LeafDrawer3d {
@@ -82,19 +77,20 @@ export class LeafDrawer3d {
 
         this.matrix = new Matrix4();
         this.leafCount = 500000;
-        const leafMaterial = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide});
+        const leafMaterialA = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide});
 
         const uniforms = {
             time: {type: 'float', value: this.time}
         }
-        const leafMaterialA = new ShaderMaterial({
+        const leafMaterial = new ShaderMaterial({
             uniforms: uniforms,
+            side: DoubleSide,
             fragmentShader: FragmentShader,
             vertexShader: VertexShader,
         })
 
 
-        this.leafGeometry = this.#createGeometry();
+        this.leafGeometry = this.#createPalmGeometry();
         this.leafMesh = new InstancedMesh(this.leafGeometry, leafMaterial, this.leafCount);
         Render3D.addToScene(this.leafMesh);
 
@@ -125,22 +121,88 @@ export class LeafDrawer3d {
         this.leafMesh.instanceColor.needsUpdate = true;
     }
 
-    #createGeometry() {
-        const width = 1;
-        const height = 1;
+    #createPalmGeometry() {
+        const size = 2;
+        const innerSize = size * 0.7;
+        const vertPos = [];
 
+        const angleStep = 0.4;
+        const angles = [
+            0,
+            1,
+            -1,
+            2,
+            -2
+        ];
+        const anglesScale = [
+            1,
+            0.8,
+            0.8,
+            0.5,
+            0.5,
+        ];
+
+        for (let i = 0; i < angles.length; i ++) {
+            const angle = angles[i] - (angleStep * anglesScale[i]);
+            const nextAngle = angles[i] + (angleStep * anglesScale[i]);
+            const midAngle = angles[i];
+            const localSize = size * anglesScale[i];
+            const localInnerSize = innerSize * anglesScale[i];
+
+            vertPos.push(
+                0, 0, 0,
+                Math.cos(angle) * localInnerSize, Math.sin(angle) * localInnerSize, 0,
+                Math.cos(nextAngle) * localInnerSize, Math.sin(nextAngle) * localInnerSize, 0,
+                
+                Math.cos(angle) * localInnerSize, Math.sin(angle) * localInnerSize, 0,
+                Math.cos(midAngle) * size, Math.sin(midAngle) * localSize, 0,
+                Math.cos(nextAngle) * localInnerSize, Math.sin(nextAngle) * localInnerSize, 0,
+            );
+
+            i
+        }
+        
         const leafGeometry = new BufferGeometry();
-        const leafVertices = new Float32Array([
-            width * -0.5, 0, 0,
-            width * 0.5, 0, 0,
-            0, height * 0.5, 0,
-            
-            0, height * 0.5, 0,
-            width * -0.5, height * 1, 0,
-            width * 0.5, height * 1, 0,
-        ]);
+        leafGeometry.setAttribute('position', new BufferAttribute(new Float32Array(vertPos), 3));
+        leafGeometry.computeBoundingBox();
+        leafGeometry.computeBoundingSphere();
+        leafGeometry.computeVertexNormals();
+        return leafGeometry;
+    }
 
-        leafGeometry.setAttribute('position', new BufferAttribute(leafVertices, 3));
+    #createStarGeometry() {
+        const size = 1;
+        const innerSize = size * 0.7;
+        const vertPos = [];
+        const circleEdges = 6;
+        const fullAngle = Math.PI * 2;
+        const angleStep = fullAngle / circleEdges;
+
+        for (let i = 0; i < circleEdges; i ++) {
+            const angle = angleStep * i;
+            const nextAngle = angleStep * (i + 1);
+            const midSize = size * 1.5;
+            const midAngle = angleStep * (i + 0.5);
+
+            vertPos.push(
+                0, 0, 0,
+                Math.cos(angle) * innerSize, size + Math.sin(angle) * innerSize, 0,
+                Math.cos(nextAngle) * innerSize, size + Math.sin(nextAngle) * innerSize, 0,
+                
+                Math.cos(angle) * innerSize, size + Math.sin(angle) * innerSize, 0,
+                Math.cos(midAngle) * size, size + Math.sin(midAngle) * size, 0,
+                Math.cos(nextAngle) * innerSize, size + Math.sin(nextAngle) * innerSize, 0,
+            );
+
+            i
+        }
+
+        
+        const leafGeometry = new BufferGeometry();
+        leafGeometry.setAttribute('position', new BufferAttribute(new Float32Array(vertPos), 3));
+        leafGeometry.computeBoundingBox();
+        leafGeometry.computeBoundingSphere();
+        leafGeometry.computeVertexNormals();
         return leafGeometry;
     }
 
@@ -165,7 +227,7 @@ export class LeafDrawer3d {
 
     update() {
         this.time ++;
-        // this.leafMesh.material.uniforms.time.value = this.time;
+        this.leafMesh.material.uniforms.time.value = this.time;
     }
 
     endDraw() {
@@ -228,9 +290,13 @@ export class LeafDrawer3d {
         for (let i = 0; i < this.particlesToDraw; i++) {
             // const instanceIndex = i + (this.particlesCount * loopCounter);
             if (this.currentInstanceIndex > this.leafCount) {
+                console.log('MORE LEAVES THAN', this.currentInstanceIndex);
                 return;
             }
             
+            if (Math.random() < 0.8) {
+                continue;
+            }
 
             // if (Math.random() < 0.8) {
             //     continue;
@@ -253,7 +319,8 @@ export class LeafDrawer3d {
 
             scale.x = scale.y = scale.z = particle.size;
 
-            const angle = randomize(0, 2);
+            const angle = randomize(0, 3.14);
+            // const angle = Math.atan2(particle.orientation[1], particle.orientation[0]) - Math.PI / 2;
             quaternion.setFromAxisAngle(new Vector3(0, 0, 1), angle);
 
             this.matrix.compose(position, quaternion, scale);
