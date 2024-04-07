@@ -225,10 +225,12 @@ export class LeafDrawer3d {
         this.currentInstanceIndex = 0;
         this.leavesPositions = [];
     }
-
+    
     setLowQuality() {
         this.particlesToDraw = 4;
         this.maxWhileLoop = 10;
+        this.currentInstanceIndex = 0;
+        this.leavesPositions = [];
     }
 
     setColor(hue) {

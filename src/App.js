@@ -74,7 +74,7 @@ export function init(_canvasId) {
     UiControls.setPreset(currentPreset);
     
     treesSolo.push(new Tree(0, groundPosition, currentPreset));
-    // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));
+    // treesSolo.push(new Tree(-560, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-400, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(-230, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(320, groundPosition), currentPreset));
