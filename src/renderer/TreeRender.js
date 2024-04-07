@@ -157,7 +157,7 @@ class TreeRender {
 
         const leavesSize = leaves.reduce((cum, leaf) => cum + leaf.energy, 0) * branch.preset.leafScale;
 
-        const lightQuantity = branch.budsLight;
+        const lightQuantity = Math.min(4, branch.budsLight);
         // const lightQuantity = branch.attractors.length;
 
         this.leafDrawer.draw(tree, branch.glEnd, leavesSize, lightQuantity, formRatio, heliotropism);

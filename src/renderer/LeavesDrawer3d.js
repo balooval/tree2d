@@ -2,8 +2,8 @@ import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { random, randomize } from "../Math.js";
 import { glWorldToCanvasPosition } from "./BaseRender.js";
 import * as Render3D from './Render3d.js';
-import FragmentShader from '../shaders/fragment.js';
-import VertexShader from '../shaders/vertex.js';
+import FragmentShader from '../shaders/LeavesFragment.js';
+import VertexShader from '../shaders/LeavesVertex.js';
 import {
 	Vector3,
 	MeshBasicMaterial,
@@ -15,6 +15,7 @@ import {
     Matrix4,
     Color,
     ShaderMaterial,
+    InstancedBufferAttribute,
 } from '../../vendor/three.module.js';
 
 const glOrigin = GlMatrix.fromValues(0, 0);
@@ -80,7 +81,8 @@ export class LeafDrawer3d {
         const leafMaterialA = new MeshBasicMaterial({color: 0xffffff, side: DoubleSide});
 
         const uniforms = {
-            time: {type: 'float', value: this.time}
+            time: {type: 'float', value: this.time},
+            groundPosition: {type: 'float', value: 0},
         }
         const leafMaterial = new ShaderMaterial({
             uniforms: uniforms,
@@ -91,6 +93,7 @@ export class LeafDrawer3d {
 
 
         this.leafGeometry = this.#createPalmGeometry();
+        // this.leafGeometry = this.#createStarGeometry();
         this.leafMesh = new InstancedMesh(this.leafGeometry, leafMaterial, this.leafCount);
         Render3D.addToScene(this.leafMesh);
 
@@ -100,6 +103,7 @@ export class LeafDrawer3d {
         const scale = new Vector3();
         const quaternion = new Quaternion();
         const color = new Color(`hsl(80, 50%, 50%)`);
+        this.leavesPositions = [];
 
         for (let i = 0; i < this.leafCount; i++) {
             const currentDepth = 0;
@@ -107,6 +111,8 @@ export class LeafDrawer3d {
             position.x = 0;
             position.y = 0;
             position.z = currentDepth;
+
+            this.leavesPositions.push(0, 0, currentDepth);
 
             scale.x = scale.y = scale.z = 1;
 
@@ -117,6 +123,9 @@ export class LeafDrawer3d {
             this.leafMesh.setMatrixAt(i, this.matrix);
             this.leafMesh.setColorAt(i, color);
         }
+
+        this.leafGeometry.setAttribute('instancePosition', new InstancedBufferAttribute(new Float32Array(this.leavesPositions), 3));
+
         this.leafMesh.instanceMatrix.needsUpdate = true;
         this.leafMesh.instanceColor.needsUpdate = true;
     }
@@ -172,9 +181,9 @@ export class LeafDrawer3d {
 
     #createStarGeometry() {
         const size = 1;
-        const innerSize = size * 0.7;
+        const innerSize = size * 0.8;
         const vertPos = [];
-        const circleEdges = 6;
+        const circleEdges = 12;
         const fullAngle = Math.PI * 2;
         const angleStep = fullAngle / circleEdges;
 
@@ -214,6 +223,7 @@ export class LeafDrawer3d {
         this.particlesToDraw = this.particlesCount;
         this.maxWhileLoop = 999999;
         this.currentInstanceIndex = 0;
+        this.leavesPositions = [];
     }
 
     setLowQuality() {
@@ -228,10 +238,14 @@ export class LeafDrawer3d {
     update() {
         this.time ++;
         this.leafMesh.material.uniforms.time.value = this.time;
+        if (this.tree) {
+            this.leafMesh.material.uniforms.groundPosition.value = this.tree.position[1];
+        }
     }
 
     endDraw() {
         this.leafMesh.count = this.currentInstanceIndex;
+        this.leafGeometry.setAttribute('instancePosition', new InstancedBufferAttribute(new Float32Array(this.leavesPositions), 3));
     }
 
     draw(tree, position, size, lightQuantity, formRatio, heliotropism) {
@@ -294,7 +308,7 @@ export class LeafDrawer3d {
                 return;
             }
             
-            if (Math.random() < 0.8) {
+            if (Math.random() < 0.9) {
                 continue;
             }
 
@@ -316,6 +330,12 @@ export class LeafDrawer3d {
             position.x = particle.glPosition[0];
             position.y = particle.glPosition[1];
             position.z = currentDepth;
+
+            this.leavesPositions.push(
+                position.x,
+                position.y,
+                position.z,
+            );
 
             scale.x = scale.y = scale.z = particle.size;
 

@@ -1,4 +1,3 @@
-import * as GlMatrix from "../vendor/gl-matrix/vec2.js";
 import * as Render3D from './renderer/Render3d.js';
 import { randomize } from './Math.js';
 import {
@@ -12,20 +11,33 @@ import {
     Matrix4,
     Color,
     Object3D,
+    ShaderMaterial,
+    InstancedBufferAttribute,
 } from '../vendor/three.module.js';
+import FragmentShader from './shaders/GrassFragment.js';
+import VertexShader from './shaders/GrassVertex.js';
 
 
 export class BackgroundGrass {
     constructor(groundPosition) {
-        const grassMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
         const seedMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
+        // const grassMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
+        const uniforms = {
+            time: {type: 'float', value: this.time}
+        }
+        this.grassMaterial = new ShaderMaterial({
+            side: DoubleSide,
+            uniforms: uniforms,
+            fragmentShader: FragmentShader,
+            vertexShader: VertexShader,
+        })
 
         this.time = 0;
-        const width = 5;
-        const height = 2;
+        const width = 3;
+        const height = 1.5;
         const grassWidth = 500;
         this.seedCount = 200;
-        this.grassCount = 10000;
+        this.grassCount = 20000;
 
         const seedGeometry = new BufferGeometry();
         const seedVertices = new Float32Array([
@@ -58,7 +70,7 @@ export class BackgroundGrass {
         grassGeometry.setAttribute('position', new BufferAttribute(grassVertices, 3));
         
         this.matrix = new Matrix4();
-        this.grassMesh = new InstancedMesh(grassGeometry, grassMaterial, this.grassCount);
+        this.grassMesh = new InstancedMesh(grassGeometry, this.grassMaterial, this.grassCount);
         const color = new Color(`hsl(80, 50%, 50%)`);
         const seedColor = new Color(`hsl(55, 84%, 75%)`);
         const quaternion = new Quaternion();
@@ -69,6 +81,8 @@ export class BackgroundGrass {
         let currentPoGroup = 0;
         let currentPosX = randomize(0, grassWidth);
         let currentDepth = randomize(0, 35);
+
+        const grassPositions = new Float32Array(this.grassCount * 3);
         
         for (let i = 0; i < this.grassCount; i ++) {
             const position = new Vector3();
@@ -85,6 +99,11 @@ export class BackgroundGrass {
             position.x = currentPosX + randomize(0, 10);
             position.y = groundPosition - randomize(25, 5) - (currentDepth * 1);
             position.z = currentDepth;
+
+            grassPositions[i * 3 + 0] = position.x;
+            grassPositions[i * 3 + 1] = position.y;
+            grassPositions[i * 3 + 2] = position.z;
+
             // const scaleRatio = 1 - Math.abs(0 - position.x) * 0.001;
             const scaleRatio = 1;
             scale.x = scale.y = scale.z = randomize(1, 0.5) * scaleRatio;
@@ -126,6 +145,8 @@ export class BackgroundGrass {
             }
         }
 
+        grassGeometry.setAttribute('instancePosition', new InstancedBufferAttribute(grassPositions, 3));
+
         Render3D.scene.add(this.grassMesh);
         Render3D.scene.add(this.seedMesh);
 
@@ -139,6 +160,7 @@ export class BackgroundGrass {
     update() {
         // return;
         this.time ++;
+        this.grassMaterial.uniforms.time.value = this.time;
 
         for (let i = 0; i < this.seedCount; i ++) {
             this.grassMesh.getMatrixAt(i, this.matrix);
