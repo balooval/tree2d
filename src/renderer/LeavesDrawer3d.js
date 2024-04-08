@@ -1,6 +1,6 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { random, randomize } from "../Math.js";
-import { glWorldToCanvasPosition } from "./BaseRender.js";
+import { glCanvasToWorldPosition } from "./BaseRender.js";
 import * as Render3D from './Render3d.js';
 import FragmentShader from '../shaders/LeavesFragment.js';
 import VertexShader from '../shaders/LeavesVertex.js';
@@ -16,7 +16,10 @@ import {
     Color,
     ShaderMaterial,
     InstancedBufferAttribute,
+    Vector2,
 } from '../../vendor/three.module.js';
+import * as UiMouse from '../UiMouse.js';
+
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 const glGround = GlMatrix.fromValues(1, 0);
@@ -83,6 +86,7 @@ export class LeafDrawer3d {
         const uniforms = {
             time: {type: 'float', value: this.time},
             groundPosition: {type: 'float', value: 0},
+            mousePosition: {value: new Vector2(0, 0)},
         }
         const leafMaterial = new ShaderMaterial({
             uniforms: uniforms,
@@ -240,6 +244,7 @@ export class LeafDrawer3d {
     update() {
         this.time ++;
         this.leafMesh.material.uniforms.time.value = this.time;
+        this.leafMesh.material.uniforms.mousePosition.value = glCanvasToWorldPosition(UiMouse.mousePosition);
         if (this.tree) {
             this.leafMesh.material.uniforms.groundPosition.value = this.tree.position[1];
         }
@@ -251,7 +256,7 @@ export class LeafDrawer3d {
     }
 
     draw(tree, position, size, lightQuantity, formRatio, heliotropism) {
-        
+        // TODO: pouvoir dessiner plusieurs feuillages en ayant une mesh par arbre
         this.tree = tree;
         this.formRatio = formRatio;
         this.heliotropism = heliotropism;

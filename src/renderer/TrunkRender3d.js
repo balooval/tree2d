@@ -25,17 +25,21 @@ class TrunkRender3d {
         this.trunkPointC = GlMatrix.create();
         this.trunkPointD = GlMatrix.create();
 
-        const material = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide, vertexColors: true});
-        this.geometry = new BufferGeometry();
+        this.material = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide, vertexColors: true});
+        this.meshes = new Map();
         this.vertices = [];
         this.vertexColors = [];
-        this.geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.vertices), 3));
-        this.geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.vertexColors), 3));
-        this.mesh = new Mesh(this.geometry, material);
-        Render3D.addToScene(this.mesh);
     }
 
     draw(tree) {
+        if (this.meshes.has(tree) === false) {
+            const treeMesh = new Mesh(new BufferGeometry(), this.material);
+            Render3D.addToScene(treeMesh);
+            this.meshes.set(tree, treeMesh);
+        }
+
+        const geometry = this.meshes.get(tree).geometry;
+
         this.vertices = [];
         this.vertexColors = [];
 
@@ -43,8 +47,8 @@ class TrunkRender3d {
             this.#drawBranch(branch);
         });
 
-        this.geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.vertices), 3));
-        this.geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.vertexColors), 3));
+        geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.vertices), 3));
+        geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.vertexColors), 3));
     }
 
     #drawBranch(branch) {

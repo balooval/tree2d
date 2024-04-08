@@ -1,5 +1,6 @@
 import * as Render3D from './renderer/Render3d.js';
 import { randomize } from './Math.js';
+import { glCanvasToWorldPosition } from './renderer/BaseRender.js';
 import {
 	Vector3,
 	MeshBasicMaterial,
@@ -13,9 +14,11 @@ import {
     Object3D,
     ShaderMaterial,
     InstancedBufferAttribute,
+    Vector2,
 } from '../vendor/three.module.js';
 import FragmentShader from './shaders/GrassFragment.js';
 import VertexShader from './shaders/GrassVertex.js';
+import * as UiMouse from './UiMouse.js';
 
 
 export class BackgroundGrass {
@@ -23,7 +26,8 @@ export class BackgroundGrass {
         const seedMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
         // const grassMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
         const uniforms = {
-            time: {type: 'float', value: this.time}
+            time: {type: 'float', value: this.time},
+            mousePosition: {value: new Vector2(0, 0)},
         }
         this.grassMaterial = new ShaderMaterial({
             side: DoubleSide,
@@ -161,6 +165,7 @@ export class BackgroundGrass {
         // return;
         this.time ++;
         this.grassMaterial.uniforms.time.value = this.time;
+        this.grassMaterial.uniforms.mousePosition.value = glCanvasToWorldPosition(UiMouse.mousePosition);
 
         for (let i = 0; i < this.seedCount; i ++) {
             this.grassMesh.getMatrixAt(i, this.matrix);
