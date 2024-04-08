@@ -108,7 +108,6 @@ export class BackgroundGrass {
             grassPositions[i * 3 + 1] = position.y;
             grassPositions[i * 3 + 2] = position.z;
 
-            // const scaleRatio = 1 - Math.abs(0 - position.x) * 0.001;
             const scaleRatio = 1;
             scale.x = scale.y = scale.z = randomize(1, 0.5) * scaleRatio;
 

@@ -23,7 +23,9 @@ ${PerlinNoise}
 void main() {
     vUv = position; 
     vInstanceColor = instanceColor; 
+
     distanceFromGround = position.y;
+    // distanceFromGround = clamp(position.y / 0.5, 0.0, 1.0);
 
     vec4 mvPosition = vec4(position, 1.0);
 

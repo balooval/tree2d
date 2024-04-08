@@ -10,9 +10,11 @@ import {
     BufferGeometry,
     BufferAttribute,
     Matrix4,
-    Color,
-    Object3D,
+    ShaderMaterial,
+    PlaneGeometry,
 } from '../../vendor/three.module.js';
+import VertexShader from '../shaders/TrunkVertex.js';
+import FragmentShader from '../shaders/TrunkFragment.js';
 
 const glOrigin = GlMatrix.fromValues(0, 0);
 
@@ -25,10 +27,30 @@ class TrunkRender3d {
         this.trunkPointC = GlMatrix.create();
         this.trunkPointD = GlMatrix.create();
 
-        this.material = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide, vertexColors: true});
+        // this.material = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide, vertexColors: true});
+        this.material = new ShaderMaterial({
+            side: DoubleSide,
+            fragmentShader: FragmentShader,
+            vertexShader: VertexShader,
+        })
         this.meshes = new Map();
         this.vertices = [];
         this.vertexColors = [];
+
+        // this.#testShaderCrack();
+    }
+
+    #testShaderCrack() {
+        const material = new ShaderMaterial({
+            side: DoubleSide,
+            fragmentShader: FragmentShader,
+            vertexShader: VertexShader,
+        })
+
+        const geometry = new PlaneGeometry(500, 500);
+        const plane = new Mesh(geometry, material);
+        plane.position.y = 500;
+        Render3D.addToScene(plane);
     }
 
     draw(tree) {
@@ -42,6 +64,8 @@ class TrunkRender3d {
 
         this.vertices = [];
         this.vertexColors = [];
+        this.vertexUvs = [];
+        this.vertexNoiseUvs = [];
 
         tree.getBranchs().forEach(branch => {
             this.#drawBranch(branch);
@@ -49,6 +73,8 @@ class TrunkRender3d {
 
         geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.vertices), 3));
         geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.vertexColors), 3));
+        geometry.setAttribute('uvs', new BufferAttribute(new Float32Array(this.vertexUvs), 2));
+        geometry.setAttribute('noiseuvs', new BufferAttribute(new Float32Array(this.vertexNoiseUvs), 2));
     }
 
     #drawBranch(branch) {
@@ -80,6 +106,26 @@ class TrunkRender3d {
             parentRgb[0], parentRgb[1], parentRgb[2],
             parentRgb[0], parentRgb[1], parentRgb[2],
             branchRgb[0], branchRgb[1], branchRgb[2],
+        );
+
+        this.vertexUvs.push(
+            0, 0,
+            1, 0,
+            1, 1,
+            1, 1,
+            0, 1,
+            0, 0,
+        );
+
+        const xOffset = width * 20;
+        this.vertexNoiseUvs.push(
+            this.trunkPointA[0], this.trunkPointA[1],
+            this.trunkPointA[0] + xOffset, this.trunkPointA[1],
+            this.trunkPointD[0] + xOffset, this.trunkPointD[1],
+
+            this.trunkPointD[0] + xOffset, this.trunkPointD[1],
+            this.trunkPointD[0], this.trunkPointD[1],
+            this.trunkPointA[0], this.trunkPointA[1],
         );
     }
 

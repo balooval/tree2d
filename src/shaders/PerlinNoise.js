@@ -5,7 +5,6 @@ vec2 rand2d(vec2 uv) {
         dot(uv, vec2(78.9, 3.14)))) * 12345.67) * 2.0 - 1.0;
 }
 
-
 float perlin(vec2 uv) {
     vec2 u = floor(uv);
     vec2 f = fract(uv);
@@ -18,5 +17,9 @@ float perlin(vec2 uv) {
 	
     return mix(mix(dot(a, -f), dot(b, vec2(1.0, 0.0) - f), s.x),
         mix(dot(c, vec2(0.0, 1.0) - f), dot(d, vec2(1.0, 1.0) - f), s.x), s.y);
+}
+
+float perlinNormalized(vec2 uv) {
+    return (perlin(uv) + 1.0) / 2.0;
 }
 `;

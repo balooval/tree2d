@@ -13,6 +13,7 @@ void main() {
     hsl.x -= 0.01;
     hsl.y += 0.10;
     hsl.z = clamp(hsl.z * distanceFromGround * 0.065, 0.35, 0.5);
+    // hsl.z = clamp(hsl.z * distanceFromGround, 0.35, 0.5);
     vec3 rgb = hsl2rgb(hsl);
 
     gl_FragColor = vec4(rgb.xyz, 1.0);
