@@ -32,6 +32,7 @@ class TrunkRender3d {
             side: DoubleSide,
             fragmentShader: FragmentShader,
             vertexShader: VertexShader,
+            // transparent: true,
         })
         this.meshes = new Map();
         this.vertices = [];

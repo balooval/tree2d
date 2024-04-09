@@ -3,8 +3,10 @@ import PerlinNoise from './PerlinNoise.js';
 export default `
 varying vec2 noiseUv;
 varying vec2 vUv;
+varying vec3 vColor;
 attribute vec2 uvs; 
-attribute vec2 noiseuvs; 
+attribute vec2 noiseuvs;
+attribute vec3 color;
 
 vec2 rotate(vec2 point, float radAngle, vec2 pivot)
 {
@@ -17,7 +19,7 @@ vec2 rotate(vec2 point, float radAngle, vec2 pivot)
 }
 
 void main() {
-    
+    vColor = color;
     vUv = uvs;
     noiseUv = vec2(noiseuvs.x, noiseuvs.y) * 0.6;
 
