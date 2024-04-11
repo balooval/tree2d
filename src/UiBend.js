@@ -24,11 +24,19 @@ class UiBend {
         document.getElementById(this.canvasId).addEventListener('mousemove', () => this.#onMouseMove());
         document.getElementById(this.canvasId).addEventListener('mousedown', () => this.#onMouseDown());
         document.getElementById(this.canvasId).addEventListener('mouseup', () => this.#onMouseUp());
-        // document.getElementById(this.canvasId).addEventListener('click', () => this.#onClick());
+    }
+
+    update() {
+        if (this.active === false) {
+            return;
+        }
+
+        this.#draw();
     }
 
     start() {
         this.active = true;
+        this.currentMode = 'select';
     }
     
     stop() {
@@ -52,14 +60,6 @@ class UiBend {
         this.targetBranch = null;
     }
 
-    #onClick() {
-        if (this.targetBranch !== null) {
-            // this.targetBranch.remove();
-            this.callback();
-            this.targetBranch = null;
-        }
-    }
-
     #onMouseMove() {
         if (this.active === false) {
             return;
@@ -78,18 +78,10 @@ class UiBend {
         }
 
         if (this.currentMode === 'bend') {
-            const angle = (UiMouse.mousePosition[1] - this.lastMouseY) * 0.05;
-            this.targetBranch.rotate(angle);
+            const angle = (UiMouse.mousePosition[1] - this.lastMouseY) * 0.01;
             this.lastMouseY = UiMouse.mousePosition[1];
+            this.targetBranch.softRotate(angle, 0, 8);
         }
-    }
-
-    update() {
-        if (this.active === false) {
-            return;
-        }
-
-        this.#draw();
     }
     
     #draw() {
@@ -107,7 +99,7 @@ class UiBend {
         const allBranchs = branch.addToList([]);
         
         for (let i = 0; i < allBranchs.length; i ++) {
-            this.render.glDrawLine(allBranchs[i].glStart, allBranchs[i].glEnd, allBranchs[i].getWidth(), `rgb(255, 0, 0)`);
+            this.render.glDrawLine(allBranchs[i].glStart, allBranchs[i].glEnd, allBranchs[i].getWidth(), `rgb(0, 0, 255)`);
         }
     }
 

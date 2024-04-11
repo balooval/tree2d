@@ -23,6 +23,14 @@ class UiCut {
         document.getElementById(this.canvasId).addEventListener('click', () => this.#onClick());
     }
 
+    update() {
+        if (this.active === false) {
+            return;
+        }
+
+        this.#draw();
+    }
+
     start() {
         this.active = true;
     }
@@ -54,14 +62,6 @@ class UiCut {
         }
 
         this.targetBranch = nearBranch.pop().branch;
-    }
-
-    update() {
-        if (this.active === false) {
-            return;
-        }
-
-        this.#draw();
     }
     
     #draw() {

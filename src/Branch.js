@@ -254,6 +254,16 @@ export class Branch {
         }
     }
 
+    softRotate(angle, curDepth, maxDepth) {
+        this.rotate(angle);
+
+        if (curDepth < maxDepth) {
+            for (let i = 0; i < this.childs.length; i ++) {11
+                this.childs[i].softRotate(angle * 0.8, curDepth + 1, maxDepth);
+            }
+        }
+    }
+
     rotate(angle) {
         GlMatrix.rotate(this.glEnd, this.glEnd, this.glStart, angle);
         GlMatrix.normalize(this.glDirection, GlMatrix.sub(glOutput, this.glEnd, this.glStart));
@@ -266,7 +276,6 @@ export class Branch {
         for (let i = 0; i < this.childs.length; i ++) {
             this.childs[i].followParentBend(angle, this.glStart);
         }
-        
     }
 
     followParentBend(bendAngle, glBendStart) {
