@@ -82,6 +82,10 @@ export class LeafDrawer {
         this.hue = hue;
     }
 
+    endDraw() {
+        
+    }
+
     draw(tree, position, size, lightQuantity, formRatio, heliotropism) {
         this.tree = tree;
         this.formRatio = formRatio;

@@ -37,6 +37,13 @@ export function canvasToWorldPosition(canvasPosition) {
     ];
 }
 
+export function glCanvasToWorldPosition(canvasPosition) {
+    return [
+        canvasToWorldX(canvasPosition[0]),
+        canvasToWorldY(canvasPosition[1]),
+    ];
+}
+
 export function intCanvasToWorldPosition(canvasPositionX, canvasPositionY) {
     return [
         canvasToWorldX(canvasPositionX),

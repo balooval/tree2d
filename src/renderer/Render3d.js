@@ -3,7 +3,11 @@ import {
 	Scene,
 	Vector3,
 	WebGLRenderer,
-
+	PlaneGeometry,
+	MeshBasicMaterial,
+	Mesh,
+	CanvasTexture,
+	DoubleSide,
 } from '../../vendor/three.module.js';
 import * as BaseRender from './BaseRender.js';
 export let renderer;
@@ -11,6 +15,10 @@ export let camera;
 export let scene = null;
 let canvas;
 let ratio;
+let texture2d;
+let objectsToAdd = [];
+
+
 
 export function init(destinationCanvas) {
     canvas = destinationCanvas;
@@ -21,6 +29,18 @@ export function init(destinationCanvas) {
 	camera = new OrthographicCamera(-100, 100, 100, -100, 1, 1000);
 	changeScale()
 	scene.add(camera);
+
+	objectsToAdd.forEach(object => scene.add(object));
+	objectsToAdd = [];
+}
+
+export function addToScene(object) {
+	if (scene === null) {
+		objectsToAdd.push(object);
+		return;
+	}
+
+	scene.add(object);
 }
 
 export function changeScale() {

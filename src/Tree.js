@@ -90,7 +90,7 @@ export class Tree {
 
     constructor(positionX, positionY, preset) {
         this.preset = preset;
-        this.position = GlMatrix.fromValues(positionX, positionY);
+        this.position = GlMatrix.fromValues(positionX, positionY - 30);
         this.age = 1;
         this.tips = new Set();
         const seed = new Seed(this, this.position[0], this.position[1]);

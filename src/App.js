@@ -8,13 +8,13 @@ import { treeGrowUpdate } from './TreesUpdater.js';
 import * as UiControls from './UiControls.js';
 import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
-import * as ImageLoader from './ImageLoader.js';
-import { LeafDrawer } from './renderer/LeavesDrawer.js';
+import { LeafDrawer3d } from './renderer/LeavesDrawer3d.js';
 import { GrassDrawer } from './renderer/GrassDrawer.js';
-import TrunkRender from './renderer/TrunkRender.js';
+import TrunkRender3d from './renderer/TrunkRender3d.js';
 import * as Render3D from './renderer/Render3d.js';
 import { Butterfly } from './Butterfly.js';
 import { BackgroundGrass } from './BackgroundGrass.js';
+import { intCanvasToWorldPosition } from './renderer/BaseRender.js';
 
 
 const groundPosition = 70;
@@ -23,8 +23,10 @@ const treesSolo = [];
 const lightSource = new LightDirectional(0, 500, 0, 20);
 const treeLayer = new BaseRender();
 const leafLayer = new BaseRender();
-const trunkRender = new TrunkRender(treeLayer, lightSource);
-const leafDrawer = new LeafDrawer(leafLayer, lightSource, treeLayer);
+// const trunkRender = new TrunkRender(treeLayer, lightSource);
+const trunkRender = new TrunkRender3d(treeLayer, lightSource);
+// const leafDrawer = new LeafDrawer(leafLayer, lightSource, treeLayer);
+const leafDrawer = new LeafDrawer3d(leafLayer, lightSource, treeLayer);
 const grassDrawer = new GrassDrawer(treeLayer, lightSource);
 const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, leafDrawer, grassDrawer);
 const lightLayer = new BaseRender();
@@ -69,10 +71,9 @@ export function init(_canvasId) {
     UiCut.init(canvas, updateTrees);
     UiControls.init(treeRender, onPresetChanged);
     UiControls.setPreset(currentPreset);
-
-
+    
     treesSolo.push(new Tree(0, groundPosition, currentPreset));
-    // treesSolo.push(new Tree(new Vector(-560, groundPosition), currentPreset));
+    // treesSolo.push(new Tree(-560, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-400, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(-230, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(320, groundPosition), currentPreset));
@@ -182,6 +183,12 @@ function onPresetChanged() {
 }
 
 function onFrame() {
+
+    // Juste pour avoir l'éclairage en temps réel
+    // const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
+    // lightSource.reset(lightPosition[0], lightPosition[1]);
+
+
     if (run === true) {
         updateTrees();
     }
@@ -194,6 +201,8 @@ function onFrame() {
     updateScreen();
 
     UiCut.draw();
+
+    leafDrawer.update();
 
     requestAnimationFrame(onFrame);
 }
