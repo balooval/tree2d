@@ -10,17 +10,21 @@ class UiBend {
         this.rbushBranchs = null;
         this.maxSearchDistance = 50;
         this.targetBranch = null;
-        this.cutCallback = null;
+        this.callback = null;
+        this.currentMode = 'select';
+        this.lastMouseY = 0;
     }
     
-    init(canvas, cutCallback) {
+    init(canvas, callback) {
         this.render.init(canvas);
-        this.cutCallback = cutCallback;
+        this.callback = callback;
         this.mainContext = canvas.getContext('2d');
         this.canvasId = canvas.id;
         this.rbushBranchs = null;
         document.getElementById(this.canvasId).addEventListener('mousemove', () => this.#onMouseMove());
-        document.getElementById(this.canvasId).addEventListener('click', () => this.#onClick());
+        document.getElementById(this.canvasId).addEventListener('mousedown', () => this.#onMouseDown());
+        document.getElementById(this.canvasId).addEventListener('mouseup', () => this.#onMouseUp());
+        // document.getElementById(this.canvasId).addEventListener('click', () => this.#onClick());
     }
 
     start() {
@@ -33,10 +37,25 @@ class UiBend {
         this.render.clear();
     }
 
+    #onMouseDown() {
+        if (this.targetBranch === null) {
+            return;
+        }
+
+        this.currentMode = 'bend';
+        this.lastMouseY = UiMouse.mousePosition[1];
+    }
+
+    #onMouseUp() {
+        this.currentMode = 'select';
+        this.callback();
+        this.targetBranch = null;
+    }
+
     #onClick() {
         if (this.targetBranch !== null) {
-            this.targetBranch.remove();
-            this.cutCallback();
+            // this.targetBranch.remove();
+            this.callback();
             this.targetBranch = null;
         }
     }
@@ -45,15 +64,24 @@ class UiBend {
         if (this.active === false) {
             return;
         }
-        // const worldPosition = canvasToWorldPosition({x:UiMouse.mousePosition[0], y:UiMouse.mousePosition[1]});
-        // const nearBranch = RBushKnn(this.rbushBranchs, worldPosition[0], worldPosition[1], 1, undefined, this.maxSearchDistance);
 
-        // if (nearBranch.length === 0) {
-        //     this.targetBranch = null;
-        //     return;
-        // }
+        if (this.currentMode === 'select') {
+            const worldPosition = canvasToWorldPosition({x:UiMouse.mousePosition[0], y:UiMouse.mousePosition[1]});
+            const nearBranch = RBushKnn(this.rbushBranchs, worldPosition[0], worldPosition[1], 1, undefined, this.maxSearchDistance);
 
-        // this.targetBranch = nearBranch.pop().branch;
+            if (nearBranch.length === 0) {
+                this.targetBranch = null;
+                return;
+            }
+
+            this.targetBranch = nearBranch.pop().branch;
+        }
+
+        if (this.currentMode === 'bend') {
+            const angle = (UiMouse.mousePosition[1] - this.lastMouseY) * 0.05;
+            this.targetBranch.rotate(angle);
+            this.lastMouseY = UiMouse.mousePosition[1];
+        }
     }
 
     update() {
