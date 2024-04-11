@@ -1,45 +1,59 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
-import { leavesPresets } from "./LeavesDrawer3d.js";
+import { LeafDrawer3d, leavesPresets } from "./LeavesDrawer3d.js";
 
 
 class TreeRender {
-    constructor(render, lightSource, trunkRender, leafDrawer, grassDrawer) {
+    constructor(render, lightSource, trunkRender, backgroundGrass) {
         this.render = render;
+        this.backgroundGrass = backgroundGrass;
         this.lightSource = lightSource;
         this.viewLeaves = true;
-        this.leafDrawer = leafDrawer;
-        this.grassDrawer = grassDrawer;
         this.trunkRender = trunkRender;
-
-        this.trunkPointA = GlMatrix.create();
-        this.trunkPointB = GlMatrix.create();
-        this.trunkPointC = GlMatrix.create();
-        this.trunkPointD = GlMatrix.create();
+        this.leafDrawers = new Map();
     }
 
     setViewLeaves(state) {
         this.viewLeaves = state;
     }
 
+    update(tree) {
+        this.backgroundGrass.update();
+
+        const leafDrawer = this.leafDrawers.get(tree);
+        if (!leafDrawer) {
+            return;
+        }
+        leafDrawer.update();
+    }
+
     draw(tree) {
-        this.trunkRender.draw(tree); // TODO: Si plusieurs arbres, alors le trunkRender est écrasé à chaque arbre
+        this.trunkRender.draw(tree);
+
+        if (this.leafDrawers.has(tree) === false) {
+            const leafDrawer = new LeafDrawer3d(this.lightSource);
+            this.leafDrawers.set(tree, leafDrawer);
+        }
+
+        const leafDrawer = this.leafDrawers.get(tree);
         
-        this.leafDrawer.setLowQuality();
+        leafDrawer.setLowQuality();
         tree.getBranchs().forEach(branch => {
-            this.#drawLeaves(tree, branch);
+            this.#drawLeaves(leafDrawer, tree, branch);
         });
-        this.leafDrawer.endDraw();
+        leafDrawer.endDraw();
     }
 
     drawHighQualityLeaves(tree) {
-        this.leafDrawer.setFullQuality();
+        const leafDrawer = this.leafDrawers.get(tree);
+
+        leafDrawer.setFullQuality();
         tree.getBranchs().forEach(branch => {
-            this.#drawLeaves(tree, branch);
+            this.#drawLeaves(leafDrawer, tree, branch);
         });
-        this.leafDrawer.endDraw();
+        leafDrawer.endDraw();
     }
 
-    #drawLeaves(tree, branch) {
+    #drawLeaves(leafDrawer, tree, branch) {
 
         if (this.viewLeaves === false) {
             return;
@@ -62,7 +76,7 @@ class TreeRender {
         const lightQuantity = Math.min(4, branch.budsLight);
         // const lightQuantity = branch.attractors.length;
 
-        this.leafDrawer.draw(tree, branch.glEnd, leavesSize, lightQuantity, formRatio, heliotropism);
+        leafDrawer.draw(tree, branch.glEnd, leavesSize, lightQuantity, formRatio, heliotropism);
     }
 }
 

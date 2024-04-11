@@ -11,7 +11,6 @@ import {
     BufferAttribute,
     Matrix4,
     Color,
-    Object3D,
     ShaderMaterial,
     InstancedBufferAttribute,
     Vector2,
@@ -24,7 +23,6 @@ import * as UiMouse from './UiMouse.js';
 export class BackgroundGrass {
     constructor(groundPosition) {
         const seedMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
-        // const grassMaterial = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide});
         const uniforms = {
             time: {type: 'float', value: this.time},
             mousePosition: {value: new Vector2(0, 0)},
@@ -80,7 +78,6 @@ export class BackgroundGrass {
         const quaternion = new Quaternion();
 
         noise.seed(Math.random());
-        // noise.seed(26);
 
         let currentPoGroup = 0;
         let currentPosX = randomize(0, grassWidth);
@@ -91,8 +88,6 @@ export class BackgroundGrass {
         for (let i = 0; i < this.grassCount; i ++) {
             const position = new Vector3();
             const scale = new Vector3();
-
-            // const depth = randomize(0, 35);
 
             currentPoGroup ++;
             if (currentPoGroup % 10 === 0) {
@@ -118,10 +113,6 @@ export class BackgroundGrass {
 
             this.grassMesh.setMatrixAt(i, this.matrix);
             
-            // color.setHSL(0.22, 0.5, randomize(0.3, 0.15));
-            // const hue = 0.2 + (((Math.abs(position.x) % 400) / 400) * 0.2);
-            // const light = 0.2 + (((Math.abs(position.x) % 400) / 400) * 0.2);
-
             const noiseValueA = noise.perlin2(position.x * 0.007, currentDepth * 0.01);
             const noiseValueB = noise.perlin2(position.x * 0.07, currentDepth * 0.1);
             const noiseValue = noiseValueA + (noiseValueB * 0.4);
@@ -140,9 +131,6 @@ export class BackgroundGrass {
 
             if (i < this.seedCount) {
                 this.seedMesh.setMatrixAt(i, this.matrix);
-                // 55°, 84%, 75%
-                // seedColor.setHSL(0.152, 0.8 + (noiseValue * 0.05), 0.75);
-                // seedColor.setHSL(0.5 + noiseValue * 0.2, 0.8 + (noiseValue * 0.1), 0.85);
                 seedColor.setHSL(0.15, 0.8, 0.7 + (noiseValue * 0.2));
                 this.seedMesh.setColorAt(i, seedColor);
             }
@@ -150,18 +138,15 @@ export class BackgroundGrass {
 
         grassGeometry.setAttribute('instancePosition', new InstancedBufferAttribute(grassPositions, 3));
 
-        Render3D.scene.add(this.grassMesh);
-        Render3D.scene.add(this.seedMesh);
+        Render3D.addToScene(this.grassMesh);
+        Render3D.addToScene(this.seedMesh);
 
         this.updatePosition = new Vector3();
         this.updateQuaternion = new Quaternion();
         this.updateScale = new Vector3();
-
-        this.dummy = new Object3D();
     }
 
     update() {
-        // return;
         this.time ++;
         this.grassMaterial.uniforms.time.value = this.time;
         this.grassMaterial.uniforms.mousePosition.value = glCanvasToWorldPosition(UiMouse.mousePosition);
@@ -177,45 +162,5 @@ export class BackgroundGrass {
             this.seedMesh.setMatrixAt(i, this.matrix);
         }
         this.seedMesh.instanceMatrix.needsUpdate = true;
-        
-        return;
-
-        for (let i = 0; i < this.grassCount; i ++) {
-            this.grassMesh.getMatrixAt(i, this.matrix);
-            this.matrix.decompose(this.updatePosition, this.updateQuaternion, this.updateScale);
-
-            // const angleOffset = 0.1//(Math.cos(this.time * 0.001))
-            // const test = getAxisAndAngelFromQuaternion(this.updateQuaternion);
-            // this.updateQuaternion.setFromAxisAngle(test.axis, test.angle + angleOffset);
-            
-            /*
-            const angle = (Math.cos((this.time * 0.01) + (i * 0.003)) * 0.2)
-            this.updateQuaternion.setFromAxisAngle(new Vector3(0, 0, 1), angle);
-            */
-            this.matrix.compose(this.updatePosition, this.updateQuaternion, this.updateScale);
-
-            this.grassMesh.setMatrixAt(i, this.matrix);
-
-            // if (i < this.seedCount) {
-            //     this.seedMesh.setMatrixAt(i, this.matrix);
-            // }
-        }
-
-        this.grassMesh.instanceMatrix.needsUpdate = true;
-        // this.seedMesh.instanceMatrix.needsUpdate = true;
     }
-}
-
-function getAxisAndAngelFromQuaternion(q) {
-    const angle = 2 * Math.acos(q.w);
-    var s;
-    if (1 - q.w * q.w < 0.000001) {
-      // test to avoid divide by zero, s is always positive due to sqrt
-      // if s close to zero then direction of axis not important
-      // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
-      s = 1;
-    } else { 
-      s = Math.sqrt(1 - q.w * q.w);
-    }
-    return { axis: new Vector3(q.x/s, q.y/s, q.z/s), angle };
 }

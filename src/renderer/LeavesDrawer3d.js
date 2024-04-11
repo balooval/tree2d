@@ -49,9 +49,7 @@ export const leavesPresets = {
 };
 
 export class LeafDrawer3d {
-    constructor(render, lightSource, treeLayer) {
-        this.render = render;
-        this.treeLayer = treeLayer;
+    constructor(lightSource) {
         this.particlesCount = 72;
         this.particlesToDraw = this.particlesCount;
         this.particles = [];
@@ -71,10 +69,16 @@ export class LeafDrawer3d {
 
         this.maxWhileLoop = 999999;
 
-        this.leafPointA = GlMatrix.create();
-        this.leafPointB = GlMatrix.create();
-        this.leafPointC = GlMatrix.create();
-        this.leafPointD = GlMatrix.create();
+        this.drawInstancePosition = new Vector3();
+        this.drawInstanceScale = new Vector3();
+        this.drawInstanceQuaternion = new Quaternion();
+        this.rotationVector = new Vector3(0, 0, 1);
+
+
+        this.attributePosition = null;
+        this.attributeOrientation = null;
+        this.attributeDistance = null;
+        this.attributeLightReceived = null;
 
         for (let i = 0; i < this.particlesCount; i ++) {
             this.particles.push({
@@ -121,36 +125,32 @@ export class LeafDrawer3d {
     }
 
     #initGeometry() {
-        const position = new Vector3();
-        const scale = new Vector3();
+        const position = new Vector3(0, 0, 0);
+        const scale = new Vector3(1, 1, 1);
         const quaternion = new Quaternion();
-        this.leavesPositions = [];
-        this.leavesOrientations = [];
-        this.leavesDistance = [];
-        this.leavesLightReceived = [];
+        this.matrix.compose(position, quaternion, scale);
+        const leavesPositions = [];
+        const leavesOrientations = [];
+        const leavesDistance = [];
+        const leavesLightReceived = [];
 
         for (let i = 0; i < this.leafCount; i++) {
-            const currentDepth = 0;
-
-            position.x = 0;
-            position.y = 0;
-            position.z = currentDepth;
-
-            this.leavesPositions.push(0, 0, currentDepth);
-            this.leavesOrientations.push(1, 0);
-            this.leavesDistance.push(1);
-            this.leavesLightReceived.push(1);
-
-            scale.x = scale.y = scale.z = 1;
-
-            this.matrix.compose(position, quaternion, scale);
+            leavesPositions.push(0, 0, 0);
+            leavesOrientations.push(1, 0);
+            leavesDistance.push(1);
+            leavesLightReceived.push(1);
             this.leafMesh.setMatrixAt(i, this.matrix);
         }
 
-        this.leafGeometry.setAttribute('instancePosition', new InstancedBufferAttribute(new Float32Array(this.leavesPositions), 3));
-        this.leafGeometry.setAttribute('instanceOrientations', new InstancedBufferAttribute(new Float32Array(this.leavesOrientations), 2));
-        this.leafGeometry.setAttribute('instanceDistance', new InstancedBufferAttribute(new Float32Array(this.leavesDistance), 1));
-        this.leafGeometry.setAttribute('instanceLightReceived', new InstancedBufferAttribute(new Float32Array(this.leavesLightReceived), 1));
+        this.attributePosition = new InstancedBufferAttribute(new Float32Array(leavesPositions), 3);
+        this.attributeOrientation = new InstancedBufferAttribute(new Float32Array(leavesOrientations), 2);
+        this.attributeDistance = new InstancedBufferAttribute(new Float32Array(leavesDistance), 1);
+        this.attributeLightReceived = new InstancedBufferAttribute(new Float32Array(leavesLightReceived), 1);
+
+        this.leafGeometry.setAttribute('instancePosition', this.attributePosition);
+        this.leafGeometry.setAttribute('instanceOrientations', this.attributeOrientation);
+        this.leafGeometry.setAttribute('instanceDistance', this.attributeDistance);
+        this.leafGeometry.setAttribute('instanceLightReceived', this.attributeLightReceived);
 
         this.leafMesh.instanceMatrix.needsUpdate = true;
     }
@@ -262,20 +262,12 @@ export class LeafDrawer3d {
         this.particlesToDraw = this.particlesCount;
         this.maxWhileLoop = 999999;
         this.currentInstanceIndex = 0;
-        this.leavesPositions = [];
-        this.leavesOrientations = [];
-        this.leavesDistance = [];
-        this.leavesLightReceived = [];
     }
     
     setLowQuality() {
         this.particlesToDraw = 4;
         this.maxWhileLoop = 10;
         this.currentInstanceIndex = 0;
-        this.leavesPositions = [];
-        this.leavesOrientations = [];
-        this.leavesDistance = [];
-        this.leavesLightReceived = [];
     }
 
     update() {
@@ -288,6 +280,7 @@ export class LeafDrawer3d {
         this.leafMesh.material.uniforms.lightDirection.value.y = this.lightSource.glDirection[1] * -1;
         this.leafMesh.material.uniforms.time.value = this.time;
         this.leafMesh.material.uniforms.mousePosition.value = glCanvasToWorldPosition(UiMouse.mousePosition);
+
         if (this.tree) {
             this.leafMesh.material.uniforms.groundPosition.value = this.tree.position[1];
         }
@@ -295,14 +288,13 @@ export class LeafDrawer3d {
 
     endDraw() {
         this.leafMesh.count = this.currentInstanceIndex;
-        this.leafGeometry.setAttribute('instancePosition', new InstancedBufferAttribute(new Float32Array(this.leavesPositions), 3));
-        this.leafGeometry.setAttribute('instanceOrientations', new InstancedBufferAttribute(new Float32Array(this.leavesOrientations), 2));
-        this.leafGeometry.setAttribute('instanceDistance', new InstancedBufferAttribute(new Float32Array(this.leavesDistance), 1));
-        this.leafGeometry.setAttribute('instanceLightReceived', new InstancedBufferAttribute(new Float32Array(this.leavesLightReceived), 1));
+        this.attributePosition.needsUpdate = true;
+        this.attributeDistance.needsUpdate = true;
+        this.attributeOrientation.needsUpdate = true;
+        this.attributeLightReceived.needsUpdate = true;
     }
 
     draw(tree, position, size, lightQuantity, formRatio, heliotropism) {
-        // TODO: pouvoir dessiner plusieurs feuillages en ayant une mesh par arbre
         this.tree = tree;
         this.formRatio = formRatio;
         this.heliotropism = heliotropism;
@@ -329,7 +321,6 @@ export class LeafDrawer3d {
     }
 
     #setupParticles(position, size, lightQuantity) {
-
         const baseLife = this.preset.baseLife;
 
         for (let i = 0; i < this.particlesToDraw; i ++) {
@@ -345,9 +336,7 @@ export class LeafDrawer3d {
     }
 
     #drawStep(loopCounter) {
-        const position = new Vector3();
-        const scale = new Vector3();
-        const quaternion = new Quaternion();
+        const currentDepth = 0;
 
         for (let i = 0; i < this.particlesToDraw; i++) {
             if (this.currentInstanceIndex > this.leafCount) {
@@ -365,31 +354,20 @@ export class LeafDrawer3d {
                 continue;
             }
 
-            const currentDepth = 0;
+            this.drawInstanceScale.x = this.drawInstanceScale.y = this.drawInstanceScale.z = particle.size;
 
-            scale.x = scale.y = scale.z = particle.size;
+            this.drawInstancePosition.x = particle.glPosition[0];
+            this.drawInstancePosition.y = particle.glPosition[1];
+            this.drawInstancePosition.z = currentDepth;
 
-            position.x = particle.glPosition[0];
-            position.y = particle.glPosition[1];
-            position.z = currentDepth;
-
-            this.leavesPositions.push(
-                position.x,
-                position.y,
-                position.z,
-            );
-
-            this.leavesOrientations.push(
-                particle.originalOrientation[0],
-                particle.originalOrientation[1],
-            );
-
-            this.leavesDistance.push(loopCounter);
-            this.leavesLightReceived.push(particle.lightReceived,);
+            this.attributePosition.setXY(this.currentInstanceIndex, particle.glPosition[0], particle.glPosition[1]);
+            this.attributeDistance.setX(this.currentInstanceIndex, loopCounter);
+            this.attributeOrientation.setXY(this.currentInstanceIndex, particle.originalOrientation[0], particle.originalOrientation[1]);
+            this.attributeLightReceived.setX(this.currentInstanceIndex, particle.lightReceived);
 
             const angle = randomize(0, 3.14);
-            quaternion.setFromAxisAngle(new Vector3(0, 0, 1), angle);
-            this.matrix.compose(position, quaternion, scale);
+            this.drawInstanceQuaternion.setFromAxisAngle(this.rotationVector, angle);
+            this.matrix.compose(this.drawInstancePosition, this.drawInstanceQuaternion, this.drawInstanceScale);
             this.leafMesh.setMatrixAt(this.currentInstanceIndex, this.matrix);
 
             this.currentInstanceIndex ++;

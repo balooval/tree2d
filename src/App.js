@@ -1,4 +1,4 @@
-import { BaseRender, setOutputCanvas, changeScale, canvasToWorldPosition } from './renderer/BaseRender.js'
+import { BaseRender, setOutputCanvas, changeScale } from './renderer/BaseRender.js'
 import TreeRender from './renderer/TreeRender.js'
 import LightRender from './renderer/LightRender.js'
 import LightDirectional from './LightDirectional.js';
@@ -11,7 +11,6 @@ import UiLightMode from './UiLightMode.js';
 import UiCut from './UiCut.js';
 import UiBend from './UiBend.js';
 import { LeafDrawer3d, leavesPresets } from './renderer/LeavesDrawer3d.js';
-import { GrassDrawer } from './renderer/GrassDrawer.js';
 import TrunkRender3d from './renderer/TrunkRender3d.js';
 import * as Render3D from './renderer/Render3d.js';
 import { Butterfly } from './Butterfly.js';
@@ -24,10 +23,9 @@ const treesSolo = [];
 const lightSource = new LightDirectional(0, 500, 0, 20);
 const treeLayer = new BaseRender();
 const leafLayer = new BaseRender();
+const backgroundGrass = new BackgroundGrass(groundPosition);
 const trunkRender = new TrunkRender3d(treeLayer, lightSource);
-const leafDrawer = new LeafDrawer3d(leafLayer, lightSource, treeLayer);
-const grassDrawer = new GrassDrawer(treeLayer, lightSource);
-const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, leafDrawer, grassDrawer);
+const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, backgroundGrass);
 const lightLayer = new BaseRender();
 const lightRender = new LightRender(lightLayer);
 
@@ -42,7 +40,6 @@ let applyBend = true;
 
 let canvas3D;
 const butterflies = [];
-let backgroundGrass;
 
 let currentMouseMode = null;
 const mouseModes = {
@@ -87,8 +84,8 @@ export function init(_canvasId) {
     treesSolo.push(new Tree(0, groundPosition, currentPreset));
     // treesSolo.push(new Tree(-560, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-400, groundPosition), currentPreset));
-    // treesSolo.push(new Tree(new Vector(-230, groundPosition), currentPreset));
-    // treesSolo.push(new Tree(new Vector(320, groundPosition), currentPreset));
+    // treesSolo.push(new Tree(-230, groundPosition, currentPreset));
+    // treesSolo.push(new Tree(200, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(600, groundPosition), currentPreset));
     // treesSolo.push(new Tree(new Vector(710, groundPosition), currentPreset));
 
@@ -117,13 +114,10 @@ export function init(_canvasId) {
         new Butterfly(0, groundPosition + 100),
     );
     
-    backgroundGrass = new BackgroundGrass(groundPosition);
-
     onFrame();
 }
 
 function resetTree() {
-    grassDrawer.reset();
     treesSolo[0] = new Tree(0, groundPosition, currentPreset);
     drawTrees();
 }
@@ -149,7 +143,8 @@ function onLeavesPresetChanged() {
 
     treesSolo[0].preset.leavesPreset = leavesType;
 
-    leafDrawer.setPreset(leavesPresets[leavesType]);
+    // TODO: gérer les multiples leafDrawer
+    // leafDrawer.setPreset(leavesPresets[leavesType]);
 
     drawTrees();
 }
@@ -183,15 +178,18 @@ function onFrame() {
 
     
     if (document.hasFocus() === true) {
-        backgroundGrass.update();
         butterflies.forEach(butterfly => butterfly.update());
+        for (const trees of treesList) {
+            trees.forEach(tree => treeRender.update(tree));
+        }
     }
     
     updateScreen();
     
     currentMouseMode.update();
     
-    leafDrawer.update();
+    
+    // leafDrawer.update();
 
     requestAnimationFrame(onFrame);
 }

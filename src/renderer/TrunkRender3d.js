@@ -37,21 +37,6 @@ class TrunkRender3d {
         this.meshes = new Map();
         this.vertices = [];
         this.vertexColors = [];
-
-        // this.#testShaderCrack();
-    }
-
-    #testShaderCrack() {
-        const material = new ShaderMaterial({
-            side: DoubleSide,
-            fragmentShader: FragmentShader,
-            vertexShader: VertexShader,
-        })
-
-        const geometry = new PlaneGeometry(500, 500);
-        const plane = new Mesh(geometry, material);
-        plane.position.y = 500;
-        Render3D.addToScene(plane);
     }
 
     draw(tree) {
