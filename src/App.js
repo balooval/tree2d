@@ -8,14 +8,13 @@ import { treeGrowUpdate } from './TreesUpdater.js';
 import * as UiControls from './UiControls.js';
 import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
-import { LeafDrawer } from './renderer/LeavesDrawer.js';
 import { LeafDrawer3d } from './renderer/LeavesDrawer3d.js';
 import { GrassDrawer } from './renderer/GrassDrawer.js';
-import TrunkRender from './renderer/TrunkRender.js';
 import TrunkRender3d from './renderer/TrunkRender3d.js';
 import * as Render3D from './renderer/Render3d.js';
 import { Butterfly } from './Butterfly.js';
 import { BackgroundGrass } from './BackgroundGrass.js';
+import { intCanvasToWorldPosition } from './renderer/BaseRender.js';
 
 
 const groundPosition = 70;
@@ -184,6 +183,12 @@ function onPresetChanged() {
 }
 
 function onFrame() {
+
+    // Juste pour avoir l'éclairage en temps réel
+    // const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
+    // lightSource.reset(lightPosition[0], lightPosition[1]);
+
+
     if (run === true) {
         updateTrees();
     }

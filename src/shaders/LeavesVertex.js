@@ -1,14 +1,21 @@
 import PerlinNoise from './PerlinNoise.js';
+import Colors from './Colors.js';
 
 export default `
 uniform float time;
 uniform float groundPosition;
-uniform vec2 mousePosition; 
-varying vec3 vUv;
-varying vec3 vInstanceColor;
+uniform vec2 mousePosition;
+uniform vec2 lightDirection;
+uniform vec3 globalColor;
+varying vec3 vFinalColor;
 attribute vec3 instancePosition; 
+attribute vec2 instanceOrientations; 
+attribute float instanceDistance; 
+attribute float instanceLightReceived; 
 
 ${PerlinNoise}
+
+${Colors}
 
 vec2 rotate(vec2 point, float radAngle, vec2 pivot)
 {
@@ -21,8 +28,17 @@ vec2 rotate(vec2 point, float radAngle, vec2 pivot)
 }
 
 void main() {
-    vUv = position; 
-    vInstanceColor = instanceColor; 
+    float instanceLightShade = (dot(lightDirection, instanceOrientations) + 1.3) * 0.4;
+    // instanceLightShade += instanceDistance * 0.02;
+    instanceLightShade += instanceDistance * (instanceLightReceived * 0.1);
+
+    vec3 hsl = rgb2hsl(globalColor);
+    hsl.z *= instanceLightShade;
+
+    vec3 finalRgb = hsl2rgb(hsl);
+
+    vFinalColor = finalRgb;
+    // vFinalColor = vec3(instanceLightReceived, instanceLightReceived, instanceLightReceived);
 
     //gl_Position = projectionMatrix * viewMatrix * modelMatrix * instanceMatrix * vec4(position, 1.0);
 
@@ -38,8 +54,8 @@ void main() {
     vec2 toto = vec2(instancePosition.xy - mousePosition);
     float angleWithMouse = atan(toto.y, toto.x);
     float mouseForce = 150.0 - clamp(distance(mousePosition, vec2(instancePosition.xy)), 1.0, 150.0);
-    float mouseTranslationX = cos(angleWithMouse) * (mouseForce * 0.15);
-    float mouseTranslationY = sin(angleWithMouse) * (mouseForce * 0.15);
+    float mouseTranslationX = cos(angleWithMouse) * (mouseForce * 0.11);
+    float mouseTranslationY = sin(angleWithMouse) * (mouseForce * 0.11);
 
     worldPosition.x += mouseTranslationX;
     worldPosition.y += mouseTranslationY;

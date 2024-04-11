@@ -1,9 +1,7 @@
 
 export default `
-varying vec3 vUv;
-varying vec3 vInstanceColor;
-uniform float time;
+varying vec3 vFinalColor;
 
 void main() {
-    gl_FragColor = vec4(vInstanceColor.xyz, 1.0);
+    gl_FragColor = vec4(vFinalColor.xyz, 1.0);
 }`;
