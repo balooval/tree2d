@@ -45,6 +45,7 @@ let applyBend = true;
 let canvas3D;
 const butterflies = [];
 let backgroundGrass;
+let mouseMode = 'LIGHT';
 
 const backgroundColor = 'rgb(200, 200, 200)';
 // const backgroundColor = 'rgb(100, 100, 100)';
@@ -127,9 +128,11 @@ function setMouseCutMode(state) {
 
 function setMouseRunMode(state = true) {
     if (state === true) {
+        mouseMode = 'LIGHT';
         document.getElementById(canvasId).addEventListener('mousedown', onMouseDown);
         document.getElementById(canvasId).addEventListener('mouseup', onMouseUp);
     } else {
+        mouseMode = 'CUT';
         document.getElementById(canvasId).removeEventListener('mousedown', onMouseDown);
         document.getElementById(canvasId).removeEventListener('mouseup', onMouseUp);
     }
@@ -188,8 +191,11 @@ function onFrame() {
     // const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
     // lightSource.reset(lightPosition[0], lightPosition[1]);
 
-
     if (run === true) {
+        if (mouseMode === 'LIGHT') {
+            const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
+            lightSource.reset(lightPosition[0], lightPosition[1]);
+        }
         updateTrees();
     }
 

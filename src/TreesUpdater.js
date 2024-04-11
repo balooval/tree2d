@@ -1,8 +1,6 @@
 import Attractor from './Attractor.js';
 import RBush from '../vendor/rbush.js';
 import RBushKnn from '../vendor/rbush-knn.js';
-import { intCanvasToWorldPosition } from './renderer/BaseRender.js';
-import * as UiMouse from './UiMouse.js';
 import UiCut from './UiCut.js';
 
 const rbushAttractors = new RBush();
@@ -14,9 +12,6 @@ export function treeGrowUpdate(trees, lightSource, applyBend) {
     rbushAttractors.clear();
     rbushBranchs.clear();
     freeAttractors(attractors);
-
-    const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
-    lightSource.reset(lightPosition[0], lightPosition[1]);
 
     const branchs = [];
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
