@@ -29,8 +29,14 @@ body {
                             <label class="btn btn-danger" for="btn-reset-tree">Reset</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input type="checkbox" class="btn-check" id="cutMode" autocomplete="off">
+                            <input type="radio" class="btn-check" name="mouseMode" id="lightMode" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary" for="lightMode">Light mode</label>
+
+                            <input type="radio" class="btn-check" name="mouseMode" id="cutMode" autocomplete="off">
                             <label class="btn btn-outline-danger" for="cutMode">Cut mode</label>
+
+                            <input type="radio" class="btn-check" name="mouseMode" id="bendMode" autocomplete="off">
+                            <label class="btn btn-outline-danger" for="bendMode">Bend mode</label>
                         </div>
                         <div class="form-check form-switch form-check-inline">
                             <input class="form-check-input" type="checkbox" id="applyBend" checked> <label class="form-check-label" for="applyBend">Apply bending</label>

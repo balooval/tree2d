@@ -2,7 +2,7 @@ import * as UiMouse from './UiMouse.js';
 import RBushKnn from '../vendor/rbush-knn.js';
 import { BaseRender, canvasToWorldPosition } from './renderer/BaseRender.js';
 
-class UiCut {
+class UiBend {
     constructor() {
         this.render = new BaseRender();
         this.canvasId = null;
@@ -45,15 +45,15 @@ class UiCut {
         if (this.active === false) {
             return;
         }
-        const worldPosition = canvasToWorldPosition({x:UiMouse.mousePosition[0], y:UiMouse.mousePosition[1]});
-        const nearBranch = RBushKnn(this.rbushBranchs, worldPosition[0], worldPosition[1], 1, undefined, this.maxSearchDistance);
+        // const worldPosition = canvasToWorldPosition({x:UiMouse.mousePosition[0], y:UiMouse.mousePosition[1]});
+        // const nearBranch = RBushKnn(this.rbushBranchs, worldPosition[0], worldPosition[1], 1, undefined, this.maxSearchDistance);
 
-        if (nearBranch.length === 0) {
-            this.targetBranch = null;
-            return;
-        }
+        // if (nearBranch.length === 0) {
+        //     this.targetBranch = null;
+        //     return;
+        // }
 
-        this.targetBranch = nearBranch.pop().branch;
+        // this.targetBranch = nearBranch.pop().branch;
     }
 
     update() {
@@ -88,4 +88,4 @@ class UiCut {
     }
 }
 
-export default new UiCut();
+export default new UiBend();
