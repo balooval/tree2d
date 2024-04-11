@@ -10,7 +10,7 @@ import * as UiMouse from './UiMouse.js';
 import UiLightMode from './UiLightMode.js';
 import UiCut from './UiCut.js';
 import UiBend from './UiBend.js';
-import { LeafDrawer3d } from './renderer/LeavesDrawer3d.js';
+import { LeafDrawer3d, leavesPresets } from './renderer/LeavesDrawer3d.js';
 import { GrassDrawer } from './renderer/GrassDrawer.js';
 import TrunkRender3d from './renderer/TrunkRender3d.js';
 import * as Render3D from './renderer/Render3d.js';
@@ -149,6 +149,8 @@ function onLeavesPresetChanged() {
 
     treesSolo[0].preset.leavesPreset = leavesType;
 
+    leafDrawer.setPreset(leavesPresets[leavesType]);
+
     drawTrees();
 }
 
@@ -171,7 +173,7 @@ function onKeyUp(evt) {
 }
 
 function onPresetChanged() {
-    updateTrees();
+    drawTrees();
 }
 
 function onFrame() {

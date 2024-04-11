@@ -33,6 +33,7 @@ export const leavesPresets = {
         randomSkip: 0.9,
         geometryType: 'palm',
         hue: 80,
+        scale: 1,
     },
     spike: {
         id: 'spike',
@@ -43,6 +44,7 @@ export const leavesPresets = {
         randomSkip: 0.8,
         geometryType: 'star',
         hue: 137,
+        scale: 0.6,
     }
 };
 
@@ -56,7 +58,6 @@ export class LeafDrawer3d {
         this.formRatio = 0;
         this.heliotropism = GlMatrix.create();
         this.lightSource = lightSource;
-        this.hue = 80;
         this.saturation = 55;
         this.luminence = 45;
         this.tree = null;
@@ -91,14 +92,14 @@ export class LeafDrawer3d {
         this.matrix = new Matrix4();
         this.leafCount = 500000;
 
-        const globalColor = new Color(`hsl(${this.hue}, ${this.saturation}%, ${this.luminence}%)`);
+        this.globalColor = new Color(`hsl(80, ${this.saturation}%, ${this.luminence}%)`);
 
         const uniforms = {
             time: {type: 'float', value: this.time},
             groundPosition: {type: 'float', value: 0},
             mousePosition: {value: new Vector2(0, 0)},
             lightDirection: {value: new Vector2(0, 0)},
-            globalColor: {value: globalColor},
+            globalColor: {value: this.globalColor},
         }
         const leafMaterial = new ShaderMaterial({
             uniforms: uniforms,
@@ -246,7 +247,7 @@ export class LeafDrawer3d {
             return;
         }
         this.preset = preset;
-        
+
         if (this.preset.geometryType === 'palm') {
             this.leafGeometry = this.#createPalmGeometry();
         } else {
@@ -255,8 +256,6 @@ export class LeafDrawer3d {
         
         this.#initGeometry();
         this.leafMesh.geometry = this.leafGeometry;
-        
-        this.setColor(this.preset.hue);
     }
 
     setFullQuality() {
@@ -279,15 +278,12 @@ export class LeafDrawer3d {
         this.leavesLightReceived = [];
     }
 
-    setColor(hue) {
-        this.hue = hue;
-
-        const globalColor = new Color(`hsl(${this.hue}, ${this.saturation}%, ${this.luminence}%)`);
-        this.leafMesh.material.uniforms.globalColor.value = globalColor;
-    }
-
     update() {
         this.time ++;
+
+        this.globalColor.setStyle(`hsl(${this.preset.hue}, ${this.saturation}%, ${this.luminence}%)`);
+        this.leafMesh.material.uniforms.globalColor.value = this.globalColor;
+
         this.leafMesh.material.uniforms.lightDirection.value.x = this.lightSource.glDirection[0] * -1;
         this.leafMesh.material.uniforms.lightDirection.value.y = this.lightSource.glDirection[1] * -1;
         this.leafMesh.material.uniforms.time.value = this.time;

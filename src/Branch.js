@@ -318,11 +318,6 @@ export class Branch {
         return this.buds.filter(bud => bud.light > 0.5);
     }
 
-    getLeaveColor() {
-        const hsl = randomElement(this.preset.leaveColors);
-        return `hsl(${hsl.h + 60}, ${hsl.s}%, ${hsl.l + 10}%)`;
-    }
-
     getLeavesObstruction() {
         return this.childs.length + this.buds.length;
     }

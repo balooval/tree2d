@@ -29,8 +29,6 @@ void main() {
     // gl_FragColor = vec4(1.0, 0.0, 0.0, horPos);
     // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 
-
-
     
     vec2 noiseUv = vec2(noiseUv.x, noiseUv.y);
     
@@ -50,15 +48,7 @@ void main() {
 
     float minimumLight = 0.3;
 
-    // if (vUv.x < 0.02 && hsl.z < minimumLight) {
-    //     discard;
-    // }
-    // if (vUv.x > 0.98 && hsl.z < minimumLight) {
-    //     discard;
-    // }
-
     vec3 rgb = hsl2rgb(hsl);
     
-
     gl_FragColor = vec4(rgb.xyz, 1.0);
 }`;

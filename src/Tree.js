@@ -15,14 +15,6 @@ export const presets = {
         uselessBeforePrune: 30,
         directionConstrainFactor: 0.1,
         leavesPreset: 'standard',
-        leafScale: 1,
-        leafImage: 'leaf3',
-        leafHue: 80,
-        leaveColors: [
-            {h: 70, s: 70, l: 20},
-            {h: 30, s: 70, l: 20},
-            {h: 65, s: 100, l: 15},
-        ],
         trunkColors: [
             'rgb(107, 99, 85)',
             'rgb(117, 111, 100)',
@@ -53,14 +45,6 @@ export const presets = {
         uselessBeforePrune: 30,
         directionConstrainFactor: 0.04,
         leavesPreset: 'spike',
-        leafScale: 0.6,
-        leafImage: 'leaf2',
-        leafHue: 95,
-        leaveColors: [
-            {h: 70, s: 70, l: 20},
-            {h: 30, s: 70, l: 20},
-            {h: 65, s: 100, l: 15},
-        ],
         trunkColors: [
             'rgb(71, 58, 37)',
             'rgb(82, 62, 29)',
