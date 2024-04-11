@@ -19,8 +19,16 @@ class UiCut {
         this.mainContext = canvas.getContext('2d');
         this.canvasId = canvas.id;
         this.rbushBranchs = null;
-        document.getElementById(this.canvasId).addEventListener('mousemove', () => this.onMouseMove());
-        document.getElementById(this.canvasId).addEventListener('click', () => this.onClick());
+        document.getElementById(this.canvasId).addEventListener('mousemove', () => this.#onMouseMove());
+        document.getElementById(this.canvasId).addEventListener('click', () => this.#onClick());
+    }
+
+    update() {
+        if (this.active === false) {
+            return;
+        }
+
+        this.#draw();
     }
 
     start() {
@@ -33,7 +41,7 @@ class UiCut {
         this.render.clear();
     }
 
-    onClick() {
+    #onClick() {
         if (this.targetBranch !== null) {
             this.targetBranch.remove();
             this.cutCallback();
@@ -41,7 +49,7 @@ class UiCut {
         }
     }
 
-    onMouseMove() {
+    #onMouseMove() {
         if (this.active === false) {
             return;
         }
@@ -56,21 +64,18 @@ class UiCut {
         this.targetBranch = nearBranch.pop().branch;
     }
     
-    draw() {
-        if (this.active === false) {
-            return;
-        }
+    #draw() {
 
         this.render.clear();
 
         if (this.targetBranch !== null) {
-            this.drawTargetBranch(this.targetBranch);
+            this.#drawTargetBranch(this.targetBranch);
         }
 
         this.render.drawIntoContext(this.mainContext);
     }
 
-    drawTargetBranch(branch) {
+    #drawTargetBranch(branch) {
         const allBranchs = branch.addToList([]);
         
         for (let i = 0; i < allBranchs.length; i ++) {

@@ -2,6 +2,7 @@ import Attractor from './Attractor.js';
 import RBush from '../vendor/rbush.js';
 import RBushKnn from '../vendor/rbush-knn.js';
 import UiCut from './UiCut.js';
+import UiBend from './UiBend.js';
 
 const rbushAttractors = new RBush();
 const rbushBranchs = new RBush();
@@ -17,6 +18,7 @@ export function treeGrowUpdate(trees, lightSource, applyBend) {
     trees.forEach(tree => branchs.push(...tree.getBranchs()));
     indexBranchs(branchs);
     UiCut.setBranches(rbushBranchs);
+    UiBend.setBranches(rbushBranchs);
     lightSource.emit(rbushBranchs);
 
     attractors = createAttractors(lightSource.getPhotons());

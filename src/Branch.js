@@ -246,7 +246,26 @@ export class Branch {
         const ground = GlMatrix.fromValues(-1, 0);
         const bendFactor = GlMatrix.dot(this.glDirection, ground);
         const bendAngle = (bendFactor * this.length * this.weight) * localFlexibility;
-        GlMatrix.rotate(this.glEnd, this.glEnd, this.glStart, bendAngle);
+
+        this.rotate(bendAngle);
+        
+        for (let i = 0; i < this.childs.length; i ++) {
+            this.childs[i].bend();
+        }
+    }
+
+    softRotate(angle, curDepth, maxDepth) {
+        this.rotate(angle);
+
+        if (curDepth < maxDepth) {
+            for (let i = 0; i < this.childs.length; i ++) {11
+                this.childs[i].softRotate(angle * 0.8, curDepth + 1, maxDepth);
+            }
+        }
+    }
+
+    rotate(angle) {
+        GlMatrix.rotate(this.glEnd, this.glEnd, this.glStart, angle);
         GlMatrix.normalize(this.glDirection, GlMatrix.sub(glOutput, this.glEnd, this.glStart));
         this.length = GlMatrix.dist(this.glEnd, this.glStart)
 
@@ -255,11 +274,7 @@ export class Branch {
         }
 
         for (let i = 0; i < this.childs.length; i ++) {
-            this.childs[i].followParentBend(bendAngle, this.glStart);
-        }
-        
-        for (let i = 0; i < this.childs.length; i ++) {
-            this.childs[i].bend();
+            this.childs[i].followParentBend(angle, this.glStart);
         }
     }
 

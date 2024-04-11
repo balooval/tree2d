@@ -7,14 +7,15 @@ import { presets } from './Tree.js';
 import { treeGrowUpdate } from './TreesUpdater.js';
 import * as UiControls from './UiControls.js';
 import * as UiMouse from './UiMouse.js';
+import UiLightMode from './UiLightMode.js';
 import UiCut from './UiCut.js';
+import UiBend from './UiBend.js';
 import { LeafDrawer3d } from './renderer/LeavesDrawer3d.js';
 import { GrassDrawer } from './renderer/GrassDrawer.js';
 import TrunkRender3d from './renderer/TrunkRender3d.js';
 import * as Render3D from './renderer/Render3d.js';
 import { Butterfly } from './Butterfly.js';
 import { BackgroundGrass } from './BackgroundGrass.js';
-import { intCanvasToWorldPosition } from './renderer/BaseRender.js';
 
 
 const groundPosition = 70;
@@ -23,9 +24,7 @@ const treesSolo = [];
 const lightSource = new LightDirectional(0, 500, 0, 20);
 const treeLayer = new BaseRender();
 const leafLayer = new BaseRender();
-// const trunkRender = new TrunkRender(treeLayer, lightSource);
 const trunkRender = new TrunkRender3d(treeLayer, lightSource);
-// const leafDrawer = new LeafDrawer(leafLayer, lightSource, treeLayer);
 const leafDrawer = new LeafDrawer3d(leafLayer, lightSource, treeLayer);
 const grassDrawer = new GrassDrawer(treeLayer, lightSource);
 const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, leafDrawer, grassDrawer);
@@ -39,18 +38,20 @@ const currentPreset = presets['typeA'];
 let canvasId = null;
 let canvas = null;
 let context = null;
-let run = false;
 let applyBend = true;
 
 let canvas3D;
 const butterflies = [];
 let backgroundGrass;
-let mouseMode = 'LIGHT';
+
+let currentMouseMode = null;
+const mouseModes = {
+    lightMode: null,
+    cutMode: null,
+    bendMode: null,
+};
 
 const backgroundColor = 'rgb(200, 200, 200)';
-// const backgroundColor = 'rgb(100, 100, 100)';
-// const backgroundColor = 'rgb(10, 10, 10)';
-// const backgroundColor = 'rgb(74, 110, 144)';
 
 export function init(_canvasId) {
     canvasId = _canvasId;
@@ -69,10 +70,20 @@ export function init(_canvasId) {
     leafLayer.init();
     treeLayer.init();
     lightLayer.init();
+    UiLightMode.init(canvas, lightSource, updateTrees);
     UiCut.init(canvas, updateTrees);
+    UiBend.init(canvas, updateTrees);
+
+    mouseModes.lightMode = UiLightMode;
+    mouseModes.cutMode = UiCut;
+    mouseModes.bendMode = UiBend;
+
+    currentMouseMode = UiLightMode;
+    currentMouseMode.start();
+    
     UiControls.init(treeRender, onPresetChanged);
     UiControls.setPreset(currentPreset);
-    
+
     treesSolo.push(new Tree(0, groundPosition, currentPreset));
     // treesSolo.push(new Tree(-560, groundPosition, currentPreset));
     // treesSolo.push(new Tree(new Vector(-400, groundPosition), currentPreset));
@@ -83,10 +94,11 @@ export function init(_canvasId) {
 
     treesList.push(treesSolo);
 
-    setMouseRunMode(true);
-
     document.getElementById('btn-reset-tree').addEventListener('change', resetTree);
-    document.getElementById('cutMode').addEventListener('change', evt => setMouseCutMode(evt.target.checked));
+
+    document.getElementById('lightMode').addEventListener('change', changeMouseMode);
+    document.getElementById('cutMode').addEventListener('change', changeMouseMode);
+    document.getElementById('bendMode').addEventListener('change', changeMouseMode);
     document.getElementById('applyBend').addEventListener('change', onApplyBendChanged);
     document.getElementById('presetTypeA').addEventListener('change', onTreeTypeSelectChanged);
     document.getElementById('presetTypeB').addEventListener('change', onTreeTypeSelectChanged);
@@ -116,26 +128,11 @@ function resetTree() {
     drawTrees();
 }
 
-function setMouseCutMode(state) {
-    if (state === true) {
-        setMouseRunMode(false);
-        UiCut.start();
-    } else {
-        setMouseRunMode(true);
-        UiCut.stop();
-    }
-}
-
-function setMouseRunMode(state = true) {
-    if (state === true) {
-        mouseMode = 'LIGHT';
-        document.getElementById(canvasId).addEventListener('mousedown', onMouseDown);
-        document.getElementById(canvasId).addEventListener('mouseup', onMouseUp);
-    } else {
-        mouseMode = 'CUT';
-        document.getElementById(canvasId).removeEventListener('mousedown', onMouseDown);
-        document.getElementById(canvasId).removeEventListener('mouseup', onMouseUp);
-    }
+function changeMouseMode() {
+    const selectedMode = document.querySelector('input[name="mouseMode"]:checked').id;
+    currentMouseMode.stop();
+    currentMouseMode = mouseModes[selectedMode];
+    currentMouseMode.start();
 }
 
 function onApplyBendChanged() {
@@ -173,41 +170,25 @@ function onKeyUp(evt) {
     }
 }
 
-function onMouseDown() {
-    run = true;
-}
-
-function onMouseUp(evt) {
-    run = false;
-}
-
 function onPresetChanged() {
     updateTrees();
 }
 
 function onFrame() {
-
     // Juste pour avoir l'éclairage en temps réel
     // const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
     // lightSource.reset(lightPosition[0], lightPosition[1]);
 
-    if (run === true) {
-        if (mouseMode === 'LIGHT') {
-            const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
-            lightSource.reset(lightPosition[0], lightPosition[1]);
-        }
-        updateTrees();
-    }
-
+    
     if (document.hasFocus() === true) {
         backgroundGrass.update();
         butterflies.forEach(butterfly => butterfly.update());
     }
-
+    
     updateScreen();
-
-    UiCut.draw();
-
+    
+    currentMouseMode.update();
+    
     leafDrawer.update();
 
     requestAnimationFrame(onFrame);
