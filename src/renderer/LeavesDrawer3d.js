@@ -6,7 +6,6 @@ import FragmentShader from '../shaders/LeavesFragment.js';
 import VertexShader from '../shaders/LeavesVertex.js';
 import {
 	Vector3,
-	MeshBasicMaterial,
 	InstancedMesh,
     Quaternion,
     DoubleSide,
@@ -26,16 +25,24 @@ const glGround = GlMatrix.fromValues(1, 0);
 
 export const leavesPresets = {
     standard: {
+        id: 'standard',
         baseLife: 100,
         translationSpeed: 4,
         heliotropism: [0, -1],
         shape: 'round',
+        randomSkip: 0.9,
+        geometryType: 'palm',
+        hue: 80,
     },
     spike: {
+        id: 'spike',
         baseLife: 100,
         translationSpeed: 4,
         heliotropism: [0, 0.5],
         shape: 'quad',
+        randomSkip: 0.8,
+        geometryType: 'star',
+        hue: 137,
     }
 };
 
@@ -108,6 +115,11 @@ export class LeafDrawer3d {
 
 
         this.currentInstanceIndex = 0;
+
+        this.#initGeometry();
+    }
+
+    #initGeometry() {
         const position = new Vector3();
         const scale = new Vector3();
         const quaternion = new Quaternion();
@@ -131,8 +143,6 @@ export class LeafDrawer3d {
             scale.x = scale.y = scale.z = 1;
 
             this.matrix.compose(position, quaternion, scale);
-
-
             this.leafMesh.setMatrixAt(i, this.matrix);
         }
 
@@ -142,7 +152,6 @@ export class LeafDrawer3d {
         this.leafGeometry.setAttribute('instanceLightReceived', new InstancedBufferAttribute(new Float32Array(this.leavesLightReceived), 1));
 
         this.leafMesh.instanceMatrix.needsUpdate = true;
-        // this.leafMesh.instanceColor.needsUpdate = true;
     }
 
     #createPalmGeometry() {
@@ -196,29 +205,31 @@ export class LeafDrawer3d {
 
     #createStarGeometry() {
         const size = 1;
-        const innerSize = size * 0.8;
+        const innerSize = size * 0.2;
         const vertPos = [];
-        const circleEdges = 12;
-        const fullAngle = Math.PI * 2;
+        const circleEdges = 5;
+        const fullAngle = 2;
         const angleStep = fullAngle / circleEdges;
+        const halfPi = Math.PI / 2;
 
         for (let i = 0; i < circleEdges; i ++) {
             const angle = angleStep * i;
             const nextAngle = angleStep * (i + 1);
-            const midSize = size * 1.5;
             const midAngle = angleStep * (i + 0.5);
 
             vertPos.push(
-                0, 0, 0,
-                Math.cos(angle) * innerSize, size + Math.sin(angle) * innerSize, 0,
-                Math.cos(nextAngle) * innerSize, size + Math.sin(nextAngle) * innerSize, 0,
+                // 0, 0, 0,
+                // Math.cos(angle) * innerSize, size + Math.sin(angle) * innerSize, 0,
+                // Math.cos(nextAngle) * innerSize, size + Math.sin(nextAngle) * innerSize, 0,
                 
-                Math.cos(angle) * innerSize, size + Math.sin(angle) * innerSize, 0,
-                Math.cos(midAngle) * size, size + Math.sin(midAngle) * size, 0,
-                Math.cos(nextAngle) * innerSize, size + Math.sin(nextAngle) * innerSize, 0,
-            );
+                Math.cos(angle - halfPi) * innerSize, Math.sin(angle - halfPi) * innerSize, 0,
+                Math.cos(angle) * size, Math.sin(angle) * size, 0,
+                Math.cos(angle + halfPi) * innerSize, Math.sin(angle + halfPi) * innerSize, 0,
 
-            i
+                // Math.cos(angle) * innerSize, Math.sin(angle) * innerSize, 0,
+                // Math.cos(midAngle) * size, Math.sin(midAngle) * size, 0,
+                // Math.cos(nextAngle) * innerSize, Math.sin(nextAngle) * innerSize, 0,
+            );
         }
 
         
@@ -231,7 +242,21 @@ export class LeafDrawer3d {
     }
 
     setPreset(preset) {
+        if (this.preset.id === preset.id) {
+            return;
+        }
         this.preset = preset;
+        
+        if (this.preset.geometryType === 'palm') {
+            this.leafGeometry = this.#createPalmGeometry();
+        } else {
+            this.leafGeometry = this.#createStarGeometry();
+        }
+        
+        this.#initGeometry();
+        this.leafMesh.geometry = this.leafGeometry;
+        
+        this.setColor(this.preset.hue);
     }
 
     setFullQuality() {
@@ -262,7 +287,6 @@ export class LeafDrawer3d {
     }
 
     update() {
-        // console.log('this.lightSource.glDirection', this.lightSource.glDirection[0], this.lightSource.glDirection[1]);
         this.time ++;
         this.leafMesh.material.uniforms.lightDirection.value.x = this.lightSource.glDirection[0] * -1;
         this.leafMesh.material.uniforms.lightDirection.value.y = this.lightSource.glDirection[1] * -1;
@@ -306,7 +330,6 @@ export class LeafDrawer3d {
         }
 
         this.leafMesh.instanceMatrix.needsUpdate = true;
-        // this.leafMesh.instanceColor.needsUpdate = true;
     }
 
     #setupParticles(position, size, lightQuantity) {
@@ -335,8 +358,8 @@ export class LeafDrawer3d {
                 console.log('MORE LEAVES THAN', this.currentInstanceIndex);
                 return;
             }
-            
-            if (Math.random() < 0.9) {
+
+            if (Math.random() < this.preset.randomSkip) {
                 continue;
             }
 

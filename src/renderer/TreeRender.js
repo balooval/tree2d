@@ -1,5 +1,5 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
-import { leavesPresets } from "./LeavesDrawer.js";
+import { leavesPresets } from "./LeavesDrawer3d.js";
 import { radians } from "../Math.js";
 
 const glOrigin = GlMatrix.fromValues(0, 0);
@@ -57,9 +57,10 @@ class TreeRender {
         const currentLeavesPreset = leavesPresets[tree.preset.leavesPreset];
 
         this.leafDrawer.setPreset(currentLeavesPreset);
-        this.leafDrawer.setColor(tree.preset.leafHue);
+        // this.leafDrawer.setColor(tree.preset.leafHue);
         
         const formRatio = 1;
+        // const formRatio = 2;
         const heliotropism = GlMatrix.fromValues(currentLeavesPreset.heliotropism[0], currentLeavesPreset.heliotropism[1]);
 
         const leavesSize = leaves.reduce((cum, leaf) => cum + leaf.energy, 0) * branch.preset.leafScale;
