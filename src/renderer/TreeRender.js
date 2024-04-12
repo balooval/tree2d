@@ -30,7 +30,7 @@ class TreeRender {
         this.trunkRender.draw(tree);
 
         if (this.leafDrawers.has(tree) === false) {
-            const leafDrawer = new LeafDrawer3d(this.lightSource);
+            const leafDrawer = new LeafDrawer3d(this.lightSource, leavesPresets[tree.preset.leavesPreset]);
             this.leafDrawers.set(tree, leafDrawer);
         }
 
@@ -66,6 +66,8 @@ class TreeRender {
         }
 
         const currentLeavesPreset = leavesPresets[tree.preset.leavesPreset];
+
+        leafDrawer.setPreset(currentLeavesPreset);
         
         const formRatio = 1;
         // const formRatio = 2;

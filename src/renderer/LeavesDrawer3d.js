@@ -35,6 +35,17 @@ export const leavesPresets = {
         hue: 80,
         scale: 1,
     },
+    tige: {
+        id: 'tige',
+        baseLife: 100,
+        translationSpeed: 3,
+        heliotropism: [0, 1],
+        shape: 'round',
+        randomSkip: 0.95,
+        geometryType: 'tige',
+        hue: 93,
+        scale: 1.5,
+    },
     spike: {
         id: 'spike',
         baseLife: 100,
@@ -49,7 +60,7 @@ export const leavesPresets = {
 };
 
 export class LeafDrawer3d {
-    constructor(lightSource) {
+    constructor(lightSource, preset) {
         this.particlesCount = 72;
         this.particlesToDraw = this.particlesCount;
         this.particles = [];
@@ -65,7 +76,7 @@ export class LeafDrawer3d {
         this.particleGlTranslation = GlMatrix.create();
         this.particleGlOrientation = GlMatrix.create();
 
-        this.preset = leavesPresets.standard;
+        this.preset = {id: 'none'};
 
         this.maxWhileLoop = 999999;
 
@@ -113,9 +124,13 @@ export class LeafDrawer3d {
         })
 
 
-        this.leafGeometry = this.#createPalmGeometry();
+        this.leafMesh = new InstancedMesh(null, leafMaterial, this.leafCount);
+        this.setPreset(preset)
+
+        // this.leafGeometry = this.#createTigeGeometry();
+        // this.leafGeometry = this.#createPalmGeometry();
         // this.leafGeometry = this.#createStarGeometry();
-        this.leafMesh = new InstancedMesh(this.leafGeometry, leafMaterial, this.leafCount);
+        // this.leafMesh = new InstancedMesh(this.leafGeometry, leafMaterial, this.leafCount);
         Render3D.addToScene(this.leafMesh);
 
 
@@ -153,6 +168,50 @@ export class LeafDrawer3d {
         this.leafGeometry.setAttribute('instanceLightReceived', this.attributeLightReceived);
 
         this.leafMesh.instanceMatrix.needsUpdate = true;
+    }
+
+    #createTigeGeometry() {
+        const vertPos = [];
+
+        const angleStep = 0.2;
+        const angles = [
+            0.6,
+            -0.6,
+            0.6,
+            -0.5,
+            0.4,
+            -0.3,
+        ];
+
+        let startY = 0;
+        const midHeight = 0.5;
+        const endHeight = midHeight + 0.4;
+
+        for (let i = 0; i < angles.length; i ++) {
+            const angle = angles[i] - angleStep;
+            const nextAngle = angles[i] + angleStep;
+            const midAngle = angles[i];
+
+            vertPos.push(
+                0, startY, 0,
+                Math.sin(angle) * midHeight, startY + Math.cos(angle) * midHeight, 0,
+                Math.sin(nextAngle) * midHeight, startY + Math.cos(nextAngle) * midHeight, 0,
+                
+                Math.sin(angle) * midHeight, startY + Math.cos(angle) * midHeight, 0,
+                Math.sin(midAngle) * endHeight, startY + Math.cos(midAngle) * endHeight, 0,
+                Math.sin(nextAngle) * midHeight, startY + Math.cos(nextAngle) * midHeight, 0,
+                
+            );
+
+            startY += 0.3;
+        }
+        
+        const leafGeometry = new BufferGeometry();
+        leafGeometry.setAttribute('position', new BufferAttribute(new Float32Array(vertPos), 3));
+        leafGeometry.computeBoundingBox();
+        leafGeometry.computeBoundingSphere();
+        leafGeometry.computeVertexNormals();
+        return leafGeometry;
     }
 
     #createPalmGeometry() {
@@ -250,6 +309,8 @@ export class LeafDrawer3d {
 
         if (this.preset.geometryType === 'palm') {
             this.leafGeometry = this.#createPalmGeometry();
+        } else if (this.preset.geometryType === 'tige') {
+            this.leafGeometry = this.#createTigeGeometry();
         } else {
             this.leafGeometry = this.#createStarGeometry();
         }

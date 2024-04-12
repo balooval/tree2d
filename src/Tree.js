@@ -14,7 +14,8 @@ export const presets = {
         newBranchLength: 20,
         uselessBeforePrune: 30,
         directionConstrainFactor: 0.1,
-        leavesPreset: 'standard',
+        // leavesPreset: 'standard',
+        leavesPreset: 'tige',
         trunkColors: [
             'rgb(107, 99, 85)',
             'rgb(117, 111, 100)',

@@ -38,6 +38,8 @@ function addPresetParamsInputs() {
     
     addLeafRangeControl('hue', 50, 150, 1);
     addLeafRangeControl('scale', 0.5, 1.5, 0.1);
+    addLeafRangeControl('randomSkip', 0.8, 0.99, 0.01);
+    addLeafRangeControl('translationSpeed', 1, 5, 1);
 }
 
 function addTreeRangeControl(valueName, min, max, step) {

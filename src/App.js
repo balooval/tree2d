@@ -1,4 +1,4 @@
-import { BaseRender, setOutputCanvas, changeScale } from './renderer/BaseRender.js'
+import { BaseRender, setOutputCanvas, changeScale, intCanvasToWorldPosition } from './renderer/BaseRender.js'
 import TreeRender from './renderer/TreeRender.js'
 import LightRender from './renderer/LightRender.js'
 import LightDirectional from './LightDirectional.js';
@@ -99,6 +99,7 @@ export function init(_canvasId) {
     document.getElementById('presetTypeB').addEventListener('change', onTreeTypeSelectChanged);
 
     document.getElementById('presetLeavesStandard').addEventListener('change', onLeavesPresetChanged);
+    document.getElementById('presetLeavesTige').addEventListener('change', onLeavesPresetChanged);
     document.getElementById('presetLeavesSpike').addEventListener('change', onLeavesPresetChanged);
 
     document.body.addEventListener('keyup', onKeyUp);
@@ -128,14 +129,8 @@ function changeMouseMode() {
 }
 
 function onLeavesPresetChanged() {
-    const typeBChecked = document.getElementById('presetLeavesSpike').checked;
-
-    let leavesType = 'standard';
-    if (typeBChecked === true) {
-        leavesType = 'spike';
-    }
-
-    treesSolo[0].preset.leavesPreset = leavesType;
+    const leafType = document.querySelector('input[name="leavesPreset"]:checked').value;
+    treesSolo[0].preset.leavesPreset = leafType;
 
     // TODO: gérer les multiples leafDrawer
     // leafDrawer.setPreset(leavesPresets[leavesType]);
@@ -167,8 +162,8 @@ function onPresetChanged() {
 
 function onFrame() {
     // Juste pour avoir l'éclairage en temps réel
-    // const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
-    // lightSource.reset(lightPosition[0], lightPosition[1]);
+    const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
+    lightSource.reset(lightPosition[0], lightPosition[1]);
 
     
     if (document.hasFocus() === true) {
