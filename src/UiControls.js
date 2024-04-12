@@ -22,6 +22,7 @@ export function setPreset(preset) {
 
 function onViewLeavesChanged() {
     treeRender.setViewLeaves(inputViewLeaves.checked);
+    onChangeCallback();
 }
 
 function addPresetParamsInputs() {

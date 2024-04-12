@@ -9,16 +9,8 @@ const rbushBranchs = new RBush();
 const illuminatedBranchs = new Set();
 let attractors = [];
 
-export function treeGrowUpdate(trees, lightSource, applyBend) {
-    rbushAttractors.clear();
-    rbushBranchs.clear();
-    freeAttractors(attractors);
-
-    const branchs = [];
-    trees.forEach(tree => branchs.push(...tree.getBranchs()));
-    indexBranchs(branchs);
-    UiCut.setBranches(rbushBranchs);
-    UiBend.setBranches(rbushBranchs);
+export function treeGrowUpdate(trees, lightSource) {
+    const branchs = treesUpdate(trees);
     lightSource.emit(rbushBranchs);
 
     attractors = createAttractors(lightSource.getPhotons());
@@ -38,11 +30,22 @@ export function treeGrowUpdate(trees, lightSource, applyBend) {
     trees.forEach(tree => tree.distributeEnergy());
     trees.forEach(tree => tree.liftBranches());
     trees.forEach(tree => tree.prune());
-    if (applyBend) {
-        trees.forEach(tree => tree.bendBranches());
-    }
+    trees.forEach(tree => tree.bendBranches());
 
     trees.forEach(tree => tree.endCycle());
+}
+
+function treesUpdate(trees) {
+    rbushAttractors.clear();
+    rbushBranchs.clear();
+    freeAttractors(attractors);
+
+    const branchs = [];
+    trees.forEach(tree => branchs.push(...tree.getBranchs()));
+    indexBranchs(branchs);
+    UiCut.setBranches(rbushBranchs);
+    UiBend.setBranches(rbushBranchs);
+    return branchs;
 }
 
 function indexBranchs(branchs) {

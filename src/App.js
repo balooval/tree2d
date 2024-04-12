@@ -36,7 +36,6 @@ const currentPreset = presets['typeA'];
 let canvasId = null;
 let canvas = null;
 let context = null;
-let applyBend = true;
 
 let canvas3D;
 const butterflies = [];
@@ -96,7 +95,6 @@ export function init(_canvasId) {
     document.getElementById('lightMode').addEventListener('change', changeMouseMode);
     document.getElementById('cutMode').addEventListener('change', changeMouseMode);
     document.getElementById('bendMode').addEventListener('change', changeMouseMode);
-    document.getElementById('applyBend').addEventListener('change', onApplyBendChanged);
     document.getElementById('presetTypeA').addEventListener('change', onTreeTypeSelectChanged);
     document.getElementById('presetTypeB').addEventListener('change', onTreeTypeSelectChanged);
 
@@ -127,10 +125,6 @@ function changeMouseMode() {
     currentMouseMode.stop();
     currentMouseMode = mouseModes[selectedMode];
     currentMouseMode.start();
-}
-
-function onApplyBendChanged() {
-    applyBend = document.getElementById('applyBend').checked;
 }
 
 function onLeavesPresetChanged() {
@@ -215,7 +209,7 @@ function drawLeaves() {
 
 function updateTrees() {
     for (const trees of treesList) {
-        treeGrowUpdate(trees, lightSource, applyBend);
+        treeGrowUpdate(trees, lightSource);
     }
     
     drawTrees();
@@ -233,7 +227,7 @@ function drawTrees() {
 function onMouseWheel(evt) {
     changeScale(evt.deltaY);
     Render3D.changeScale();
-    drawTrees();
+    // drawTrees();
 }
 
 function clearCanvas() {
