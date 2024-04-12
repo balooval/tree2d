@@ -20,7 +20,7 @@ import { BackgroundGrass } from './BackgroundGrass.js';
 const groundPosition = 70;
 const treesList = [];
 const treesSolo = [];
-const lightSource = new LightDirectional(0, 500, 0, 20);
+const lightSource = new LightDirectional(0, 500, 0, 200);
 const treeLayer = new BaseRender();
 const leafLayer = new BaseRender();
 const backgroundGrass = new BackgroundGrass(groundPosition);

@@ -29,7 +29,6 @@ vec2 rotate(vec2 point, float radAngle, vec2 pivot)
 
 void main() {
     float instanceLightShade = (dot(lightDirection, instanceOrientations) + 1.3) * 0.4;
-    // instanceLightShade += instanceDistance * 0.02;
     instanceLightShade += instanceDistance * (instanceLightReceived * 0.1);
 
     vec3 hsl = rgb2hsl(globalColor);

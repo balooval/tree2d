@@ -33,18 +33,22 @@ export const leavesPresets = {
         randomSkip: 0.9,
         geometryType: 'palm',
         hue: 80,
+        saturation: 55,
         scale: 1,
+        formRatio: 1.5,
     },
     tige: {
         id: 'tige',
         baseLife: 100,
-        translationSpeed: 3,
+        translationSpeed: 2,
         heliotropism: [0, 1],
         shape: 'round',
-        randomSkip: 0.95,
+        randomSkip: 0.86,
         geometryType: 'tige',
         hue: 93,
-        scale: 1.5,
+        saturation: 32,
+        scale: 1.3,
+        formRatio: 2.6,
     },
     spike: {
         id: 'spike',
@@ -55,7 +59,9 @@ export const leavesPresets = {
         randomSkip: 0.8,
         geometryType: 'star',
         hue: 137,
+        saturation: 55,
         scale: 0.6,
+        formRatio: 1,
     }
 };
 
@@ -64,10 +70,8 @@ export class LeafDrawer3d {
         this.particlesCount = 72;
         this.particlesToDraw = this.particlesCount;
         this.particles = [];
-        this.formRatio = 0;
         this.heliotropism = GlMatrix.create();
         this.lightSource = lightSource;
-        this.saturation = 55;
         this.luminence = 45;
         this.tree = null;
         this.shadowOffset = 0;
@@ -107,7 +111,7 @@ export class LeafDrawer3d {
         this.matrix = new Matrix4();
         this.leafCount = 500000;
 
-        this.globalColor = new Color(`hsl(80, ${this.saturation}%, ${this.luminence}%)`);
+        this.globalColor = new Color(`hsl(80, 55%, ${this.luminence}%)`);
 
         const uniforms = {
             time: {type: 'float', value: this.time},
@@ -244,12 +248,12 @@ export class LeafDrawer3d {
 
             vertPos.push(
                 0, 0, 0,
-                Math.cos(angle) * localInnerSize, Math.sin(angle) * localInnerSize, 0,
-                Math.cos(nextAngle) * localInnerSize, Math.sin(nextAngle) * localInnerSize, 0,
+                Math.sin(angle) * localInnerSize, Math.cos(angle) * localInnerSize, 0,
+                Math.sin(nextAngle) * localInnerSize, Math.cos(nextAngle) * localInnerSize, 0,
                 
-                Math.cos(angle) * localInnerSize, Math.sin(angle) * localInnerSize, 0,
-                Math.cos(midAngle) * size, Math.sin(midAngle) * localSize, 0,
-                Math.cos(nextAngle) * localInnerSize, Math.sin(nextAngle) * localInnerSize, 0,
+                Math.sin(angle) * localInnerSize, Math.cos(angle) * localInnerSize, 0,
+                Math.sin(midAngle) * size, Math.cos(midAngle) * localSize, 0,
+                Math.sin(nextAngle) * localInnerSize, Math.cos(nextAngle) * localInnerSize, 0,
             );
 
             i
@@ -334,7 +338,7 @@ export class LeafDrawer3d {
     update() {
         this.time ++;
 
-        this.globalColor.setStyle(`hsl(${this.preset.hue}, ${this.saturation}%, ${this.luminence}%)`);
+        this.globalColor.setStyle(`hsl(${this.preset.hue}, ${this.preset.saturation}%, ${this.luminence}%)`);
         this.leafMesh.material.uniforms.globalColor.value = this.globalColor;
 
         this.leafMesh.material.uniforms.lightDirection.value.x = this.lightSource.glDirection[0] * -1;
@@ -355,9 +359,8 @@ export class LeafDrawer3d {
         this.attributeLightReceived.needsUpdate = true;
     }
 
-    draw(tree, position, size, lightQuantity, formRatio, heliotropism) {
+    draw(tree, position, size, lightQuantity, heliotropism) {
         this.tree = tree;
-        this.formRatio = formRatio;
         this.heliotropism = heliotropism;
         
         const angle = Math.atan2(this.lightSource.glDirection[0], this.lightSource.glDirection[1]) * -1;
@@ -426,7 +429,9 @@ export class LeafDrawer3d {
             this.attributeOrientation.setXY(this.currentInstanceIndex, particle.originalOrientation[0], particle.originalOrientation[1]);
             this.attributeLightReceived.setX(this.currentInstanceIndex, particle.lightReceived);
 
-            const angle = randomize(0, 3.14);
+            // const angle = randomize(0, 3.14);
+            let angle = Math.atan2(particle.originalOrientation[0] * -1, particle.originalOrientation[1]);
+            angle = randomize(angle, 1.5);
             this.drawInstanceQuaternion.setFromAxisAngle(this.rotationVector, angle);
             this.matrix.compose(this.drawInstancePosition, this.drawInstanceQuaternion, this.drawInstanceScale);
             this.leafMesh.setMatrixAt(this.currentInstanceIndex, this.matrix);
@@ -438,6 +443,7 @@ export class LeafDrawer3d {
     #grow() {
         this.growIsRunning = false;
         const delta = 16;
+        const formRatio = this.preset.formRatio;
         const translationSpeed = this.preset.translationSpeed;
         const translationVariation = translationSpeed / 10;
 
@@ -446,8 +452,8 @@ export class LeafDrawer3d {
             if (p.life <= 0) {
                 continue;
             }
-            const translationX = p.orientation[0] * (translationSpeed + this.formRatio) + random(translationVariation * -1, translationVariation);
-            const translationY = p.orientation[1] * (translationSpeed - this.formRatio) + random(translationVariation * -1, translationVariation);
+            const translationX = p.orientation[0] * (translationSpeed * formRatio) + random(translationVariation * -1, translationVariation);
+            const translationY = p.orientation[1] * (translationSpeed / formRatio) + random(translationVariation * -1, translationVariation);
             GlMatrix.set(this.particleGlTranslation, translationX, translationY)
             GlMatrix.add(p.glPosition, p.glPosition, this.particleGlTranslation);
             p.life -= delta;

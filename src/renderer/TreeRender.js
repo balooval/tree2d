@@ -69,8 +69,6 @@ class TreeRender {
 
         leafDrawer.setPreset(currentLeavesPreset);
         
-        const formRatio = 1;
-        // const formRatio = 2;
         const heliotropism = GlMatrix.fromValues(currentLeavesPreset.heliotropism[0], currentLeavesPreset.heliotropism[1]);
 
         const leavesSize = leaves.reduce((cum, leaf) => cum + leaf.energy, 0) * currentLeavesPreset.scale;
@@ -78,7 +76,7 @@ class TreeRender {
         const lightQuantity = Math.min(4, branch.budsLight);
         // const lightQuantity = branch.attractors.length;
 
-        leafDrawer.draw(tree, branch.glEnd, leavesSize, lightQuantity, formRatio, heliotropism);
+        leafDrawer.draw(tree, branch.glEnd, leavesSize, lightQuantity, heliotropism);
     }
 }
 
