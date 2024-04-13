@@ -28,20 +28,23 @@ function onViewLeavesChanged() {
 function addPresetParamsInputs() {
     addTreeRangeControl('gravitropism', 0, 0.008, 0.0001);
     addTreeRangeControl('flexibility', 0.00001, 0.002, 0.00001);
-    addTreeRangeControl('newBranchLength', 5, 50, 1);
-    addTreeRangeControl('uselessBeforePrune', 0, 50, 1);
-    addTreeRangeControl('angle', 5, 130, 1);
-    addTreeRangeControl('directionConstrainFactor', 0, 1, 0.01);
-    addTreeRangeControl('trunkScale', 0.2, 2, 0.1);
-    addTreeRangeControl('energyNeededToGrow', 1, 10, 1);
-    addTreeRangeControl('maxLightDistance', 50, 200, 1);
+    // addTreeRangeControl('newBranchLength', 5, 50, 1);
+    // addTreeRangeControl('uselessBeforePrune', 0, 50, 1);
+    // addTreeRangeControl('angle', 5, 130, 1);
+    // addTreeRangeControl('directionConstrainFactor', 0, 1, 0.01);
+    // addTreeRangeControl('trunkScale', 0.2, 2, 0.1);
+    // addTreeRangeControl('energyNeededToGrow', 1, 10, 1);
+    // addTreeRangeControl('maxLightDistance', 50, 200, 1);
     
-    // addLeafRangeControl('formRatio', 0.2, 5, 0.1);
-    // addLeafRangeControl('hue', 50, 150, 1);
-    // addLeafRangeControl('saturation', 10, 100, 1);
-    // addLeafRangeControl('scale', 0.5, 1.5, 0.1);
-    // addLeafRangeControl('randomSkip', 0.8, 0.99, 0.01);
-    // addLeafRangeControl('translationSpeed', 1, 5, 1);
+    addLeafRangeControl('dispersionAngleStart', -3.2, 3.2, 0.1);
+    addLeafRangeControl('dispersionAngleVariation', 0, 3.2, 0.1);
+    addLeafRangeControl('orientationVariation', 0, 3.2, 0.1);
+    addLeafRangeControl('formRatio', 0.2, 5, 0.1);
+    addLeafRangeControl('hue', 50, 150, 1);
+    addLeafRangeControl('saturation', 10, 100, 1);
+    addLeafRangeControl('scale', 0.5, 2.5, 0.1);
+    addLeafRangeControl('randomSkip', 0.8, 0.99, 0.01);
+    addLeafRangeControl('translationSpeed', 1, 5, 1);
 }
 
 function addTreeRangeControl(valueName, min, max, step) {
