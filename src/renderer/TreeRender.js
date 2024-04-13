@@ -26,6 +26,13 @@ class TreeRender {
         leafDrawer.update();
     }
 
+    deleteTree(tree) {
+        const leafDrawer = this.leafDrawers.get(tree);
+        leafDrawer.dispose();
+        this.leafDrawers.delete(tree);
+        this.trunkRender.deleteTree(tree);
+    }
+
     draw(tree) {
         this.trunkRender.draw(tree);
 

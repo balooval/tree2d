@@ -37,10 +37,7 @@ void main() {
     vec3 finalRgb = hsl2rgb(hsl);
 
     vFinalColor = finalRgb;
-    // vFinalColor = vec3(instanceLightReceived, instanceLightReceived, instanceLightReceived);
-
-    //gl_Position = projectionMatrix * viewMatrix * modelMatrix * instanceMatrix * vec4(position, 1.0);
-
+    
     vec4 worldPosition = instanceMatrix * vec4(position, 1.0);
     float noiseA = perlin(vec2((instancePosition.x + (time * 2.0)) * 0.005, instancePosition.y * 0.05));
     float noiseB = perlin(vec2((instancePosition.x + (time * 2.0)) * 0.05, instancePosition.y * 0.5));

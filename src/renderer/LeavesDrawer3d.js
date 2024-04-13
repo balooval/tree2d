@@ -122,7 +122,7 @@ export class LeafDrawer3d {
         }
         const leafMaterial = new ShaderMaterial({
             uniforms: uniforms,
-            side: DoubleSide,
+            // side: DoubleSide,
             fragmentShader: FragmentShader,
             vertexShader: VertexShader,
         })
@@ -141,6 +141,11 @@ export class LeafDrawer3d {
         this.currentInstanceIndex = 0;
 
         this.#initGeometry();
+    }
+
+    dispose() {
+        Render3D.scene.remove(this.leafMesh);
+        this.leafMesh.geometry.dispose();
     }
 
     #initGeometry() {
@@ -198,14 +203,23 @@ export class LeafDrawer3d {
             const midAngle = angles[i];
 
             vertPos.push(
+                // 0, startY, 0,
+                // Math.sin(nextAngle) * midHeight, startY + Math.cos(nextAngle) * midHeight, 0,
+                // Math.sin(angle) * midHeight, startY + Math.cos(angle) * midHeight, 0,
+                
+                // Math.sin(angle) * midHeight, startY + Math.cos(angle) * midHeight, 0,
+                // Math.sin(nextAngle) * midHeight, startY + Math.cos(nextAngle) * midHeight, 0,
+                // Math.sin(midAngle) * endHeight, startY + Math.cos(midAngle) * endHeight, 0,
+
+
+
                 0, startY, 0,
-                Math.sin(angle) * midHeight, startY + Math.cos(angle) * midHeight, 0,
-                Math.sin(nextAngle) * midHeight, startY + Math.cos(nextAngle) * midHeight, 0,
-                
-                Math.sin(angle) * midHeight, startY + Math.cos(angle) * midHeight, 0,
                 Math.sin(midAngle) * endHeight, startY + Math.cos(midAngle) * endHeight, 0,
-                Math.sin(nextAngle) * midHeight, startY + Math.cos(nextAngle) * midHeight, 0,
+                Math.sin(angle) * midHeight, startY + Math.cos(angle) * midHeight, 0,
                 
+                0, startY, 0,
+                Math.sin(nextAngle) * midHeight, startY + Math.cos(nextAngle) * midHeight, 0,
+                Math.sin(midAngle) * endHeight, startY + Math.cos(midAngle) * endHeight, 0,
             );
 
             startY += 0.2;
@@ -216,7 +230,7 @@ export class LeafDrawer3d {
             0.05, 0, 0,
             0, startY, 0,
         );
-        
+
         const leafGeometry = new BufferGeometry();
         leafGeometry.setAttribute('position', new BufferAttribute(new Float32Array(vertPos), 3));
         leafGeometry.computeBoundingBox();
@@ -255,12 +269,12 @@ export class LeafDrawer3d {
 
             vertPos.push(
                 0, 0, 0,
-                Math.sin(angle) * localInnerSize, Math.cos(angle) * localInnerSize, 0,
                 Math.sin(nextAngle) * localInnerSize, Math.cos(nextAngle) * localInnerSize, 0,
+                Math.sin(angle) * localInnerSize, Math.cos(angle) * localInnerSize, 0,
                 
                 Math.sin(angle) * localInnerSize, Math.cos(angle) * localInnerSize, 0,
-                Math.sin(midAngle) * size, Math.cos(midAngle) * localSize, 0,
                 Math.sin(nextAngle) * localInnerSize, Math.cos(nextAngle) * localInnerSize, 0,
+                Math.sin(midAngle) * size, Math.cos(midAngle) * localSize, 0,
             );
 
             i

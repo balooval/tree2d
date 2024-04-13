@@ -39,6 +39,13 @@ class TrunkRender3d {
         this.vertexColors = [];
     }
 
+    deleteTree(tree) {
+        const treeMesh = this.meshes.get(tree);
+        treeMesh.geometry.dispose();
+        Render3D.scene.remove(treeMesh);
+        this.meshes.delete(tree);
+    }
+
     draw(tree) {
         if (this.meshes.has(tree) === false) {
             const treeMesh = new Mesh(new BufferGeometry(), this.material);

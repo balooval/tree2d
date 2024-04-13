@@ -117,6 +117,7 @@ export function init(_canvasId) {
 }
 
 function resetTree() {
+    treeRender.deleteTree(treesSolo[0]);
     treesSolo[0] = new Tree(0, groundPosition, currentPreset);
     drawTrees();
 }
