@@ -16,6 +16,7 @@ export const presets = {
         directionConstrainFactor: 0.1,
         // leavesPreset: 'standard',
         leavesPreset: 'tige',
+        // leavesPreset: 'spike',
         trunkColors: [
             'rgb(107, 99, 85)',
             'rgb(117, 111, 100)',

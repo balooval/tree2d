@@ -53,15 +53,15 @@ export const leavesPresets = {
     spike: {
         id: 'spike',
         baseLife: 100,
-        translationSpeed: 4,
+        translationSpeed: 2,
         heliotropism: [0, 0.5],
         shape: 'quad',
         randomSkip: 0.8,
         geometryType: 'star',
-        hue: 137,
-        saturation: 55,
-        scale: 0.6,
-        formRatio: 1,
+        hue: 110,
+        saturation: 30,
+        scale: 0.9,
+        formRatio: 2.8,
     }
 };
 
