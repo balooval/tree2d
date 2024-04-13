@@ -46,12 +46,17 @@ class UiLightMode {
     }
 
     update() {
+        
+        if (this.active === false) {
+            return;
+        }
+        
+        const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
+        this.lightSource.reset(lightPosition[0], lightPosition[1]);
+        
         if (this.run === false) {
             return;
         }
-
-        const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
-        this.lightSource.reset(lightPosition[0], lightPosition[1]);
 
         this.callback();
     }

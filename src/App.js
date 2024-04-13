@@ -132,9 +132,6 @@ function onLeavesPresetChanged() {
     const leafType = document.querySelector('input[name="leavesPreset"]:checked').value;
     treesSolo[0].preset.leavesPreset = leafType;
 
-    // TODO: gérer les multiples leafDrawer
-    // leafDrawer.setPreset(leavesPresets[leavesType]);
-
     drawTrees();
 }
 
@@ -154,6 +151,21 @@ function onKeyUp(evt) {
     if (evt.code === 'Space') {
         updateTrees();
     }
+
+    switch (evt.key) {
+        case 'l':
+            document.getElementById('lightMode').checked = true;
+            changeMouseMode();
+        break;
+        case 'b':
+            document.getElementById('bendMode').checked = true;
+            changeMouseMode();
+        break;
+        case 'c':
+            document.getElementById('cutMode').checked = true;
+            changeMouseMode();
+        break;
+    }
 }
 
 function onPresetChanged() {
@@ -161,11 +173,6 @@ function onPresetChanged() {
 }
 
 function onFrame() {
-    // Juste pour avoir l'éclairage en temps réel
-    const lightPosition = intCanvasToWorldPosition(UiMouse.mousePosition[0], UiMouse.mousePosition[1]);
-    lightSource.reset(lightPosition[0], lightPosition[1]);
-
-    
     if (document.hasFocus() === true) {
         butterflies.forEach(butterfly => butterfly.update());
         for (const trees of treesList) {
