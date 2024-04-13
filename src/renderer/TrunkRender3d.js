@@ -2,16 +2,10 @@ import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { radians, randomize, hslToRgb } from "../Math.js";
 import * as Render3D from './Render3d.js';
 import {
-	Vector3,
-	MeshBasicMaterial,
 	Mesh,
-    Quaternion,
-    DoubleSide,
     BufferGeometry,
     BufferAttribute,
-    Matrix4,
     ShaderMaterial,
-    PlaneGeometry,
 } from '../../vendor/three.module.js';
 import VertexShader from '../shaders/TrunkVertex.js';
 import FragmentShader from '../shaders/TrunkFragment.js';
@@ -27,12 +21,9 @@ class TrunkRender3d {
         this.trunkPointC = GlMatrix.create();
         this.trunkPointD = GlMatrix.create();
 
-        // this.material = new MeshBasicMaterial( {color: 0xffffff, side: DoubleSide, vertexColors: true});
         this.material = new ShaderMaterial({
-            side: DoubleSide,
             fragmentShader: FragmentShader,
             vertexShader: VertexShader,
-            // transparent: true,
         })
         this.meshes = new Map();
         this.vertices = [];
@@ -82,12 +73,12 @@ class TrunkRender3d {
 
         this.vertices.push(
             this.trunkPointA[0], this.trunkPointA[1], 0,
-            this.trunkPointB[0], this.trunkPointB[1], 0,
             this.trunkPointC[0], this.trunkPointC[1], 0,
+            this.trunkPointB[0], this.trunkPointB[1], 0,
             
             this.trunkPointC[0], this.trunkPointC[1], 0,
-            this.trunkPointD[0], this.trunkPointD[1], 0,
             this.trunkPointA[0], this.trunkPointA[1], 0,
+            this.trunkPointD[0], this.trunkPointD[1], 0,
         );
 
         const branchRgb = hslToRgb(branch.trunkHSL.h / 360, branch.trunkHSL.s / 100, branch.trunkHSL.l / 100);
@@ -103,11 +94,11 @@ class TrunkRender3d {
 
         this.vertexUvs.push(
             0, 0,
+            1, 1,
             1, 0,
             1, 1,
-            1, 1,
-            0, 1,
             0, 0,
+            0, 1,
         );
 
         const xOffset = width * 20;
