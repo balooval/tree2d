@@ -1,3 +1,4 @@
+import { getViewScale } from './BaseRender.js'
 
 const viewLightInput = document.getElementById('viewPhotons');
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
@@ -18,7 +19,7 @@ class LightRender {
     }
 
     drawEmiter(light) {
-        const lightSize = 50;
+        const lightSize = 20 / getViewScale();
         this.render.glDrawEmptyCircle(light.glPosition, lightSize, 'rgb(120, 120, 120)');
 
         GlMatrix.scale(this.lightTargetStart, light.glDirection, lightSize * 1.7);
