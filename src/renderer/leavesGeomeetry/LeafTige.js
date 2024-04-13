@@ -7,6 +7,7 @@ import {
 
 export function createGeometry() {
     const vertPos = [];
+    const normals = [];
 
     const angleStep = 0.3;
     const angles = [
@@ -39,6 +40,16 @@ export function createGeometry() {
         );
 
         startY += 0.2;
+
+        normals.push(
+            0, -1, 1,
+            0, 1, 1,
+            -1, 0, 1,
+
+            0, -1, 1,
+            1, 0, 1,
+            0, 1, 1,
+        );
     }
 
     vertPos.push(
@@ -47,10 +58,17 @@ export function createGeometry() {
         0, startY, 0,
     );
 
+    normals.push(
+        -1, 0, 1,
+        1, 0, 1,
+        0, 1, 1,
+    );
+
     const leafGeometry = new BufferGeometry();
     leafGeometry.setAttribute('position', new BufferAttribute(new Float32Array(vertPos), 3));
+    leafGeometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
     leafGeometry.computeBoundingBox();
     leafGeometry.computeBoundingSphere();
-    leafGeometry.computeVertexNormals();
+    // leafGeometry.computeVertexNormals();
     return leafGeometry;
 }

@@ -42,7 +42,7 @@ function addPresetParamsInputs() {
     addLeafRangeControl('formRatio', 0.2, 5, 0.1);
     addLeafRangeControl('hue', 50, 150, 1);
     addLeafRangeControl('saturation', 10, 100, 1);
-    addLeafRangeControl('scale', 0.5, 2.5, 0.1);
+    addLeafRangeControl('scale', 0.5, 4, 0.1);
     addLeafRangeControl('randomSkip', 0.8, 0.99, 0.01);
     addLeafRangeControl('translationSpeed', 1, 5, 1);
 }

@@ -28,7 +28,20 @@ vec2 rotate(vec2 point, float radAngle, vec2 pivot)
 }
 
 void main() {
-    float instanceLightShade = (dot(lightDirection, instanceOrientations) + 1.3) * 0.4;
+    vec3 transformedNormal = normal;
+    mat3 m = mat3(instanceMatrix);
+    transformedNormal /= vec3( dot( m[ 0 ], m[ 0 ] ), dot( m[ 1 ], m[ 1 ] ), dot( m[ 2 ], m[ 2 ] ) );
+    transformedNormal = m * transformedNormal;
+
+    vec3 normalOrientation = normalize(transformedNormal);
+    // vFinalColor = normalize(transformedNormal);
+    // vFinalColor = normal;
+
+
+    float instanceLightShade = (dot(lightDirection, vec2(normalOrientation.xy)) + 1.3) * 0.4;
+    float originalLightShade = (dot(lightDirection, instanceOrientations) + 1.3) * 0.6;
+    instanceLightShade *= originalLightShade;
+    // float instanceLightShade = (dot(lightDirection, instanceOrientations) + 1.3) * 0.4;
     instanceLightShade += instanceDistance * (instanceLightReceived * 0.1);
 
     vec3 hsl = rgb2hsl(globalColor);

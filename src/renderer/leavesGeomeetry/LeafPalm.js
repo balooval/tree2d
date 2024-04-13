@@ -6,9 +6,10 @@ import {
 
 
 export function createGeometry() {
+    const vertPos = [];
+    const normals = [];
     const size = 2;
     const innerSize = size * 0.7;
-    const vertPos = [];
 
     const angleStep = 0.4;
     const angles = [
@@ -42,12 +43,23 @@ export function createGeometry() {
             Math.sin(nextAngle) * localInnerSize, Math.cos(nextAngle) * localInnerSize, 0,
             Math.sin(midAngle) * size, Math.cos(midAngle) * localSize, 0,
         );
+
+        normals.push(
+           0, -0.5, 1,
+           0.5, 0, 1,
+           -0.5, 0, 1,
+           
+           -0.5, 0, 1,
+           0.5, 0, 1,
+           0, 0.5, 1,
+        );
     }
     
     const leafGeometry = new BufferGeometry();
     leafGeometry.setAttribute('position', new BufferAttribute(new Float32Array(vertPos), 3));
+    leafGeometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
     leafGeometry.computeBoundingBox();
     leafGeometry.computeBoundingSphere();
-    leafGeometry.computeVertexNormals();
+    // leafGeometry.computeVertexNormals();
     return leafGeometry;
 }
