@@ -31,10 +31,26 @@ void main() {
     float noiseA = perlinNormalized(noiseUvFrag * trunkNoiseSmall);
     float noiseB = smoothstep(0.4, 0.5, perlinNormalized(noiseUvFrag * trunkNoiseMid));
     float noiseC = perlinNormalized(noiseUvFrag * trunkNoiseBig);
-    
+
     float noise = noiseA;
     noise *= noiseB;
     noise += noiseC;
+
+    // int octaves = 8;
+    // float noiseScale = trunkNoiseSmall;
+    // float noisePower = 1.0;
+    // float noise = 0.0;
+    // float totalPower = 0.0;
+
+    // for(int i = 0; i < octaves; i ++) {
+    //     totalPower += noisePower;
+    //     float res = noisePower * perlinNormalized(noiseUvFrag * noiseScale);
+    //     noise += res;
+    //     noisePower += res;
+    //     noiseScale *= 2.0;
+    // }
+    // noise /= totalPower;
+    
     
     vec3 hsl = rgb2hsl(vColor);
     hsl.z *= noise;

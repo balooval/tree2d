@@ -28,16 +28,17 @@ function onViewLeavesChanged() {
 function addPresetParamsInputs() {
     addTreeRangeControl('gravitropism', 0, 0.008, 0.0001);
     addTreeRangeControl('flexibility', 0.00001, 0.002, 0.00001);
-    // addTreeRangeControl('newBranchLength', 5, 50, 1);
-    // addTreeRangeControl('uselessBeforePrune', 0, 50, 1);
-    // addTreeRangeControl('angle', 5, 130, 1);
-    // addTreeRangeControl('directionConstrainFactor', 0, 1, 0.01);
+    addTreeRangeControl('newBranchLength', 5, 50, 1);
+    addTreeRangeControl('uselessBeforePrune', 0, 50, 1);
+    addTreeRangeControl('angle', 5, 130, 1);
+    addTreeRangeControl('directionConstrainFactor', 0, 1, 0.01);
     addTreeRangeControl('trunkScale', 0.2, 2, 0.1);
-    // addTreeRangeControl('energyNeededToGrow', 1, 10, 1);
-    // addTreeRangeControl('maxLightDistance', 50, 200, 1);
-    addTreeRangeControl('trunkNoiseSmall', 0.001, 0.1, 0.001);
-    addTreeRangeControl('trunkNoiseMid', 0.001, 0.1, 0.001);
-    addTreeRangeControl('trunkNoiseBig', 0.001, 0.1, 0.01);
+    addTreeRangeControl('energyNeededToGrow', 1, 10, 1);
+    addTreeRangeControl('maxLightDistance', 50, 200, 1);
+    
+    // addTreeRangeControl('trunkNoiseSmall', 0.001, 0.1, 0.001);
+    // addTreeRangeControl('trunkNoiseMid', 0.001, 0.1, 0.001);
+    // addTreeRangeControl('trunkNoiseBig', 0.001, 0.1, 0.01);
     
     // addLeafRangeControl('dispersionAngleStart', -3.2, 3.2, 0.1);
     // addLeafRangeControl('dispersionAngleVariation', 0, 3.2, 0.1);
