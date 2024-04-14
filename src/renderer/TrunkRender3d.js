@@ -21,7 +21,15 @@ class TrunkRender3d {
         this.trunkPointC = GlMatrix.create();
         this.trunkPointD = GlMatrix.create();
 
+
+        const uniforms = {
+            trunkNoiseSmall: {type: 'float', value: 0.01},
+            trunkNoiseMid: {type: 'float', value: 0.07},
+            trunkNoiseBig: {type: 'float', value: 0.1},
+        }
+
         this.material = new ShaderMaterial({
+            uniforms: uniforms,
             fragmentShader: FragmentShader,
             vertexShader: VertexShader,
         })
@@ -38,6 +46,11 @@ class TrunkRender3d {
     }
 
     draw(tree) {
+        this.material.uniforms.trunkNoiseSmall.value = tree.preset.trunkNoiseSmall;
+        this.material.uniforms.trunkNoiseMid.value = tree.preset.trunkNoiseMid;
+        this.material.uniforms.trunkNoiseBig.value = tree.preset.trunkNoiseBig;
+
+
         if (this.meshes.has(tree) === false) {
             const treeMesh = new Mesh(new BufferGeometry(), this.material);
             Render3D.addToScene(treeMesh);

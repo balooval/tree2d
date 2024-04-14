@@ -33,6 +33,10 @@ export const presets = {
                 l: 43,
             },
         ],
+
+        trunkNoiseSmall: 0.093,
+        trunkNoiseMid: 0.006,
+        trunkNoiseBig: 0.031,
     },
     typeB: {
         presetName: 'typeB',
@@ -69,6 +73,9 @@ export const presets = {
                 l: 15,
             },
         ],
+        trunkNoiseSmall: 0.01,
+        trunkNoiseMid: 0.07,
+        trunkNoiseBig: 0.1,
     },
 };
 
