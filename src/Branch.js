@@ -311,7 +311,8 @@ export class Branch {
     }
 
     getLeaves() {
-        return this.buds.filter(bud => bud.light > 0.5);
+        const minLight = this.preset.minLightForLeaf;
+        return this.buds.filter(bud => bud.light > minLight);
     }
 
     getLeavesObstruction() {

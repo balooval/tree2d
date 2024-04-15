@@ -119,6 +119,7 @@ export class LeafDrawer3d {
                 size: 1,
                 life: 1,
                 lightReceived: 1,
+                branchAngle: 0,
             });
         }
 
@@ -237,14 +238,14 @@ export class LeafDrawer3d {
         this.attributeLightReceived.needsUpdate = true;
     }
 
-    draw(tree, position, size, lightQuantity, heliotropism) {
+    draw(tree, branch, size, lightQuantity, heliotropism) {
         this.tree = tree;
         this.heliotropism = heliotropism;
         
         const angle = Math.atan2(this.lightSource.glDirection[0], this.lightSource.glDirection[1]) * -1;
         this.shadowOffset = Math.tan(angle);
 
-        this.#setupParticles(position, Math.min(4, size), lightQuantity);
+        this.#setupParticles(branch.glDirection, branch.glEnd, Math.min(4, size), lightQuantity);
 
         this.growIsRunning = true;
         let loopCounter = 0;
@@ -262,8 +263,9 @@ export class LeafDrawer3d {
         this.leafMesh.instanceMatrix.needsUpdate = true;
     }
 
-    #setupParticles(position, size, lightQuantity) {
+    #setupParticles(branchDirection, position, size, lightQuantity) {
         const baseLife = this.preset.baseLife;
+        const branchAngle = Math.atan2(branchDirection[0], branchDirection[1]);
 
         for (let i = 0; i < this.particlesToDraw; i ++) {
             const particleAngle = randomize(Math.PI / 2 + this.preset.dispersionAngleStart, this.preset.dispersionAngleVariation);
@@ -275,6 +277,7 @@ export class LeafDrawer3d {
             this.particles[i].size = (8 * size) + Math.random() * 1;
             this.particles[i].life = (baseLife * size) + Math.random() * (baseLife / 2);
             this.particles[i].lightReceived = lightQuantity * 0.1;
+            this.particles[i].branchAngle = branchAngle;
         }
     }
 
@@ -310,6 +313,7 @@ export class LeafDrawer3d {
 
             // const angle = randomize(0, 3.14);
             let angle = Math.atan2(particle.originalOrientation[0] * -1, particle.originalOrientation[1]);
+            // let angle = particle.branchAngle;
             angle = randomize(angle, this.preset.orientationVariation);
 
 
