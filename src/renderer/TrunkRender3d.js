@@ -6,6 +6,8 @@ import {
     BufferGeometry,
     BufferAttribute,
     ShaderMaterial,
+    MeshBasicMaterial,
+    DoubleSide,
 } from '../../vendor/three.module.js';
 import VertexShader from '../shaders/TrunkVertex.js';
 import FragmentShader from '../shaders/TrunkFragment.js';
@@ -33,6 +35,8 @@ class TrunkRender3d {
             fragmentShader: FragmentShader,
             vertexShader: VertexShader,
         })
+
+        // this.material = new MeshBasicMaterial( {color: 0xffffff});
         this.meshes = new Map();
         this.vertices = [];
         this.vertexColors = [];
@@ -46,9 +50,9 @@ class TrunkRender3d {
     }
 
     draw(tree) {
-        this.material.uniforms.trunkNoiseSmall.value = tree.preset.trunkNoiseSmall;
-        this.material.uniforms.trunkNoiseMid.value = tree.preset.trunkNoiseMid;
-        this.material.uniforms.trunkNoiseBig.value = tree.preset.trunkNoiseBig;
+        // this.material.uniforms.trunkNoiseSmall.value = tree.preset.trunkNoiseSmall;
+        // this.material.uniforms.trunkNoiseMid.value = tree.preset.trunkNoiseMid;
+        // this.material.uniforms.trunkNoiseBig.value = tree.preset.trunkNoiseBig;
 
 
         if (this.meshes.has(tree) === false) {
@@ -65,13 +69,106 @@ class TrunkRender3d {
         this.vertexNoiseUvs = [];
 
         tree.getBranchs().forEach(branch => {
-            this.#drawBranch(branch);
+            // this.#drawBranch(branch);
+            this.#drawBranchRound(branch);
         });
 
         geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.vertices), 3));
         geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.vertexColors), 3));
         geometry.setAttribute('uvs', new BufferAttribute(new Float32Array(this.vertexUvs), 2));
         geometry.setAttribute('noiseuvs', new BufferAttribute(new Float32Array(this.vertexNoiseUvs), 2));
+
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+    }
+
+    #drawBranchRound(branch) {
+        const widthScale = 1;
+        const width = branch.getWidth() * widthScale;
+        const parentWidth = branch.parent.getWidth() * widthScale;
+
+        const steps = 8;
+        const totalAngle = Math.PI;
+        const angleStep = totalAngle / steps;
+        const angleStart = 0 - (Math.PI / 1);
+
+        const branchAngle = Math.atan2(branch.glDirection[0], branch.glDirection[1]);
+        const branchparentAngle = Math.atan2(branch.parent.glDirection[0], branch.parent.glDirection[1]);
+
+        for (let i = 0; i < steps; i ++) {
+            let angle = 0;
+            
+            angle = (angleStep * (i + 0)) + angleStart;
+            const bottomLeftPosX = branch.parent.glEnd[0] + Math.cos(angle) * Math.cos(branchparentAngle) * parentWidth;
+            const bottomLeftPosY = branch.parent.glEnd[1] - Math.cos(angle) * Math.sin(branchparentAngle) * parentWidth;
+            const bottomLeftPosZ = Math.sin(angle) * width;
+            this.vertices.push(bottomLeftPosX, bottomLeftPosY, bottomLeftPosZ);
+
+            angle = (angleStep * (i + 1)) + angleStart;
+            const bottomRightPosX = branch.parent.glEnd[0] + Math.cos(angle) * Math.cos(branchparentAngle) * parentWidth;
+            const bottomRightPosY = branch.parent.glEnd[1] - Math.cos(angle) * Math.sin(branchparentAngle) * parentWidth;
+            const bottomRightPosZ = Math.sin(angle) * width;
+            this.vertices.push(bottomRightPosX, bottomRightPosY, bottomRightPosZ);
+
+            angle = (angleStep * (i + 0)) + angleStart;
+            const topLeftPosX = branch.glEnd[0] +  Math.cos(angle) * Math.cos(branchAngle) * width;
+            const topLeftPosY = branch.glEnd[1] - Math.cos(angle) * Math.sin(branchAngle) * width;
+            const topLeftPosZ = Math.sin(angle) * width;
+            this.vertices.push(topLeftPosX, topLeftPosY, topLeftPosZ);
+
+
+            this.vertices.push(topLeftPosX, topLeftPosY, topLeftPosZ);
+            this.vertices.push(bottomRightPosX, bottomRightPosY, bottomRightPosZ);
+
+            angle = (angleStep * (i + 1)) + angleStart;
+            const topRightPosX = branch.glEnd[0] +  Math.cos(angle) * Math.cos(branchAngle) * width;
+            const topRightPosY = branch.glEnd[1] - Math.cos(angle) * Math.sin(branchAngle) * width;
+            const topRightPosZ = Math.sin(angle) * width;
+            this.vertices.push(topRightPosX, topRightPosY, topRightPosZ);
+
+            this.vertexColors.push(
+                0.5, 0.5, 0.5,
+                0.5, 0.5, 0.5,
+                0.5, 0.5, 0.5,
+                0.5, 0.5, 0.5,
+                0.5, 0.5, 0.5,
+                0.5, 0.5, 0.5,
+            );
+    
+            const noiseScale = 50;
+
+            this.vertexUvs.push(
+                (i + 0) * noiseScale, bottomLeftPosY,
+                (i + 1) * noiseScale, bottomRightPosY,
+                (i + 0) * noiseScale, topLeftPosY,
+                (i + 0) * noiseScale, topLeftPosY,
+                (i + 1) * noiseScale, bottomRightPosY,
+                (i + 1) * noiseScale, topRightPosY,
+
+                // 0, 0,
+                // 1, 0,
+                // 0, 1,
+                // 0, 1,
+                // 1, 0,
+                // 1, 1,
+            );
+
+            this.vertexNoiseUvs.push(
+                (i + 0) * noiseScale, bottomLeftPosY,
+                (i + 1) * noiseScale, bottomRightPosY,
+                (i + 0) * noiseScale, topLeftPosY,
+                (i + 0) * noiseScale, topLeftPosY,
+                (i + 1) * noiseScale, bottomRightPosY,
+                (i + 1) * noiseScale, topRightPosY,
+
+                // 0, 0,
+                // 1, 0,
+                // 0, 1,
+                // 0, 1,
+                // 1, 0,
+                // 1, 1,
+            );
+        }
     }
 
     #drawBranch(branch) {

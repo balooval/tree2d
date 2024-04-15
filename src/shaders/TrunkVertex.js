@@ -21,7 +21,7 @@ vec2 rotate(vec2 point, float radAngle, vec2 pivot)
 void main() {
     vColor = color;
     vUv = uvs;
-    noiseUv = vec2(noiseuvs.x, noiseuvs.y) * 0.6;
+    noiseUv = vec2(noiseuvs.x, noiseuvs.y) * 2.0;
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 }

@@ -23,10 +23,10 @@ void main() {
     horPos = smoothstep(0.2, 1.0, horPos);
 
     if (horPos < 0.05) {
-        discard;
+        // discard;
     }
 
-    vec2 noiseUvFrag = vec2(noiseUv.x, noiseUv.y * 5.0);
+    vec2 noiseUvFrag = vec2(noiseUv.x, noiseUv.y);
     
     float noiseA = perlinNormalized(noiseUvFrag * trunkNoiseSmall);
     float noiseB = smoothstep(0.4, 0.5, perlinNormalized(noiseUvFrag * trunkNoiseMid));
@@ -50,15 +50,18 @@ void main() {
     //     noiseScale *= 2.0;
     // }
     // noise /= totalPower;
+
+    // gl_FragColor = vec4(noise, noise, 1.0, 1.0);
+    // gl_FragColor = vec4(noiseUv.x, noiseUv.y, 0.0, 1.0);
     
     
     vec3 hsl = rgb2hsl(vColor);
     hsl.z *= noise;
 
-    hsl.s *= horPos + 0.0;
-    hsl.z *= horPos + 0.0;
+    // hsl.s *= horPos + 0.0;
+    // hsl.z *= horPos + 0.0;
 
-    float minimumLight = 0.3;
+    // float minimumLight = 0.3;
 
     vec3 rgb = hsl2rgb(hsl);
     
