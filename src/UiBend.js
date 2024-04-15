@@ -13,6 +13,7 @@ class UiBend {
         this.callback = null;
         this.currentMode = 'select';
         this.lastMouseY = 0;
+        this.leftButton = 0;
     }
     
     init(canvas, callback) {
@@ -22,8 +23,8 @@ class UiBend {
         this.canvasId = canvas.id;
         this.rbushBranchs = null;
         document.getElementById(this.canvasId).addEventListener('mousemove', () => this.#onMouseMove());
-        document.getElementById(this.canvasId).addEventListener('mousedown', () => this.#onMouseDown());
-        document.getElementById(this.canvasId).addEventListener('mouseup', () => this.#onMouseUp());
+        document.getElementById(this.canvasId).addEventListener('mousedown', (evt) => this.#onMouseDown(evt));
+        document.getElementById(this.canvasId).addEventListener('mouseup', (evt) => this.#onMouseUp(evt));
     }
 
     update() {
@@ -45,7 +46,10 @@ class UiBend {
         this.render.clear();
     }
 
-    #onMouseDown() {
+    #onMouseDown(evt) {
+        if (evt.button !== this.leftButton) {
+            return;
+        }
         if (this.targetBranch === null) {
             return;
         }
@@ -54,11 +58,17 @@ class UiBend {
         this.lastMouseY = UiMouse.mousePosition[1];
     }
 
-    #onMouseUp() {
+    #onMouseUp(evt) {
+        if (evt.button !== this.leftButton) {
+            return;
+        }
         if (this.active === false) {
             return;
         }
         this.currentMode = 'select';
+        if (this.targetBranch === null) {
+            return;
+        }
         this.callback();
         this.targetBranch = null;
     }
