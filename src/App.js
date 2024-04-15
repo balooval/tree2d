@@ -1,4 +1,4 @@
-import { BaseRender, setOutputCanvas, changeScale, intCanvasToWorldPosition } from './renderer/BaseRender.js'
+import { BaseRender, setOutputCanvas, changeScale, addOffset } from './renderer/BaseRender.js'
 import TreeRender from './renderer/TreeRender.js'
 import LightRender from './renderer/LightRender.js'
 import LightDirectional from './LightDirectional.js';
@@ -10,6 +10,7 @@ import * as UiMouse from './UiMouse.js';
 import UiLightMode from './UiLightMode.js';
 import UiCut from './UiCut.js';
 import UiBend from './UiBend.js';
+import UiCamera from './UiCamera.js';
 import { LeafDrawer3d, leavesPresets } from './renderer/LeavesDrawer3d.js';
 import TrunkRender3d from './renderer/TrunkRender3d.js';
 import * as Render3D from './renderer/Render3d.js';
@@ -17,7 +18,7 @@ import { Butterfly } from './Butterfly.js';
 import { BackgroundGrass } from './BackgroundGrass.js';
 
 
-const groundPosition = 70;
+const groundPosition = 0;
 const treesList = [];
 const treesSolo = [];
 const lightSource = new LightDirectional(0, 500, 0, 200);
@@ -69,6 +70,7 @@ export function init(_canvasId) {
     UiLightMode.init(canvas, lightSource, updateTrees);
     UiCut.init(canvas, updateTrees);
     UiBend.init(canvas, updateTrees);
+    UiCamera.init(canvas.id, onCameraMove);
 
     mouseModes.lightMode = UiLightMode;
     mouseModes.cutMode = UiCut;
@@ -230,7 +232,11 @@ function drawTrees() {
 function onMouseWheel(evt) {
     changeScale(evt.deltaY);
     Render3D.changeScale();
-    // drawTrees();
+}
+
+function onCameraMove(translationX, translationY) {
+    addOffset(translationX, translationY);
+    Render3D.addOffset(translationX, translationY);
 }
 
 function clearCanvas() {

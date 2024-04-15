@@ -15,8 +15,8 @@ class UiLightMode {
         this.canvasId = canvas.id;
         this.lightSource = lightSource;
         this.callback = callback;
-        document.getElementById(this.canvasId).addEventListener('mousedown', () => this.#onMouseDown());
-        document.getElementById(this.canvasId).addEventListener('mouseup', () => this.#onMouseUp());
+        document.getElementById(this.canvasId).addEventListener('mousedown', (evt) => this.#onMouseDown(evt));
+        document.getElementById(this.canvasId).addEventListener('mouseup', (evt) => this.#onMouseUp(evt));
     }
 
     start() {
@@ -28,7 +28,10 @@ class UiLightMode {
         this.run = false;
     }
 
-    #onMouseDown() {
+    #onMouseDown(evt) {
+        if (evt.button !== 0) {
+            return;
+        }
         if (this.active === false) {
             return;
         }
@@ -37,7 +40,10 @@ class UiLightMode {
         this.run = true;
     }
 
-    #onMouseUp() {
+    #onMouseUp(evt) {
+        if (evt.button !== 0) {
+            return;
+        }
         if (this.active === false) {
             return;
         }

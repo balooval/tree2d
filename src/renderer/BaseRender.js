@@ -7,6 +7,7 @@ let sceneWidth = 100;
 let sceneHeight = 100;
 let offsetX = 0;
 let offsetY = 0;
+const cameraOffset = [0, 0];
 
 export function setOutputCanvas(canvas) {
     outputCanvas = canvas;
@@ -23,6 +24,14 @@ export function getViewScale() {
 
 export function getWorldWidth() {
     return viewWidth;
+}
+
+export function addOffset(x, y) {
+    cameraOffset[0] += x;
+	cameraOffset[1] += y;
+
+    offsetX = sceneWidth / 2 + (cameraOffset[0]);
+    offsetY = sceneHeight + (cameraOffset[1]);
 }
 
 export function changeScale(quantity) {

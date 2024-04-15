@@ -3,11 +3,6 @@ import {
 	Scene,
 	Vector3,
 	WebGLRenderer,
-	PlaneGeometry,
-	MeshBasicMaterial,
-	Mesh,
-	CanvasTexture,
-	DoubleSide,
 } from '../../vendor/three.module.js';
 import * as BaseRender from './BaseRender.js';
 export let renderer;
@@ -15,9 +10,8 @@ export let camera;
 export let scene = null;
 let canvas;
 let ratio;
-let texture2d;
+let cameraOffset = [0, 0];
 let objectsToAdd = [];
-
 
 
 export function init(destinationCanvas) {
@@ -43,7 +37,14 @@ export function addToScene(object) {
 	scene.add(object);
 }
 
+export function addOffset(x, y) {
+	cameraOffset[0] -= x;
+	cameraOffset[1] += y;
+	changeScale();
+}
+
 export function changeScale() {
+	const viewScale = BaseRender.getViewScale();
 	const width = BaseRender.getWorldWidth();
 	const height = width / ratio;
 	camera.left = width / -2;
@@ -51,8 +52,8 @@ export function changeScale() {
 	camera.top = height / 2;
 	camera.bottom = height / -2;
 	const offsetY = height / 2;
-	camera.position.set(0, offsetY, 100);
-	camera.lookAt(new Vector3(0, offsetY, 0));
+	camera.position.set(cameraOffset[0] / viewScale, offsetY + cameraOffset[1] / viewScale, 100);
+	camera.lookAt(new Vector3(cameraOffset[0] / viewScale, offsetY + cameraOffset[1] / viewScale, 0));
 	camera.updateProjectionMatrix();
 }
 

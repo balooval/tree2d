@@ -55,6 +55,9 @@ class UiBend {
     }
 
     #onMouseUp() {
+        if (this.active === false) {
+            return;
+        }
         this.currentMode = 'select';
         this.callback();
         this.targetBranch = null;
