@@ -85,7 +85,6 @@ export class Tree {
         this.preset = preset;
         this.position = GlMatrix.fromValues(positionX, positionY - 30);
         this.age = 1;
-        this.tips = new Set();
         const seed = new Seed(this, this.position[0], this.position[1]);
         this.root = new Branch(this, seed, this.position[0], this.position[1], this.position[0] + 0, this.position[1] + this.preset.newBranchLength * 0.1, 1);
         this.branchs = [this.root];
@@ -129,8 +128,7 @@ export class Tree {
 
     startCycle() {
         this.age ++;
-        this.branchesEnergyNeed = new Map();
-        this.#resetTips();
+        this.branchesEnergyNeed.clear();
     }
 
     endCycle() {
@@ -144,18 +142,6 @@ export class Tree {
 
     prune() {
         this.root.pruneIfNeeded();
-    }
-
-    #resetTips() {
-        this.tips = new Set();
-    }
-    
-    addTip(branch) {
-        this.tips.add(branch);
-    }
-    
-    removeTip(branch) {
-        this.tips.delete(branch);
     }
 
     getBranchs() {
