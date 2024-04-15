@@ -38,6 +38,7 @@ class TrunkRender3d {
 
         // this.material = new MeshBasicMaterial( {color: 0xffffff});
         this.meshes = new Map();
+        this.treesCycles = new Map();
         this.vertices = [];
         this.vertexColors = [];
     }
@@ -54,21 +55,27 @@ class TrunkRender3d {
         // this.material.uniforms.trunkNoiseMid.value = tree.preset.trunkNoiseMid;
         // this.material.uniforms.trunkNoiseBig.value = tree.preset.trunkNoiseBig;
 
-
         if (this.meshes.has(tree) === false) {
             const treeMesh = new Mesh(new BufferGeometry(), this.material);
             Render3D.addToScene(treeMesh);
             this.meshes.set(tree, treeMesh);
+            this.treesCycles.set(tree, -1);
         }
 
         const geometry = this.meshes.get(tree).geometry;
+        const lastCycle = this.treesCycles.get(tree);
+
+        if (lastCycle === tree.cycle) {
+            return;
+        }
 
         this.vertices = [];
         this.vertexColors = [];
         this.vertexUvs = [];
         this.vertexNoiseUvs = [];
 
-        tree.getBranchs().forEach(branch => {
+        const treeBranchs = tree.getBranchs()
+        treeBranchs.forEach(branch => {
             // this.#drawBranch(branch);
             this.#drawBranchRound(branch);
         });

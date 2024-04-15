@@ -90,6 +90,7 @@ export class Tree {
         this.root = new Branch(this, seed, this.position[0], this.position[1], this.position[0] + 0, this.position[1] + this.preset.newBranchLength * 0.1, 1);
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();
+        this.cycle = 0;
     }
 
     askEnergy(branch, lightQuantity) {
@@ -134,6 +135,7 @@ export class Tree {
 
     endCycle() {
         this.getBranchs().forEach(branch => branch.endCycle());
+        this.cycle ++;
     }
 
     bendBranches() {
