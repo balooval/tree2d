@@ -28,7 +28,7 @@ function onViewLeavesChanged() {
 function addPresetParamsInputs() {
     addTreeRangeControl('gravitropism', 0, 0.008, 0.0001);
     addTreeRangeControl('flexibility', 0.00001, 0.002, 0.00001);
-    // addTreeRangeControl('newBranchLength', 5, 50, 1);
+    // addTreeRangeControl('newBranchLength', 5, 80, 1);
     // addTreeRangeControl('uselessBeforePrune', 0, 50, 1);
     addTreeRangeControl('angle', 5, 130, 1);
     addTreeRangeControl('directionConstrainFactor', 0, 1, 0.01);

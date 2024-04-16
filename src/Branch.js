@@ -41,7 +41,12 @@ export class Branch {
         this.glDirection = GlMatrix.create();
         GlMatrix.sub(this.glDirection, this.glEnd, this.glStart)
         GlMatrix.normalize(this.glDirection, this.glDirection);
-        this.length = GlMatrix.dist(this.glEnd, this.glStart)
+        this.length = GlMatrix.dist(this.glEnd, this.glStart);
+
+        this.uvs = [
+            this.glStart[0], this.glStart[1],
+            this.glStart[0] + this.width, this.glStart[1] + this.length,
+        ];
 
         this.mainStrenght = mainStrenght;
         this.budsLight = 0;

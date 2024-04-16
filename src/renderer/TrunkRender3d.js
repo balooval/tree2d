@@ -161,12 +161,12 @@ class TrunkRender3d {
             );
 
             this.vertexNoiseUvs.push(
-                (i + 0) * noiseScale, bottomLeftPosY,
-                (i + 1) * noiseScale, bottomRightPosY,
-                (i + 0) * noiseScale, topLeftPosY,
-                (i + 0) * noiseScale, topLeftPosY,
-                (i + 1) * noiseScale, bottomRightPosY,
-                (i + 1) * noiseScale, topRightPosY,
+                // (i + 0) * noiseScale, bottomLeftPosY,
+                // (i + 1) * noiseScale, bottomRightPosY,
+                // (i + 0) * noiseScale, topLeftPosY,
+                // (i + 0) * noiseScale, topLeftPosY,
+                // (i + 1) * noiseScale, bottomRightPosY,
+                // (i + 1) * noiseScale, topRightPosY,
 
                 // 0, 0,
                 // 1, 0,
@@ -174,6 +174,13 @@ class TrunkRender3d {
                 // 0, 1,
                 // 1, 0,
                 // 1, 1,
+
+                branch.uvs[0] + (width / steps) * i, branch.uvs[1],
+                branch.uvs[0] + (width / steps) * (i + 1), branch.uvs[1],
+                branch.uvs[0] + (width / steps) * i, branch.uvs[3],
+                branch.uvs[0] + (width / steps) * i, branch.uvs[3],
+                branch.uvs[0] + (width / steps) * (i + 1), branch.uvs[1],
+                branch.uvs[0] + (width / steps) * (i + 1), branch.uvs[3],
             );
         }
     }
