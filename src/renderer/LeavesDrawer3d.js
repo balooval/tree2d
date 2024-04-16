@@ -1,5 +1,5 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
-import { random, randomize } from "../Math.js";
+import { random, randomize, lerpPoint } from "../Math.js";
 import { glCanvasToWorldPosition } from "./BaseRender.js";
 import * as Render3D from './Render3d.js';
 import FragmentShader from '../shaders/LeavesFragment.js';
@@ -40,7 +40,9 @@ export const leavesPresets = {
         formRatio: 1.5,
         orientationVariation: 1.6,
         dispersionAngleStart: 0,
-        dispersionAngleVariation: 2.6,
+        dispersionAngleVariation: 3.2,
+        lengthDistribution: 1,
+        distributionVariation: 1,
     },
     tige: {
         id: 'tige',
@@ -54,25 +56,29 @@ export const leavesPresets = {
         saturation: 32,
         scale: 1.3,
         formRatio: 2.6,
-        orientationVariation: 1.5,
+        orientationVariation: 2.5,
         dispersionAngleStart: 0,
         dispersionAngleVariation: 3.15,
+        lengthDistribution: 1,
+        distributionVariation: 1,
     },
     spike: {
         id: 'spike',
         baseLife: 100,
-        translationSpeed: 3,
+        translationSpeed: 2,
         heliotropism: [0, 0.5],
         shape: 'quad',
-        randomSkip: 0.93,
+        randomSkip: 0.85,
         geometryType: 'spike',
         hue: 117,
         saturation: 22,
-        scale: 1.3,
-        formRatio: 1.5,
-        orientationVariation: 0.4,
+        scale: 1.4,
+        formRatio: 1,
+        orientationVariation: 2.2,
         dispersionAngleStart: 0,
-        dispersionAngleVariation: 0.8,
+        dispersionAngleVariation: 1.1,
+        lengthDistribution: 1,
+        distributionVariation: 1,
     }
 };
 
@@ -119,6 +125,7 @@ export class LeafDrawer3d {
                 size: 1,
                 life: 1,
                 lightReceived: 1,
+                branchAngle: 0,
             });
         }
 
@@ -237,14 +244,14 @@ export class LeafDrawer3d {
         this.attributeLightReceived.needsUpdate = true;
     }
 
-    draw(tree, position, size, lightQuantity, heliotropism) {
+    draw(tree, branch, size, lightQuantity, heliotropism) {
         this.tree = tree;
         this.heliotropism = heliotropism;
         
         const angle = Math.atan2(this.lightSource.glDirection[0], this.lightSource.glDirection[1]) * -1;
         this.shadowOffset = Math.tan(angle);
 
-        this.#setupParticles(position, Math.min(4, size), lightQuantity);
+        this.#setupParticles(branch.glDirection, branch.glStart, branch.glEnd, Math.min(4, size), lightQuantity);
 
         this.growIsRunning = true;
         let loopCounter = 0;
@@ -262,10 +269,13 @@ export class LeafDrawer3d {
         this.leafMesh.instanceMatrix.needsUpdate = true;
     }
 
-    #setupParticles(position, size, lightQuantity) {
+    #setupParticles(branchDirection, startPosition, endPosition, size, lightQuantity) {
         const baseLife = this.preset.baseLife;
-
+        const branchAngle = Math.atan2(branchDirection[0], branchDirection[1]);
+        
         for (let i = 0; i < this.particlesToDraw; i ++) {
+            const lengthDistribution = random(this.preset.lengthDistribution - this.preset.distributionVariation, this.preset.lengthDistribution)
+            const position = lerpPoint(startPosition, endPosition, lengthDistribution);
             const particleAngle = randomize(Math.PI / 2 + this.preset.dispersionAngleStart, this.preset.dispersionAngleVariation);
             GlMatrix.rotate(this.particleGlOrientation, glGround, glOrigin, particleAngle);
             GlMatrix.set(this.particles[i].originalOrientation, this.particleGlOrientation[0], this.particleGlOrientation[1]);
@@ -275,6 +285,7 @@ export class LeafDrawer3d {
             this.particles[i].size = (8 * size) + Math.random() * 1;
             this.particles[i].life = (baseLife * size) + Math.random() * (baseLife / 2);
             this.particles[i].lightReceived = lightQuantity * 0.1;
+            this.particles[i].branchAngle = branchAngle;
         }
     }
 
@@ -309,7 +320,8 @@ export class LeafDrawer3d {
             this.attributeLightReceived.setX(this.currentInstanceIndex, particle.lightReceived);
 
             // const angle = randomize(0, 3.14);
-            let angle = Math.atan2(particle.originalOrientation[0] * -1, particle.originalOrientation[1]);
+            // let angle = Math.atan2(particle.originalOrientation[0] * -1, particle.originalOrientation[1]);
+            let angle = particle.branchAngle * -1;
             angle = randomize(angle, this.preset.orientationVariation);
 
 

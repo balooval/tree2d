@@ -37,6 +37,7 @@ export const presets = {
         trunkNoiseSmall: 0.093,
         trunkNoiseMid: 0.006,
         trunkNoiseBig: 0.031,
+        minLightForLeaf: 0.5,
     },
     typeB: {
         presetName: 'typeB',
@@ -76,6 +77,7 @@ export const presets = {
         trunkNoiseSmall: 0.01,
         trunkNoiseMid: 0.07,
         trunkNoiseBig: 0.1,
+        minLightForLeaf: 0.5,
     },
 };
 
@@ -85,11 +87,11 @@ export class Tree {
         this.preset = preset;
         this.position = GlMatrix.fromValues(positionX, positionY - 30);
         this.age = 1;
-        this.tips = new Set();
         const seed = new Seed(this, this.position[0], this.position[1]);
         this.root = new Branch(this, seed, this.position[0], this.position[1], this.position[0] + 0, this.position[1] + this.preset.newBranchLength * 0.1, 1);
         this.branchs = [this.root];
         this.branchesEnergyNeed = new Map();
+        this.cycle = 0;
     }
 
     askEnergy(branch, lightQuantity) {
@@ -128,12 +130,12 @@ export class Tree {
 
     startCycle() {
         this.age ++;
-        this.branchesEnergyNeed = new Map();
-        this.#resetTips();
+        this.branchesEnergyNeed.clear();
     }
 
     endCycle() {
         this.getBranchs().forEach(branch => branch.endCycle());
+        this.cycle ++;
     }
 
     bendBranches() {
@@ -142,18 +144,6 @@ export class Tree {
 
     prune() {
         this.root.pruneIfNeeded();
-    }
-
-    #resetTips() {
-        this.tips = new Set();
-    }
-    
-    addTip(branch) {
-        this.tips.add(branch);
-    }
-    
-    removeTip(branch) {
-        this.tips.delete(branch);
     }
 
     getBranchs() {

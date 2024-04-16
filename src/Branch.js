@@ -25,8 +25,6 @@ export class Branch {
         this.width = 1;
         this.cyclesWithoutEnergy = 0;
 
-        this.tree.addTip(this);
-
         this.leavesHealth = 1;
         this.leavesSize = 0;
         
@@ -43,7 +41,12 @@ export class Branch {
         this.glDirection = GlMatrix.create();
         GlMatrix.sub(this.glDirection, this.glEnd, this.glStart)
         GlMatrix.normalize(this.glDirection, this.glDirection);
-        this.length = GlMatrix.dist(this.glEnd, this.glStart)
+        this.length = GlMatrix.dist(this.glEnd, this.glStart);
+
+        this.uvs = [
+            this.glStart[0], this.glStart[1],
+            this.glStart[0] + this.width, this.glStart[1] + this.length,
+        ];
 
         this.mainStrenght = mainStrenght;
         this.budsLight = 0;
@@ -195,8 +198,6 @@ export class Branch {
     }
 
     #createChild(bud) {        
-        this.tree.removeTip(this);
-        
         const childEnd = this.#computeAverageAttraction(bud);
         const child = new Branch(this.tree, this, this.glEnd[0], this.glEnd[1], childEnd[0], childEnd[1], bud.strenght);
         this.childs.push(child);
@@ -315,7 +316,8 @@ export class Branch {
     }
 
     getLeaves() {
-        return this.buds.filter(bud => bud.light > 0.5);
+        const minLight = this.preset.minLightForLeaf;
+        return this.buds.filter(bud => bud.light > minLight);
     }
 
     getLeavesObstruction() {
@@ -327,10 +329,6 @@ export class Branch {
         
         if (this.childs.length > 0) {
             return;
-        }
-        this.tree.removeTip(this);
-        if (this.parent.childs.length === 0) {
-            this.tree.addTip(this.parent);
         }
 
         this.childs = [];

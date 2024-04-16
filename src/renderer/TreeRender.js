@@ -83,7 +83,7 @@ class TreeRender {
         const lightQuantity = Math.min(4, branch.budsLight);
         // const lightQuantity = branch.attractors.length;
 
-        leafDrawer.draw(tree, branch.glEnd, leavesSize, lightQuantity, heliotropism);
+        leafDrawer.draw(tree, branch, leavesSize, lightQuantity, heliotropism);
     }
 }
 

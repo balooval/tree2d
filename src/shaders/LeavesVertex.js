@@ -50,13 +50,18 @@ void main() {
     vec3 finalRgb = hsl2rgb(hsl);
 
     vFinalColor = finalRgb;
+
+    vec3 vertexPosition = vec3(position.xyz);
     
-    vec4 worldPosition = instanceMatrix * vec4(position, 1.0);
     float noiseA = perlin(vec2((instancePosition.x + (time * 2.0)) * 0.005, instancePosition.y * 0.05));
     float noiseB = perlin(vec2((instancePosition.x + (time * 2.0)) * 0.05, instancePosition.y * 0.5));
     float noise = noiseA + (noiseB * 0.1);
-
+    
     float noiseFactor = (instancePosition.y - groundPosition) * 0.001;
+
+    vertexPosition.xy = rotate(position.xy, noise * noiseFactor, vec2(0.0, 0.0));
+
+    vec4 worldPosition = instanceMatrix * vec4(vertexPosition, 1.0);
     worldPosition.x += (noise * noiseFactor) * 20.0;
 
     vec4 instancePosition = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
