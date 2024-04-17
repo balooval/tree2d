@@ -179,7 +179,9 @@ function onFrame() {
     if (document.hasFocus() === true) {
         butterflies.forEach(butterfly => butterfly.update());
         for (const trees of treesList) {
-            trees.forEach(tree => treeRender.update(tree));
+            trees.forEach(tree => {
+                treeRender.update(tree);
+            });
         }
     }
     

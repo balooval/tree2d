@@ -124,10 +124,6 @@ export class Tree {
         }
     }
 
-    giveLightToBranches() {
-
-    }
-
     startCycle() {
         this.age ++;
         this.branchesEnergyNeed.clear();
@@ -138,8 +134,8 @@ export class Tree {
         this.cycle ++;
     }
 
-    bendBranches() {
-        this.root.bend();
+    applyGravity() {
+        this.root.applyGravity();
     }
 
     prune() {

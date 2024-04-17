@@ -241,7 +241,7 @@ export class Branch {
         }
     }
 
-    bend() {
+    applyGravity() {
         const localFlexibility = this.preset.flexibility / this.width;
 
         const ground = GlMatrix.fromValues(-1, 0);
@@ -251,7 +251,7 @@ export class Branch {
         this.rotate(bendAngle);
         
         for (let i = 0; i < this.childs.length; i ++) {
-            this.childs[i].bend();
+            this.childs[i].applyGravity();
         }
     }
 

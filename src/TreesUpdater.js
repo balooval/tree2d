@@ -30,7 +30,7 @@ export function treeGrowUpdate(trees, lightSource) {
     trees.forEach(tree => tree.distributeEnergy());
     trees.forEach(tree => tree.liftBranches());
     trees.forEach(tree => tree.prune());
-    trees.forEach(tree => tree.bendBranches());
+    trees.forEach(tree => tree.applyGravity());
 
     trees.forEach(tree => tree.endCycle());
 }
