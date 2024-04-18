@@ -1,5 +1,6 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { radians, randomize, hslToRgb } from "../Math.js";
+import { worldToNormalizedX, worldToNormalizedY } from "./BaseRender.js";
 import * as Render3D from './Render3d.js';
 import {
 	Mesh,
@@ -8,6 +9,8 @@ import {
     ShaderMaterial,
     MeshBasicMaterial,
     DoubleSide,
+    CanvasTexture,
+    Vector2,
 } from '../../vendor/three.module.js';
 import VertexShader from '../shaders/TrunkVertex.js';
 import FragmentShader from '../shaders/TrunkFragment.js';
@@ -23,24 +26,32 @@ class TrunkRender3d {
         this.trunkPointC = GlMatrix.create();
         this.trunkPointD = GlMatrix.create();
 
-
-        const uniforms = {
-            trunkNoiseSmall: {type: 'float', value: 0.01},
-            trunkNoiseMid: {type: 'float', value: 0.07},
-            trunkNoiseBig: {type: 'float', value: 0.1},
-        }
-
-        this.material = new ShaderMaterial({
-            uniforms: uniforms,
-            fragmentShader: FragmentShader,
-            vertexShader: VertexShader,
-        })
+        this.material = null;
 
         // this.material = new MeshBasicMaterial( {color: 0xffffff});
         this.meshes = new Map();
         this.treesCycles = new Map();
         this.vertices = [];
         this.vertexColors = [];
+    }
+
+    init(shadowLayer) {
+        // console.log('shadowLayer', shadowLayer.canvas);
+
+        const shadowTexture = new CanvasTexture(shadowLayer.canvas);
+
+        const uniforms = {
+            trunkNoiseSmall: {type: 'float', value: 0.01},
+            trunkNoiseMid: {type: 'float', value: 0.07},
+            trunkNoiseBig: {type: 'float', value: 0.1},
+            shadowTexture: {value: shadowTexture},
+        }
+
+        this.material = new ShaderMaterial({
+            uniforms: uniforms,
+            fragmentShader: FragmentShader,
+            vertexShader: VertexShader,
+        });
     }
 
     deleteTree(tree) {
@@ -50,17 +61,21 @@ class TrunkRender3d {
         this.meshes.delete(tree);
     }
 
-    draw(tree) {
-        // this.material.uniforms.trunkNoiseSmall.value = tree.preset.trunkNoiseSmall;
-        // this.material.uniforms.trunkNoiseMid.value = tree.preset.trunkNoiseMid;
-        // this.material.uniforms.trunkNoiseBig.value = tree.preset.trunkNoiseBig;
+    update() {
 
+    }
+
+    draw(tree) {
         if (this.meshes.has(tree) === false) {
             const treeMesh = new Mesh(new BufferGeometry(), this.material);
+            
             Render3D.addToScene(treeMesh);
             this.meshes.set(tree, treeMesh);
             this.treesCycles.set(tree, -1);
         }
+        
+        this.material.uniforms.shadowTexture.value.needsUpdate = true;
+
 
         const geometry = this.meshes.get(tree).geometry;
         const lastCycle = this.treesCycles.get(tree);
@@ -142,15 +157,13 @@ class TrunkRender3d {
                 0.5, 0.5, 0.5,
             );
     
-            const noiseScale = 50;
-
             this.vertexUvs.push(
-                (i + 0) * noiseScale, bottomLeftPosY,
-                (i + 1) * noiseScale, bottomRightPosY,
-                (i + 0) * noiseScale, topLeftPosY,
-                (i + 0) * noiseScale, topLeftPosY,
-                (i + 1) * noiseScale, bottomRightPosY,
-                (i + 1) * noiseScale, topRightPosY,
+                worldToNormalizedX(bottomLeftPosX), worldToNormalizedY(bottomLeftPosY),
+                worldToNormalizedX(bottomRightPosX), worldToNormalizedY(bottomRightPosY),
+                worldToNormalizedX(topLeftPosX), worldToNormalizedY(topLeftPosY),
+                worldToNormalizedX(topLeftPosX), worldToNormalizedY(topLeftPosY),
+                worldToNormalizedX(bottomRightPosX), worldToNormalizedY(bottomRightPosY),
+                worldToNormalizedX(topRightPosX), worldToNormalizedY(topRightPosY),
 
                 // 0, 0,
                 // 1, 0,

@@ -1,6 +1,6 @@
 import * as GlMatrix from "../../vendor/gl-matrix/vec2.js";
 import { random, randomize, lerpPoint } from "../Math.js";
-import { glCanvasToWorldPosition } from "./BaseRender.js";
+import { glCanvasToWorldPosition, glWorldToCanvasPosition } from "./BaseRender.js";
 import * as Render3D from './Render3d.js';
 import FragmentShader from '../shaders/LeavesFragment.js';
 import VertexShader from '../shaders/LeavesVertex.js';
@@ -83,7 +83,8 @@ export const leavesPresets = {
 };
 
 export class LeafDrawer3d {
-    constructor(lightSource, preset) {
+    constructor(lightSource, preset, shadowLayer) {
+        this.shadowLayer = shadowLayer;
         this.particlesCount = 72;
         this.particlesToDraw = this.particlesCount;
         this.particles = [];
@@ -238,6 +239,7 @@ export class LeafDrawer3d {
 
     endDraw() {
         this.leafMesh.count = this.currentInstanceIndex;
+        // this.leafMesh.count = 0;
         this.attributePosition.needsUpdate = true;
         this.attributeDistance.needsUpdate = true;
         this.attributeOrientation.needsUpdate = true;
@@ -292,6 +294,40 @@ export class LeafDrawer3d {
     #drawStep(loopCounter) {
         const currentDepth = 0;
 
+        // this.shadowLayer.glDrawCircle([-600, 400], 400, 'rgb(255, 0, 0)');
+        // this.shadowLayer.glDrawCircle([-600, 1200], 400, 'rgb(0, 255, 0)');
+        // this.shadowLayer.glDrawCircle([600, 400], 400, 'rgb(0, 0, 255)');
+        // this.shadowLayer.glDrawCircle([600, 1200], 400, 'rgb(0, 0, 0)');
+        // this.shadowLayer.glDrawCircle([0, 800], 400, 'rgb(255, 0, 255)');
+
+        /*
+        this.shadowLayer.glDrawPolygon([
+            [-500, 0],
+            [0, 0],
+            [0, 500],
+            [-500, 500],
+        ], 'rgb(255, 0, 0)');
+        this.shadowLayer.glDrawPolygon([
+            [-500, 500],
+            [0, 500],
+            [0, 1000],
+            [-500, 1000],
+        ], 'rgb(0, 255, 0)');
+        this.shadowLayer.glDrawPolygon([
+            [0, 0],
+            [500, 0],
+            [500, 500],
+            [0, 500],
+        ], 'rgb(0, 0, 255)');
+        this.shadowLayer.glDrawPolygon([
+            [0, 500],
+            [500, 500],
+            [500, 1000],
+            [0, 1000],
+        ], 'rgb(255, 0, 255)');
+        return;
+        */
+
         for (let i = 0; i < this.particlesToDraw; i++) {
             if (this.currentInstanceIndex > this.leafCount) {
                 console.log('MORE LEAVES THAN', this.currentInstanceIndex);
@@ -333,7 +369,35 @@ export class LeafDrawer3d {
             this.leafMesh.setMatrixAt(this.currentInstanceIndex, this.matrix);
 
             this.currentInstanceIndex ++;
+
+            this.#dropShadow(particle);
         }
+    }
+
+    #dropShadow(particle) {
+        if (Math.random() < 0.8) {
+            return;
+        }
+        GlMatrix.set(
+            this.shadowGlPosition,
+            particle.glPosition[0] + (this.shadowOffset * particle.glPosition[1]),
+            this.tree.position[1]
+        );
+
+        const distanceFromGround = GlMatrix.dist(this.shadowGlPosition, particle.glPosition) * 0.1;
+        const color = `rgba(52, 54, 61, ${Math.max(0.005, 0.1 / distanceFromGround)})`;
+        this.shadowLayer.glDrawCircle(this.shadowGlPosition, particle.size * (distanceFromGround * 0.01), color); // 
+        
+        // this.shadowLayer.context.globalCompositeOperation = 'source-atop';
+        const gradient = this.shadowLayer.context.createLinearGradient(
+            ...glWorldToCanvasPosition(particle.glPosition),
+            ...glWorldToCanvasPosition(this.shadowGlPosition),
+        );
+        gradient.addColorStop(0, 'rgba(0, 30, 50, 0.2)');
+        gradient.addColorStop(0.8, 'rgba(0, 30, 50, 0.0)');
+        this.shadowLayer.glDrawLine(particle.glPosition, this.shadowGlPosition, particle.size * 2.1, gradient);
+
+        // this.shadowLayer.context.globalCompositeOperation = 'source-over';
     }
 
     #grow() {

@@ -24,9 +24,10 @@ const treesSolo = [];
 const lightSource = new LightDirectional(0, 500, 0, 200);
 const treeLayer = new BaseRender();
 const leafLayer = new BaseRender();
+const shadowLayer = new BaseRender();
 const backgroundGrass = new BackgroundGrass(groundPosition);
 const trunkRender = new TrunkRender3d(treeLayer, lightSource);
-const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, backgroundGrass);
+const treeRender = new TreeRender(treeLayer, lightSource, trunkRender, backgroundGrass, shadowLayer);
 const lightLayer = new BaseRender();
 const lightRender = new LightRender(lightLayer);
 
@@ -66,7 +67,9 @@ export function init(_canvasId) {
     
     leafLayer.init();
     treeLayer.init();
+    shadowLayer.init();
     lightLayer.init();
+    trunkRender.init(shadowLayer);
     UiLightMode.init(canvas, lightSource, updateTrees);
     UiCut.init(canvas, updateTrees);
     UiBend.init(canvas, updateTrees);
@@ -198,6 +201,8 @@ function onFrame() {
 function updateScreen() {
     clearCanvas();
 
+    trunkRender.update();
+
     Render3D.update();
     Render3D.drawIntoContext(context);
 
@@ -205,6 +210,7 @@ function updateScreen() {
     lightRender.draw(lightSource);
 
     treeLayer.drawIntoContext(context);
+    // shadowLayer.drawIntoContext(context);
     lightLayer.drawIntoContext(context);
 }
 
@@ -224,6 +230,7 @@ function updateTrees() {
 
 function drawTrees() {
     treeLayer.clear();
+    shadowLayer.fill('rgb(255, 255, 255');
     for (const trees of treesList) {
         trees.forEach(tree => treeRender.draw(tree));
     }
