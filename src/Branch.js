@@ -48,6 +48,11 @@ export class Branch {
             this.glStart[0] + this.width, this.glStart[1] + this.length,
         ];
 
+        // this.uvs = [
+        //     this.parent.uvs[0], this.parent.uvs[3],
+        //     this.glStart[0], this.glStart[1] + this.length,
+        // ];
+
         this.mainStrenght = mainStrenght;
         this.budsLight = 0;
         this.buds = this.createBuds();
@@ -357,7 +362,12 @@ export class Seed {
         GlMatrix.sub(this.glDirection, this.glEnd, this.glStart)
         GlMatrix.normalize(this.glDirection, this.glDirection);
         
-        this.length = GlMatrix.dist(this.glEnd, this.glStart)
+        this.length = GlMatrix.dist(this.glEnd, this.glStart);
+
+        this.uvs = [
+            this.glStart[0], this.glStart[1],
+            this.glStart[0] + this.width, this.glStart[1] + this.length,
+        ];
     }
 
     getWidth() {

@@ -2,6 +2,7 @@ import PerlinNoise from './PerlinNoise.js';
 import Colors from './Colors.js';
 
 export default `
+uniform vec3 lightDirection;
 uniform float trunkNoiseSmall;
 uniform float trunkNoiseMid;
 uniform float trunkNoiseBig;
@@ -11,14 +12,31 @@ varying vec2 noiseUv;
 varying vec2 vUv;
 varying vec3 vColor;
 varying vec3 vNormal;
-varying float lightValue;
+// varying float vLightValue;
 
 ${PerlinNoise}
 
 ${Colors}
 
+float getNoiseNormal(vec2 uv) {
+    vec2 noiseUvFrag = vec2(uv.x * 10.0, uv.y * 0.2);
+    // vec2 noiseUvFrag = vec2(uv.x, uv.y);
+
+    float noiseA = perlin(noiseUvFrag * trunkNoiseSmall);
+    float noiseB = smoothstep(0.4, 0.5, perlin(noiseUvFrag * trunkNoiseMid));
+    float noiseC = perlin(noiseUvFrag * trunkNoiseBig);
+
+    float noise = noiseA;
+    noise *= noiseB;
+    noise += noiseC;
+
+    return noise;
+}
+
 float getNoiseValue(vec2 uv) {
-    vec2 noiseUvFrag = vec2(uv.x, uv.y);
+    vec2 noiseUvFrag = vec2(uv.x * 1.0, uv.y * 1.0);
+    // vec2 noiseUvFrag = vec2(uv.x, uv.y);
+
     float noiseA = perlinNormalized(noiseUvFrag * trunkNoiseSmall);
     float noiseB = smoothstep(0.4, 0.5, perlinNormalized(noiseUvFrag * trunkNoiseMid));
     float noiseC = perlinNormalized(noiseUvFrag * trunkNoiseBig);
@@ -36,22 +54,20 @@ float getShadowValue(vec2 pos) {
 }
 
 void main() {
-    // vec3 norms = vec3((vNormal.x + 1.0) / 2.0, (vNormal.y + 1.0) / 2.0, (vNormal.z + 1.0) / 2.0);
-    // gl_FragColor = vec4(norms, 1.0);
-    // gl_FragColor = vec4((lightValue + 1.0) / 2.0, (lightValue + 1.0) / 2.0, (lightValue + 1.0) / 2.0, 1.0);
+    vec3 hsl = vec3(vColor.x, vColor.y, vColor.z);
 
-    vec3 hsl = rgb2hsl(vColor);
-
-    float noise = getNoiseValue(noiseUv);
-    hsl.z *= noise;
+    float noiseNormal = getNoiseNormal(noiseUv);
+    vec3 localNormal = normalize(vec3(vNormal.x + noiseNormal, vNormal.y, 1.0));
+    float lightValue = dot(lightDirection, localNormal);
+    hsl.z *= (lightValue + 0.0);
     
     float shadow = getShadowValue(vPos.xy);
-    hsl.z *= (lightValue + 0.3);
     hsl.z *= shadow;
+
+    float noiseColor = getNoiseValue(noiseUv);
+    hsl.z *= (noiseColor + 0.2);
 
     vec3 rgb = hsl2rgb(hsl);
 
-    rgb.z += (1.0 - shadow) * 0.1;
-
-    gl_FragColor = vec4(rgb.xyz, 1.0);
+    gl_FragColor = vec4(rgb, 1.0);
 }`;

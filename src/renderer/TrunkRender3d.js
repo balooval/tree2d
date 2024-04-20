@@ -46,7 +46,7 @@ class TrunkRender3d {
             trunkNoiseMid: {type: 'float', value: 0.07},
             trunkNoiseBig: {type: 'float', value: 0.1},
             shadowTexture: {value: shadowTexture},
-            lightDirection: {value: new Vector2(0, 0, 0)},
+            lightDirection: {value: new Vector2(0, 0, 1)},
         }
 
         this.material = new ShaderMaterial({
@@ -65,7 +65,8 @@ class TrunkRender3d {
 
     update() {
         this.material.uniforms.lightDirection.value.x = this.lightSource.glDirection[0] * -1;
-        this.material.uniforms.lightDirection.value.y = this.lightSource.glDirection[1] * 1;
+        this.material.uniforms.lightDirection.value.y = this.lightSource.glDirection[1] * -1;
+        this.material.uniforms.lightDirection.value.z = 1;
     }
 
     draw(tree) {
@@ -134,8 +135,8 @@ class TrunkRender3d {
 
             this.vertexNormals.push(
                 Math.cos(angle) * Math.cos(branchparentAngle),
-                Math.cos(angle) * Math.sin(branchparentAngle),
-                Math.sin(angle)
+                0 - Math.cos(angle) * Math.sin(branchparentAngle),
+                0 - Math.sin(angle)
             );
 
             angle = (angleStep * (i + 1)) + angleStart;
@@ -146,8 +147,8 @@ class TrunkRender3d {
 
             this.vertexNormals.push(
                 Math.cos(angle) * Math.cos(branchparentAngle),
-                Math.cos(angle) * Math.sin(branchparentAngle),
-                Math.sin(angle)
+                0 - Math.cos(angle) * Math.sin(branchparentAngle),
+                0 - Math.sin(angle)
             );
 
             angle = (angleStep * (i + 0)) + angleStart;
@@ -158,8 +159,8 @@ class TrunkRender3d {
 
             this.vertexNormals.push(
                 Math.cos(angle) * Math.cos(branchAngle),
-                Math.cos(angle) * Math.sin(branchAngle),
-                Math.sin(angle)
+                0 - Math.cos(angle) * Math.sin(branchAngle),
+                0 - Math.sin(angle)
             );
 
 
@@ -167,15 +168,15 @@ class TrunkRender3d {
 
             this.vertexNormals.push(
                 Math.cos(angle) * Math.cos(branchAngle),
-                Math.cos(angle) * Math.sin(branchAngle),
-                Math.sin(angle)
+                0 - Math.cos(angle) * Math.sin(branchAngle),
+                0 - Math.sin(angle)
             );
 
             angle = (angleStep * (i + 1)) + angleStart;
             this.vertexNormals.push(
                 Math.cos(angle) * Math.cos(branchparentAngle),
-                Math.cos(angle) * Math.sin(branchparentAngle),
-                Math.sin(angle)
+                0 - Math.cos(angle) * Math.sin(branchparentAngle),
+                0 - Math.sin(angle)
             );
 
             this.vertices.push(bottomRightPosX, bottomRightPosY, bottomRightPosZ);
@@ -188,19 +189,19 @@ class TrunkRender3d {
 
             this.vertexNormals.push(
                 Math.cos(angle) * Math.cos(branchAngle),
-                Math.cos(angle) * Math.sin(branchAngle),
-                Math.sin(angle)
+                0 - Math.cos(angle) * Math.sin(branchAngle),
+                0 - Math.sin(angle)
             );
 
             
 
             this.vertexColors.push(
-                0.5, 0.5, 0.5,
-                0.5, 0.5, 0.5,
-                0.5, 0.5, 0.5,
-                0.5, 0.5, 0.5,
-                0.5, 0.5, 0.5,
-                0.5, 0.5, 0.5,
+                branch.parent.trunkHSL.h / 360, branch.parent.trunkHSL.s / 100, branch.parent.trunkHSL.l / 100,
+                branch.parent.trunkHSL.h / 360, branch.parent.trunkHSL.s / 100, branch.parent.trunkHSL.l / 100,
+                branch.trunkHSL.h / 360, branch.trunkHSL.s / 100, branch.trunkHSL.l / 100,
+                branch.trunkHSL.h / 360, branch.trunkHSL.s / 100, branch.trunkHSL.l / 100,
+                branch.parent.trunkHSL.h / 360, branch.parent.trunkHSL.s / 100, branch.parent.trunkHSL.l / 100,
+                branch.trunkHSL.h / 360, branch.trunkHSL.s / 100, branch.trunkHSL.l / 100,
             );
     
             this.vertexUvs.push(
@@ -210,30 +211,9 @@ class TrunkRender3d {
                 worldToNormalizedX(topLeftPosX), worldToNormalizedY(topLeftPosY),
                 worldToNormalizedX(bottomRightPosX), worldToNormalizedY(bottomRightPosY),
                 worldToNormalizedX(topRightPosX), worldToNormalizedY(topRightPosY),
-
-                // 0, 0,
-                // 1, 0,
-                // 0, 1,
-                // 0, 1,
-                // 1, 0,
-                // 1, 1,
             );
 
             this.vertexNoiseUvs.push(
-                // (i + 0) * noiseScale, bottomLeftPosY,
-                // (i + 1) * noiseScale, bottomRightPosY,
-                // (i + 0) * noiseScale, topLeftPosY,
-                // (i + 0) * noiseScale, topLeftPosY,
-                // (i + 1) * noiseScale, bottomRightPosY,
-                // (i + 1) * noiseScale, topRightPosY,
-
-                // 0, 0,
-                // 1, 0,
-                // 0, 1,
-                // 0, 1,
-                // 1, 0,
-                // 1, 1,
-
                 branch.uvs[0] + (width / steps) * i, branch.uvs[1],
                 branch.uvs[0] + (width / steps) * (i + 1), branch.uvs[1],
                 branch.uvs[0] + (width / steps) * i, branch.uvs[3],
