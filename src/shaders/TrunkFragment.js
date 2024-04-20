@@ -10,6 +10,8 @@ varying vec4 vPos;
 varying vec2 noiseUv;
 varying vec2 vUv;
 varying vec3 vColor;
+varying vec3 vNormal;
+varying float lightValue;
 
 ${PerlinNoise}
 
@@ -34,7 +36,9 @@ float getShadowValue(vec2 pos) {
 }
 
 void main() {
-    // gl_FragColor = texture2D(shadowTexture, vUv);
+    // vec3 norms = vec3((vNormal.x + 1.0) / 2.0, (vNormal.y + 1.0) / 2.0, (vNormal.z + 1.0) / 2.0);
+    // gl_FragColor = vec4(norms, 1.0);
+    // gl_FragColor = vec4((lightValue + 1.0) / 2.0, (lightValue + 1.0) / 2.0, (lightValue + 1.0) / 2.0, 1.0);
 
     vec3 hsl = rgb2hsl(vColor);
 
@@ -42,6 +46,7 @@ void main() {
     hsl.z *= noise;
     
     float shadow = getShadowValue(vPos.xy);
+    hsl.z *= (lightValue + 0.3);
     hsl.z *= shadow;
 
     vec3 rgb = hsl2rgb(hsl);
