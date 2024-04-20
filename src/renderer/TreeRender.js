@@ -3,8 +3,9 @@ import { LeafDrawer3d, leavesPresets } from "./LeavesDrawer3d.js";
 
 
 class TreeRender {
-    constructor(render, lightSource, trunkRender, backgroundGrass) {
+    constructor(render, lightSource, trunkRender, backgroundGrass, shadowLayer) {
         this.render = render;
+        this.shadowLayer = shadowLayer;
         this.backgroundGrass = backgroundGrass;
         this.lightSource = lightSource;
         this.viewLeaves = true;
@@ -37,7 +38,7 @@ class TreeRender {
         this.trunkRender.draw(tree);
 
         if (this.leafDrawers.has(tree) === false) {
-            const leafDrawer = new LeafDrawer3d(this.lightSource, leavesPresets[tree.preset.leavesPreset]);
+            const leafDrawer = new LeafDrawer3d(this.lightSource, leavesPresets[tree.preset.leavesPreset], this.shadowLayer);
             this.leafDrawers.set(tree, leafDrawer);
         }
 

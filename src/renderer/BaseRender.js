@@ -18,6 +18,16 @@ export function setOutputCanvas(canvas) {
     offsetY = sceneHeight;
 }
 
+export function worldToNormalizedX(x) {
+    const canvasX = worldToCanvasX(x);
+    return canvasX / sceneWidth;
+}
+
+export function worldToNormalizedY(y) {
+    const canvasY = worldToCanvasY(y);
+    return 1 - canvasY / sceneHeight;
+}
+
 export function getViewScale() {
     return viewScale;
 }
@@ -119,6 +129,12 @@ export class BaseRender {
 
     clear() {
         this.context.clearRect(0, 0, sceneWidth, sceneHeight);
+    }
+
+    fill(color) {
+        this.context.fillStyle = color;
+        this.context.rect(0, 0, sceneWidth, sceneHeight);
+        this.context.fill();
     }
 
     drawImage(imageId, worldPosition, angle, imageScale) {

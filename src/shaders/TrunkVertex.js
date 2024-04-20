@@ -1,6 +1,7 @@
 import PerlinNoise from './PerlinNoise.js';
 
 export default `
+varying vec4 vPos;
 varying vec2 noiseUv;
 varying vec2 vUv;
 varying vec3 vColor;
@@ -23,7 +24,9 @@ void main() {
     vUv = uvs;
     noiseUv = vec2(noiseuvs.x, noiseuvs.y) * 2.0;
 
-    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    vPos = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+    gl_Position = vPos;
 }
 
 
