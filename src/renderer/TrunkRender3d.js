@@ -112,116 +112,106 @@ class TrunkRender3d {
     }
 
     #drawBranchRound(branch) {
-        const widthScale = 1;
-        const width = branch.getWidth() * widthScale;
-        const parentWidth = branch.parent.getWidth() * widthScale;
+        const width = branch.getWidth();
+        const parentWidth = branch.parent.getWidth();
 
-        const steps = 8;
+        const quadsCount = 8;
         const totalAngle = Math.PI;
-        const angleStep = totalAngle / steps;
+        const angleStep = totalAngle / quadsCount;
         const angleStart = 0 - (Math.PI / 1);
 
         const branchAngle = Math.atan2(branch.glDirection[0], branch.glDirection[1]);
         const branchparentAngle = Math.atan2(branch.parent.glDirection[0], branch.parent.glDirection[1]);
 
-        for (let i = 0; i < steps; i ++) {
-            let angle = 0;
-            
-            angle = (angleStep * (i + 0)) + angleStart;
-            const bottomLeftPosX = branch.parent.glEnd[0] + Math.cos(angle) * Math.cos(branchparentAngle) * parentWidth;
-            const bottomLeftPosY = branch.parent.glEnd[1] - Math.cos(angle) * Math.sin(branchparentAngle) * parentWidth;
-            const bottomLeftPosZ = Math.sin(angle) * width;
-            this.vertices.push(bottomLeftPosX, bottomLeftPosY, bottomLeftPosZ);
+        const colors = [
+            branch.parent.trunkHSL,
+            branch.parent.trunkHSL,
+            branch.trunkHSL,
+            branch.trunkHSL,
+            branch.parent.trunkHSL,
+            branch.trunkHSL,
+        ];
+        const widths = [
+            parentWidth,
+            parentWidth,
+            width,
+            width,
+            parentWidth,
+            width,
+        ];
+        const positions = [
+            branch.parent.glEnd,
+            branch.parent.glEnd,
+            branch.glEnd,
+            branch.glEnd,
+            branch.parent.glEnd,
+            branch.glEnd,
+        ];
+        const horizontalAngles = [
+            branchparentAngle,
+            branchparentAngle,
+            branchAngle,
+            branchAngle,
+            branchparentAngle,
+            branchAngle,
+        ];
 
-            this.vertexNormals.push(
-                Math.cos(angle) * Math.cos(branchparentAngle),
-                0 - Math.cos(angle) * Math.sin(branchparentAngle),
-                0 - Math.sin(angle)
-            );
+        for (let i = 0; i < quadsCount; i ++) {
+            const stepAngles = [
+                (angleStep * (i + 0)) + angleStart,
+                (angleStep * (i + 1)) + angleStart,
+                (angleStep * (i + 0)) + angleStart,
+                (angleStep * (i + 0)) + angleStart,
+                (angleStep * (i + 1)) + angleStart,
+                (angleStep * (i + 1)) + angleStart,
+            ];
 
-            angle = (angleStep * (i + 1)) + angleStart;
-            const bottomRightPosX = branch.parent.glEnd[0] + Math.cos(angle) * Math.cos(branchparentAngle) * parentWidth;
-            const bottomRightPosY = branch.parent.glEnd[1] - Math.cos(angle) * Math.sin(branchparentAngle) * parentWidth;
-            const bottomRightPosZ = Math.sin(angle) * width;
-            this.vertices.push(bottomRightPosX, bottomRightPosY, bottomRightPosZ);
-
-            this.vertexNormals.push(
-                Math.cos(angle) * Math.cos(branchparentAngle),
-                0 - Math.cos(angle) * Math.sin(branchparentAngle),
-                0 - Math.sin(angle)
-            );
-
-            angle = (angleStep * (i + 0)) + angleStart;
-            const topLeftPosX = branch.glEnd[0] + Math.cos(angle) * Math.cos(branchAngle) * width;
-            const topLeftPosY = branch.glEnd[1] - Math.cos(angle) * Math.sin(branchAngle) * width;
-            const topLeftPosZ = Math.sin(angle) * width;
-            this.vertices.push(topLeftPosX, topLeftPosY, topLeftPosZ);
-
-            this.vertexNormals.push(
-                Math.cos(angle) * Math.cos(branchAngle),
-                0 - Math.cos(angle) * Math.sin(branchAngle),
-                0 - Math.sin(angle)
-            );
-
-
-            this.vertices.push(topLeftPosX, topLeftPosY, topLeftPosZ);
-
-            this.vertexNormals.push(
-                Math.cos(angle) * Math.cos(branchAngle),
-                0 - Math.cos(angle) * Math.sin(branchAngle),
-                0 - Math.sin(angle)
-            );
-
-            angle = (angleStep * (i + 1)) + angleStart;
-            this.vertexNormals.push(
-                Math.cos(angle) * Math.cos(branchparentAngle),
-                0 - Math.cos(angle) * Math.sin(branchparentAngle),
-                0 - Math.sin(angle)
-            );
-
-            this.vertices.push(bottomRightPosX, bottomRightPosY, bottomRightPosZ);
-
-            angle = (angleStep * (i + 1)) + angleStart;
-            const topRightPosX = branch.glEnd[0] + Math.cos(angle) * Math.cos(branchAngle) * width;
-            const topRightPosY = branch.glEnd[1] - Math.cos(angle) * Math.sin(branchAngle) * width;
-            const topRightPosZ = Math.sin(angle) * width;
-            this.vertices.push(topRightPosX, topRightPosY, topRightPosZ);
-
-            this.vertexNormals.push(
-                Math.cos(angle) * Math.cos(branchAngle),
-                0 - Math.cos(angle) * Math.sin(branchAngle),
-                0 - Math.sin(angle)
-            );
-
-            
-
-            this.vertexColors.push(
-                branch.parent.trunkHSL.h / 360, branch.parent.trunkHSL.s / 100, branch.parent.trunkHSL.l / 100,
-                branch.parent.trunkHSL.h / 360, branch.parent.trunkHSL.s / 100, branch.parent.trunkHSL.l / 100,
-                branch.trunkHSL.h / 360, branch.trunkHSL.s / 100, branch.trunkHSL.l / 100,
-                branch.trunkHSL.h / 360, branch.trunkHSL.s / 100, branch.trunkHSL.l / 100,
-                branch.parent.trunkHSL.h / 360, branch.parent.trunkHSL.s / 100, branch.parent.trunkHSL.l / 100,
-                branch.trunkHSL.h / 360, branch.trunkHSL.s / 100, branch.trunkHSL.l / 100,
-            );
-    
-            this.vertexUvs.push(
-                worldToNormalizedX(bottomLeftPosX), worldToNormalizedY(bottomLeftPosY),
-                worldToNormalizedX(bottomRightPosX), worldToNormalizedY(bottomRightPosY),
-                worldToNormalizedX(topLeftPosX), worldToNormalizedY(topLeftPosY),
-                worldToNormalizedX(topLeftPosX), worldToNormalizedY(topLeftPosY),
-                worldToNormalizedX(bottomRightPosX), worldToNormalizedY(bottomRightPosY),
-                worldToNormalizedX(topRightPosX), worldToNormalizedY(topRightPosY),
-            );
+            for (let j = 0; j < stepAngles.length; j ++) {
+                this.#buildBranchVertex(
+                    stepAngles[j],
+                    horizontalAngles[j],
+                    positions[j],
+                    widths[j],
+                    colors[j],
+                );
+            }
 
             this.vertexNoiseUvs.push(
-                branch.uvs[0] + (width / steps) * i, branch.uvs[1],
-                branch.uvs[0] + (width / steps) * (i + 1), branch.uvs[1],
-                branch.uvs[0] + (width / steps) * i, branch.uvs[3],
-                branch.uvs[0] + (width / steps) * i, branch.uvs[3],
-                branch.uvs[0] + (width / steps) * (i + 1), branch.uvs[1],
-                branch.uvs[0] + (width / steps) * (i + 1), branch.uvs[3],
+                branch.uvs[0] + (width / quadsCount) * (i + 0), branch.uvs[1],
+                branch.uvs[0] + (width / quadsCount) * (i + 1), branch.uvs[1],
+                branch.uvs[0] + (width / quadsCount) * (i + 0), branch.uvs[3],
+                branch.uvs[0] + (width / quadsCount) * (i + 0), branch.uvs[3],
+                branch.uvs[0] + (width / quadsCount) * (i + 1), branch.uvs[1],
+                branch.uvs[0] + (width / quadsCount) * (i + 1), branch.uvs[3],
             );
         }
+    }
+
+    #buildBranchVertex(stepAngle, horizontalAngle, position, width, trunkHSL) {
+        const trigoX = Math.cos(stepAngle) * Math.cos(horizontalAngle);
+        const trigoY = Math.cos(stepAngle) * Math.sin(horizontalAngle);
+        const trigoZ = Math.sin(stepAngle);
+
+        const posX = position[0] + trigoX * width;
+        const posY = position[1] - trigoY * width;
+        const posZ = trigoZ * width;
+
+        this.vertices.push(posX, posY, posZ);
+
+        this.vertexNormals.push(
+            trigoX,
+            0 - trigoY,
+            0 - trigoZ,
+        );
+
+        this.vertexUvs.push(
+            worldToNormalizedX(posX),
+            worldToNormalizedY(posY),
+        );
+
+        this.vertexColors.push(
+            trunkHSL.h / 360, trunkHSL.s / 100, trunkHSL.l / 100,
+        );
     }
 
     #drawBranch(branch) {
