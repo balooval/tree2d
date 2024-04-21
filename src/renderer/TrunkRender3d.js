@@ -164,6 +164,13 @@ class TrunkRender3d {
             1,
         ];
 
+        // Test coude
+        // const angleGap = branchAngle - branchparentAngle;
+        // if (Math.abs(angleGap) > 1 && angleGap > 0) {
+        //     widths[0] = width;
+        //     horizontalAngles[0] = branchAngle;
+        // }
+
         for (let i = 0; i < quadsCount; i ++) {
             /**
              * BL
