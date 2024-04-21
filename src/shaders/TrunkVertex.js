@@ -1,10 +1,13 @@
 import PerlinNoise from './PerlinNoise.js';
 
 export default `
+uniform vec3 lightDirection;
 varying vec4 vPos;
 varying vec2 noiseUv;
 varying vec2 vUv;
 varying vec3 vColor;
+varying vec3 vNormal;
+// varying float vLightValue;
 attribute vec2 uvs; 
 attribute vec2 noiseuvs;
 attribute vec3 color;
@@ -20,9 +23,12 @@ vec2 rotate(vec2 point, float radAngle, vec2 pivot)
 }
 
 void main() {
+    vNormal = normal;
     vColor = color;
     vUv = uvs;
     noiseUv = vec2(noiseuvs.x, noiseuvs.y) * 2.0;
+
+    // vLightValue = 0.5 + dot(vec2(lightDirection.xy), vec2(normal.xy)) * 0.5;
 
     vPos = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 
