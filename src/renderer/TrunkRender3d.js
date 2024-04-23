@@ -204,7 +204,7 @@ class TrunkRender3d {
     #buildBranchVertex(stepAngle, horizontalAngle, position, width, trunkHSL) {
         const trigoX = Math.cos(stepAngle) * Math.cos(horizontalAngle);
         const trigoY = Math.cos(stepAngle) * Math.sin(horizontalAngle);
-        const trigoZ = Math.sin(stepAngle);
+        const trigoZ = 0 - Math.sin(stepAngle);
 
         const posX = position[0] + trigoX * width;
         const posY = position[1] - trigoY * width;

@@ -12,6 +12,7 @@ let canvas;
 let ratio;
 let cameraOffset = [0, 0];
 let objectsToAdd = [];
+let time = 0;
 
 
 export function init(destinationCanvas) {
@@ -61,6 +62,15 @@ export function update() {
 	if (document.hasFocus() === false) {
 		return;
 	}
+
+	// time += 0.01;
+
+	// const cameraPosX = Math.cos(time) * 500;
+	// const cameraPosZ = Math.sin(time) * 500;
+
+	// camera.position.set(cameraPosX, 500, cameraPosZ);
+	// camera.lookAt(new Vector3(0, 500, 0));
+
 	renderer.setRenderTarget(null);
 	renderer.setClearColor(0x000000, 0);
 	renderer.clear();

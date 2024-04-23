@@ -292,41 +292,7 @@ export class LeafDrawer3d {
     }
 
     #drawStep(loopCounter) {
-        const currentDepth = 0;
-
-        // this.shadowLayer.glDrawCircle([-600, 400], 400, 'rgb(255, 0, 0)');
-        // this.shadowLayer.glDrawCircle([-600, 1200], 400, 'rgb(0, 255, 0)');
-        // this.shadowLayer.glDrawCircle([600, 400], 400, 'rgb(0, 0, 255)');
-        // this.shadowLayer.glDrawCircle([600, 1200], 400, 'rgb(0, 0, 0)');
-        // this.shadowLayer.glDrawCircle([0, 800], 400, 'rgb(255, 0, 255)');
-
-        /*
-        this.shadowLayer.glDrawPolygon([
-            [-500, 0],
-            [0, 0],
-            [0, 500],
-            [-500, 500],
-        ], 'rgb(255, 0, 0)');
-        this.shadowLayer.glDrawPolygon([
-            [-500, 500],
-            [0, 500],
-            [0, 1000],
-            [-500, 1000],
-        ], 'rgb(0, 255, 0)');
-        this.shadowLayer.glDrawPolygon([
-            [0, 0],
-            [500, 0],
-            [500, 500],
-            [0, 500],
-        ], 'rgb(0, 0, 255)');
-        this.shadowLayer.glDrawPolygon([
-            [0, 500],
-            [500, 500],
-            [500, 1000],
-            [0, 1000],
-        ], 'rgb(255, 0, 255)');
-        return;
-        */
+        const currentDepth = 10;
 
         for (let i = 0; i < this.particlesToDraw; i++) {
             if (this.currentInstanceIndex > this.leafCount) {
@@ -350,7 +316,7 @@ export class LeafDrawer3d {
             this.drawInstancePosition.y = particle.glPosition[1];
             this.drawInstancePosition.z = currentDepth;
 
-            this.attributePosition.setXY(this.currentInstanceIndex, particle.glPosition[0], particle.glPosition[1]);
+            this.attributePosition.setXYZ(this.currentInstanceIndex, particle.glPosition[0], particle.glPosition[1], 0);
             this.attributeDistance.setX(this.currentInstanceIndex, loopCounter);
             // this.attributeOrientation.setXY(this.currentInstanceIndex, particle.originalOrientation[0], particle.originalOrientation[1]);
             this.attributeLightReceived.setX(this.currentInstanceIndex, particle.lightReceived);
@@ -362,7 +328,6 @@ export class LeafDrawer3d {
 
 
             this.attributeOrientation.setXY(this.currentInstanceIndex, Math.sin(angle) * -1, Math.cos(angle));
-
 
             this.drawInstanceQuaternion.setFromAxisAngle(this.rotationVector, angle);
             this.matrix.compose(this.drawInstancePosition, this.drawInstanceQuaternion, this.drawInstanceScale);

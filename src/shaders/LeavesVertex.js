@@ -34,9 +34,6 @@ void main() {
     transformedNormal = m * transformedNormal;
 
     vec3 normalOrientation = normalize(transformedNormal);
-    // vFinalColor = normalize(transformedNormal);
-    // vFinalColor = normal;
-
 
     float instanceLightShade = (dot(lightDirection, vec2(normalOrientation.xy)) + 1.3) * 0.4;
     float originalLightShade = (dot(lightDirection, instanceOrientations) + 1.3) * 0.6;
