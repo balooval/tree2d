@@ -58,6 +58,7 @@ function addPresetParamsInputs() {
 function addTreeRangeControl(valueName, min, max, step) {
     createRangeControl(
         'Branch ',
+        updateTreePreset,
         currentPreset,
         valueName,
         min,
@@ -69,6 +70,7 @@ function addTreeRangeControl(valueName, min, max, step) {
 function addLeafRangeControl(valueName, min, max, step) {
     createRangeControl(
         'Leaf ',
+        updateLeafPreset,
         leavesPresets[currentPreset.leavesPreset],
         valueName,
         min,
@@ -77,7 +79,7 @@ function addLeafRangeControl(valueName, min, max, step) {
     );
 }
 
-function createRangeControl(prefix, preset, valueName, min, max, step) {
+function createRangeControl(prefix, callback, preset, valueName, min, max, step) {
     const label = prefix + (valueName.match(/[A-Z]*[a-z]+/g) ?? [valueName]).join(' ');
     const inputId = `${valueName}-Control`;
     const presetControl = `<label for="${inputId}" class="form-label">${label} <span id="${valueName}-value">-</span></label>
@@ -85,8 +87,17 @@ function createRangeControl(prefix, preset, valueName, min, max, step) {
     presetParamsContainer.insertAdjacentHTML('beforeend', presetControl);
     document.getElementById(`${valueName}-value`).innerText = preset[valueName];
     document.getElementById(inputId).addEventListener('change', evt => {
-        preset[valueName] = parseFloat(evt.target.value);
+        // preset[valueName] = parseFloat(evt.target.value);
+        callback(valueName, parseFloat(evt.target.value));
         document.getElementById(`${valueName}-value`).innerText = evt.target.value;
         onChangeCallback();
     });
+}
+
+function updateTreePreset(key, value) {
+    currentPreset[key] = value;
+}
+
+function updateLeafPreset(key, value) {
+    leavesPresets[currentPreset.leavesPreset][key] = value;
 }
